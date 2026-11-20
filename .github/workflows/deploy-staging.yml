@@ -27,7 +27,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: supabase db push
-        run: npx supabase db push --remote="$STAGING_DB_URL"
+        run: npx supabase db push --remote="$STAGING_DB_URL" --yes
         env:
           STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
 

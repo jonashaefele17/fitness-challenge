@@ -329,3 +329,4 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 - [ ] Wiegetag: welcher Wochentag, morgens nüchtern?
 - [ ] Regeln für das spätere Punktesystem
 - [ ] Name der App
+- [ ] Mehrere Gruppen: Welche persönlichen Daten (Trainings, Gewicht, Habits) sieht welche Gruppe? Freigabe pro Gruppe und Datenart nötig, spätestens mit dem Modul Körper. Bis dahin: sichtbar für alle, mit denen man eine Gruppe teilt.

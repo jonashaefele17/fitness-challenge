@@ -1,0 +1,113 @@
+/*
+ * Design tokens — the single source for colours, spacing, radii, type and motion.
+ * Components use the generated Tailwind utilities (bg-surface, text-title-1, rounded-card …),
+ * never raw values. Motion values for JS animations live in motion.ts.
+ * "static" emits every variable, so tokens can also be used via var() (e.g. person colours).
+ */
+@theme static {
+  /* Remove Tailwind's default palette so only our tokens exist. */
+  --color-*: initial;
+
+  /* Surfaces (dark, iOS-like elevation) */
+  --color-bg: #0b0b0c;
+  --color-surface: #161618;
+  --color-surface-2: #1f1f22;
+  --color-surface-3: #2a2a2e;
+  --color-overlay: rgb(0 0 0 / 0.6);
+  --color-border: rgb(255 255 255 / 0.08);
+
+  /* Glass (iOS "Liquid Glass" approximation; used through the glass-* utilities) */
+  --color-glass: rgb(38 38 42 / 0.38);
+  --color-glass-solid: #1f1f22; /* fallback without backdrop-filter / reduced transparency */
+  --color-glass-sheen: rgb(255 255 255 / 0.1);
+  --color-glass-lens: rgb(255 255 255 / 0.14);
+  --color-glass-edge: rgb(255 255 255 / 0.16);
+  --color-glass-edge-soft: rgb(255 255 255 / 0.05);
+  --color-accent-glass: rgb(200 242 90 / 0.82);
+  --color-accent-sheen: rgb(255 255 255 / 0.35);
+  --blur-glass: 22px;
+  --glass-saturation: 1.9;
+
+  /* Text */
+  --color-text: #f5f5f7;
+  --color-text-muted: #a1a1a6;
+  --color-text-subtle: #6e6e73;
+
+  /* Accent */
+  --color-accent: #c8f25a;
+  --color-accent-pressed: #b3db4a;
+  --color-on-accent: #0b0b0c;
+
+  /* Status */
+  --color-danger: #ff5a5f;
+  --color-warning: #ffb340;
+  --color-success: #4cd97b;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Person colours (fixed per user, stored as key "person-1" … "person-8") */
+  --color-person-1: #5ac8fa;
+  --color-person-2: #ff9f0a;
+  --color-person-3: #bf5af2;
+  --color-person-4: #ff6482;
+  --color-person-5: #30d158;
+  --color-person-6: #ffd60a;
+  --color-person-7: #64d2ff;
+  --color-person-8: #ac8e68;
+
+  /* Typography (system stack → SF Pro on Apple devices) */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --text-*: initial;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.125rem;
+  --text-subhead: 0.9375rem;
+  --text-subhead--line-height: 1.25rem;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.375rem;
+  --text-title-3: 1.25rem;
+  --text-title-3--line-height: 1.5rem;
+  --text-title-2: 1.375rem;
+  --text-title-2--line-height: 1.75rem;
+  --text-title-1: 1.75rem;
+  --text-title-1--line-height: 2.125rem;
+  --text-large-title: 2.125rem;
+  --text-large-title--line-height: 2.5rem;
+  --text-large-title--letter-spacing: -0.02em;
+
+  /* Spacing: Tailwind's 4px scale (p-4 = 16px) plus named sizes */
+  --spacing: 0.25rem;
+  --spacing-tap: 2.75rem; /* 44px minimum touch target */
+  --spacing-gutter: 1rem; /* screen edge padding */
+  --spacing-nav: 4rem; /* floating nav height */
+  --spacing-sheet-max: 90dvh;
+
+  /* Radii */
+  --radius-*: initial;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-card: 1.25rem;
+  --radius-sheet: 1.75rem;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-*: initial;
+  --shadow-float: 0 8px 32px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.06);
+  /* Glass: specular top edge, faint rim, soft drop shadow. */
+  --shadow-glass:
+    inset 0 1px 0 0 var(--color-glass-edge), inset 0 -1px 0 0 var(--color-glass-edge-soft),
+    inset 0 0 0 1px var(--color-glass-edge-soft), 0 10px 30px rgb(0 0 0 / 0.4),
+    0 2px 6px rgb(0 0 0 / 0.25);
+  --shadow-glass-lens:
+    inset 0 1px 0 0 var(--color-glass-edge), inset 0 0 0 1px var(--color-glass-edge-soft),
+    0 2px 8px rgb(0 0 0 / 0.25);
+
+  /* Motion (CSS transitions; springs for JS live in motion.ts) */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+}

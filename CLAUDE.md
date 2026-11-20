@@ -39,6 +39,23 @@ Diese Datei gilt für jede Sitzung in diesem Repository. Das fachliche Konzept s
     - Globale Daten ohne `group_id`: Übungskatalog, Studios, Geräte, Trainingsarten, Habit-Vorlagen.
     - RLS prüft Mitgliedschaft nur über zentrale SQL-Hilfsfunktionen (`is_group_member(group_id)`, `is_group_admin(group_id)` …), nie hart auf „die eine Gruppe“. RLS-Tests decken ab: Nutzer aus Gruppe A sieht nichts aus Gruppe B.
     - Frontend: aktiver Gruppenkontext über `useActiveGroup()` (liefert vorerst die erste/einzige Gruppe). Gruppenbezogene Queries nehmen die `group_id` daraus und haben sie im Query-Key; nie hart codiert.
+13. **Persönliche vs. soziale Module:** Ziel: persönliche Module samt Migrationen lassen sich ohne Umbau in eine andere App mit eigenem Supabase-Projekt übernehmen (z. B. eine Solo-Life-App, ggf. als Monorepo-Paket).
+    - Kategorien (gepflegt in `eslint.config.js`):
+      - **Kern:** auth, profile
+      - **Persönlich:** training, habits, body, goals, calendar-sync
+      - **Sozial:** groups, feed, comments, reactions, seasons, comparison, notifications, admin, invitations, live-training
+    - Persönliche Module funktionieren vollständig ohne Gruppenkontext und importieren nie aus sozialen Modulen.
+    - Persönliche Daten gehören der Person: `user_id` → `auth.users(id)` (nicht `profiles`), keine `group_id`.
+    - Datenbank: Persönliche Tabellen prüfen Sichtbarkeit für andere nur über eine Schnittstellen-Funktion (z. B. `private.can_view_user_data(owner_id, data_kind)`), nie direkt über Gruppentabellen. In einer Solo-App ist sie einfach `owner_id = auth.uid()`. Migrationen persönlicher Module referenzieren keine sozialen Tabellen.
+    - Die soziale Schicht hängt sich nur über die generischen Kerne (`target_type`/`target_id`, Feed-Events) an persönliche Objekte an.
+14. **Zusammensetzen nur auf App-Ebene:**
+    - Erlaubte Importe zwischen Features: Kern → nur `shared`; persönlich → `shared` + Kern; sozial → `shared` + Kern + `groups` + öffentliche Schnittstelle (`index.ts`) persönlicher Module; `src/app/` → alles über `index.ts`. Persönliche Module importieren sich nicht gegenseitig.
+    - Abhängigkeiten zwischen persönlichen Daten werden in SQL berechnet (z. B. Habit „Sport“ aus Trainings als View), nicht im Frontend verdrahtet.
+    - Persönliches und Soziales wird nur in `src/app/` zusammengesetzt: über Steckplätze/Props (z. B. Slot neben jedem Satz für Kommentar-Sprechblasen) oder über Ereignisse an echten Übergängen (z. B. `workout.finished`, `comment.created`).
+    - Übergänge mit Folgen (Feed-Eintrag, Push, Habit abhaken) laufen serverseitig als RPC oder Trigger, damit App, spätere Schnittstellen und andere Clients dieselben Regeln auslösen. Client-Ereignisse nur für reine UI-Reaktionen.
+    - Von Natur aus soziale Funktionen (gemeinsames Live-Training, Einladungen) sind eigene soziale Module, die die öffentliche Schnittstelle der persönlichen Module nutzen – nie umgekehrt.
+15. **Modulgrenzen absichern:** ESLint (`no-restricted-imports` in `eslint.config.js`) erzwingt 13 und 14; Verstöße brechen den Lint. Ein neuer Ordner unter `src/features/` muss dort einer Kategorie zugeordnet werden, sonst schlägt der Lint fehl.
+16. **Maß halten:** Modulgrenzen streng, innerhalb eines Moduls pragmatisch und direkt. Keine Abstraktionen, Steckplätze oder Events auf Vorrat – erst beim zweiten echten Anwendungsfall.
 
 ## Design
 - Ziel: fühlt sich an wie eine native iPhone-App. Dunkles Design, Akzent Limettengrün `#C8F25A`, Personenfarben fest pro Nutzer.

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+
+  database:
+    name: Migrations, RLS tests, generated types
+    runs-on: ubuntu-latest
+    env:
+      # Google is enabled in supabase/config.toml; the local stack only needs dummy values.
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ci
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start database (applies all migrations and seed.sql)
+        run: npx supabase db start
+      - name: RLS tests
+        run: npx supabase test db
+      - name: Generated types are up to date
+        run: |
+          npx supabase gen types typescript --local > "$RUNNER_TEMP/database.ts"
+          npx prettier --stdin-filepath src/shared/types/database.ts < "$RUNNER_TEMP/database.ts" > "$RUNNER_TEMP/database.formatted.ts"
+          if ! diff -u src/shared/types/database.ts "$RUNNER_TEMP/database.formatted.ts"; then
+            echo "::error::src/shared/types/database.ts is outdated. Run 'npm run db:types' and commit."
+            exit 1
+          fi

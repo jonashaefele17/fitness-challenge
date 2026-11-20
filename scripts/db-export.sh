@@ -20,9 +20,9 @@ stamp="$(date -u +%Y-%m-%d)"
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 
-npx supabase db dump --db-url "$DB_URL" -f "$workdir/roles.sql" --role-only
-npx supabase db dump --db-url "$DB_URL" -f "$workdir/schema.sql"
-npx supabase db dump --db-url "$DB_URL" -f "$workdir/data.sql" --use-copy --data-only
+npx supabase db dump --remote="$DB_URL" -f "$workdir/roles.sql" --role-only
+npx supabase db dump --remote="$DB_URL" -f "$workdir/schema.sql"
+npx supabase db dump --remote="$DB_URL" -f "$workdir/data.sql" --use-copy --data-only
 
 mkdir -p export
 tar -C "$workdir" -czf - roles.sql schema.sql data.sql |

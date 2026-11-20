@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dev-dist
+*.tsbuildinfo
+
+# Local env / secrets
+.env
+.env.local
+.env.*.local
+supabase/.env
+client_secret_*.json
+
+# Supabase CLI local state
+supabase/.temp
+supabase/.branches
+
+# Backups (never commit database dumps)
+*.dump
+*.sql.gz
+*.sql.gpg
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea

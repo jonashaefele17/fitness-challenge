@@ -36,3 +36,4 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 - [ ] Pillen-Navigation wie iOS 26: beim Runterscrollen zu einer kompakten Pille zusammenschrumpfen (nur Symbole bzw. aktiver Tab), beim Hochscrollen oder Antippen wieder aufklappen; mit Federanimation, „Bewegung reduzieren“ respektieren. Erst mit echtem langem Inhalt (Feed, Kalender) abstimmen.
 - [ ] Bundle nach Tabs aufteilen (Code-Splitting), aktuell ~290 kB gzip.
+- [ ] Prüfen, sobald Seiten lang genug zum Scrollen sind: Gleitet die Tab-Linse nach dem Runterscrollen seitlich (Fix `layoutRoot` vom 21.11.2026) statt von unten einzufliegen?

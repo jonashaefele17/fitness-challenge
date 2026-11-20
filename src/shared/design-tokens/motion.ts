@@ -1,0 +1,24 @@
+import type { Transition } from 'motion/react';
+
+/**
+ * Motion tokens for JS animations (Motion library).
+ * Reduced motion is handled globally via <MotionConfig reducedMotion="user">.
+ */
+export const spring = {
+  /** Sheets sliding up/down: soft with a slight settle. */
+  sheet: { type: 'spring', stiffness: 380, damping: 38, mass: 0.9 },
+  /** Small UI elements (tab indicator, chips). */
+  snappy: { type: 'spring', stiffness: 520, damping: 40 },
+  /** Press feedback on buttons. */
+  press: { type: 'spring', stiffness: 700, damping: 35 },
+} as const satisfies Record<string, Transition>;
+
+export const fade = {
+  fast: { duration: 0.15, ease: [0.32, 0.72, 0, 1] },
+  base: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
+} as const satisfies Record<string, Transition>;
+
+export const pressScale = 0.97;
+
+/** Drag distance (px) or velocity (px/s) after which a sheet dismisses. */
+export const sheetDismiss = { offset: 120, velocity: 500 } as const;

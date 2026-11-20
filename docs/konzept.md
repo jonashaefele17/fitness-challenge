@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.1 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell)
+- **Version:** 1.2 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -14,6 +14,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | --- | --- | --- |
 | 20.11.2026 | 1.0 | Grundkonzept erstellt |
 | 20.11.2026 | 1.1 | Datenmodell mehrgruppenfähig (siehe Entscheidungen) |
+| 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 
 ## Vision und Kernschleife
 
@@ -321,6 +322,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 20.11.2026 | Ernährung (außer Supplements) nicht in Version 1 |
 | 20.11.2026 | Punktesystem zum Schluss |
 | 20.11.2026 | Datenmodell von Anfang an mehrgruppenfähig; Oberfläche für mehrere Gruppen in späterer Ausbaustufe |
+| 20.11.2026 | Persönliche Module (Training, Habits, Körper, Ziele) funktionieren ohne Gruppe und sind samt Datenbank in eine eigene Solo-/Life-App übernehmbar; die soziale Schicht hängt sich nur von außen an. Regeln mit Folgen (Feed, Push, Habit abhaken) laufen in der Datenbank, nicht nur in der Oberfläche |
 
 **Offen (zu zweit klären)**
 

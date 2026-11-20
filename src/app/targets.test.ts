@@ -1,0 +1,18 @@
+import { describe, expect, it } from 'vitest';
+import { targetPath } from './targets';
+
+const event = { groupId: 'g', type: 'feed_event', id: 'e1' };
+
+describe('targetPath', () => {
+  it('links a feed event to its card in the group tab', () => {
+    expect(targetPath(event, { thread: false })).toBe('/gruppe?beitrag=e1');
+  });
+
+  it('opens the thread when asked', () => {
+    expect(targetPath(event, { thread: true })).toBe('/gruppe?beitrag=e1&thread=1');
+  });
+
+  it('falls back to the group tab for unknown types', () => {
+    expect(targetPath({ ...event, type: 'unknown' }, { thread: true })).toBe('/gruppe');
+  });
+});

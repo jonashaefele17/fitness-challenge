@@ -1,5 +1,6 @@
 import { useSignOut, useUserId } from '@/features/auth';
 import { useActiveGroup } from '@/features/groups';
+import { NotificationSettingsPanel } from '@/features/notifications';
 import { Avatar, useMyProfile } from '@/features/profile';
 import { Button, Card, Screen } from '@/shared/ui';
 
@@ -27,8 +28,9 @@ export function MeRoute() {
             </div>
           </Card>
         )}
+        <NotificationSettingsPanel />
         <Card className="text-subhead text-text-muted">
-          Hier kommen Kraftverlauf, Ziele, Habits und Einstellungen hin.
+          Hier kommen Kraftverlauf, Ziele, Habits und weitere Einstellungen hin.
         </Card>
         <Button
           variant="danger"

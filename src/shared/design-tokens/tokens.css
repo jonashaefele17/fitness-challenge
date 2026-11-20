@@ -85,6 +85,7 @@
   --spacing-gutter: 1rem; /* screen edge padding */
   --spacing-nav: 4rem; /* floating nav height */
   --spacing-sheet-max: 90dvh;
+  --spacing-sheet-min: 60dvh;
 
   /* Radii */
   --radius-*: initial;

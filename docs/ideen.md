@@ -31,3 +31,8 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Vollständiger Datenexport (JSON) pro Person + Import in die Life-App.
 - [ ] MCP-Server, damit Claude Einträge machen kann (nutzt dieselben RPCs).
 - [ ] Später ggf. Monorepo mit gemeinsamen Paketen für die persönlichen Module.
+
+## Feinschliff
+
+- [ ] Pillen-Navigation wie iOS 26: beim Runterscrollen zu einer kompakten Pille zusammenschrumpfen (nur Symbole bzw. aktiver Tab), beim Hochscrollen oder Antippen wieder aufklappen; mit Federanimation, „Bewegung reduzieren“ respektieren. Erst mit echtem langem Inhalt (Feed, Kalender) abstimmen.
+- [ ] Bundle nach Tabs aufteilen (Code-Splitting), aktuell ~290 kB gzip.

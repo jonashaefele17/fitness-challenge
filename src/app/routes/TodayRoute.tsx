@@ -1,7 +1,6 @@
 import { useUserId } from '@/features/auth';
 import { useMyProfile } from '@/features/profile';
 import { Card, Screen } from '@/shared/ui';
-import { GlassPreview } from './GlassPreview';
 
 export function TodayRoute() {
   const profile = useMyProfile(useUserId());
@@ -15,7 +14,6 @@ export function TodayRoute() {
           Hier erscheinen bald deine geplanten Trainings, dein Check-in und was es Neues gibt.
         </p>
       </Card>
-      <GlassPreview />
     </Screen>
   );
 }

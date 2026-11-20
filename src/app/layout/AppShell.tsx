@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { fade } from '@/shared/design-tokens';
 import { PillNav } from './PillNav';
 
@@ -18,6 +18,8 @@ export function AppShell() {
         <Outlet />
       </motion.main>
       <PillNav />
+      {/* New tabs start at the top; going back restores the previous position. */}
+      <ScrollRestoration />
     </div>
   );
 }

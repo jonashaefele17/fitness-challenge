@@ -23,7 +23,12 @@ const tabs: Tab[] = [
 /** Floating pill navigation with the round start button next to it. */
 export function PillNav() {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-safe z-30 flex items-center gap-3 px-gutter">
+    // layoutRoot: the bar is position: fixed, so the active-tab lens must be measured relative
+    // to it, not to the scrolled page (otherwise it flies in from below after scrolling).
+    <motion.div
+      layoutRoot
+      className="pointer-events-none fixed inset-x-0 bottom-safe z-30 flex items-center gap-3 px-gutter"
+    >
       <nav
         aria-label="Hauptnavigation"
         className="pointer-events-auto flex h-nav flex-1 items-center rounded-pill glass p-1"
@@ -62,6 +67,6 @@ export function PillNav() {
         ))}
       </nav>
       <StartButton />
-    </div>
+    </motion.div>
   );
 }

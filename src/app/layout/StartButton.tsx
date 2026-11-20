@@ -14,7 +14,7 @@ export function StartButton() {
         aria-label="Training starten"
         whileTap={{ scale: pressScale }}
         transition={spring.press}
-        className="pointer-events-auto flex size-nav shrink-0 items-center justify-center rounded-pill bg-accent text-title-1 text-on-accent shadow-float"
+        className="pointer-events-auto flex size-nav shrink-0 items-center justify-center rounded-pill glass-accent text-title-1 text-on-accent"
         onClick={() => {
           setOpen(true);
         }}

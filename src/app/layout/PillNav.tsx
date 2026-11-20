@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import type { ComponentType, SVGProps } from 'react';
 import { NavLink } from 'react-router';
-import { spring } from '@/shared/design-tokens';
+import { pressScale, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 import { GroupIcon, MeIcon, TodayIcon, TrainingIcon } from '@/shared/ui';
 import { paths } from '../paths';
@@ -26,7 +26,7 @@ export function PillNav() {
     <div className="pointer-events-none fixed inset-x-0 bottom-safe z-30 flex items-center gap-3 px-gutter">
       <nav
         aria-label="Hauptnavigation"
-        className="pointer-events-auto flex h-nav flex-1 items-center rounded-pill bg-glass p-1 shadow-float backdrop-blur-xl"
+        className="pointer-events-auto flex h-nav flex-1 items-center rounded-pill glass p-1"
       >
         {tabs.map(({ to, label, Icon }) => (
           <NavLink
@@ -34,8 +34,8 @@ export function PillNav() {
             to={to}
             className={({ isActive }) =>
               cn(
-                'relative flex h-full flex-1 flex-col items-center justify-center gap-0.5 rounded-pill text-caption font-medium transition-colors duration-(--duration-fast)',
-                isActive ? 'text-text' : 'text-text-subtle',
+                'relative flex h-full flex-1 rounded-pill text-caption font-medium transition-colors duration-(--duration-fast)',
+                isActive ? 'text-accent' : 'text-text-muted',
               )
             }
           >
@@ -43,13 +43,19 @@ export function PillNav() {
               <>
                 {isActive && (
                   <motion.span
-                    layoutId="pill-nav-indicator"
-                    className="absolute inset-0 rounded-pill bg-surface-3"
+                    layoutId="pill-nav-lens"
+                    className="absolute inset-0 rounded-pill glass-lens"
                     transition={spring.snappy}
                   />
                 )}
-                <Icon className="relative text-title-3" />
-                <span className="relative">{label}</span>
+                <motion.span
+                  className="relative flex flex-1 flex-col items-center justify-center gap-0.5"
+                  whileTap={{ scale: pressScale }}
+                  transition={spring.press}
+                >
+                  <Icon className="text-title-3" />
+                  <span>{label}</span>
+                </motion.span>
               </>
             )}
           </NavLink>

@@ -53,6 +53,47 @@
 @utility bottom-safe {
   bottom: max(env(safe-area-inset-bottom), --spacing(3));
 }
+/*
+ * Glass materials (iOS "Liquid Glass" approximation). Real refraction is not possible on the
+ * web; we combine a translucent tint, strong blur + saturation, a top-lit sheen and a
+ * specular rim. Falls back to a solid surface without backdrop-filter support or when the
+ * user asks for reduced transparency.
+ */
+@utility glass {
+  background-color: var(--color-glass);
+  background-image: linear-gradient(to bottom, var(--color-glass-sheen), transparent 55%);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturation));
+  box-shadow: var(--shadow-glass);
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--color-glass-solid);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--color-glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+/* Brighter inner lens, e.g. the active tab inside a glass bar. */
+@utility glass-lens {
+  background-color: var(--color-glass-lens);
+  background-image: linear-gradient(to bottom, var(--color-glass-sheen), transparent 70%);
+  box-shadow: var(--shadow-glass-lens);
+}
+/* Accent-tinted glass for the primary floating action. */
+@utility glass-accent {
+  background-color: var(--color-accent-glass);
+  background-image: linear-gradient(to bottom, var(--color-accent-sheen), transparent 60%);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--blur-glass)) saturate(var(--glass-saturation));
+  box-shadow: var(--shadow-glass);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--color-accent);
+  }
+}
+
 /* Bottom padding so content can scroll clear of the floating nav. */
 @utility pb-nav-clearance {
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8));

@@ -1579,6 +1579,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1599,6 +1600,7 @@ export type Database = {
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
+          logged_later?: boolean;
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
@@ -1618,6 +1620,7 @@ export type Database = {
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
+          logged_later?: boolean;
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
@@ -1798,6 +1801,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1814,6 +1818,19 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      log_past_workout: {
+        Args: {
+          p_distance_m?: number;
+          p_duration_seconds: number;
+          p_intensity?: number;
+          p_note?: string;
+          p_started_at: string;
+          p_template_id?: string;
+          p_training_type_id: string;
+          p_variant?: string;
+        };
+        Returns: string;
       };
       mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       mark_thread_read: {
@@ -1921,6 +1938,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1959,6 +1977,10 @@ export type Database = {
         }[];
       };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      update_workout_time: {
+        Args: { p_duration_seconds: number; p_started_at: string; p_workout_id: string };
+        Returns: undefined;
+      };
       workout_records: {
         Args: { p_workout_id: string };
         Returns: {

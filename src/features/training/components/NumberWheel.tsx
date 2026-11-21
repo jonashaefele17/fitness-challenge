@@ -22,6 +22,8 @@ export interface NumberWheelProps {
   format: (value: number) => string;
   parse: (text: string) => number;
   onChange: (value: number) => void;
+  /** Ignore touches (e.g. while the row's delete button is open), so the row can be swiped. */
+  disabled?: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export function NumberWheel({
   format,
   parse,
   onChange,
+  disabled = false,
 }: NumberWheelProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -116,9 +119,11 @@ export function NumberWheel({
       aria-label={label}
       aria-valuenow={value ?? undefined}
       aria-valuetext={value === null ? 'leer' : format(value)}
-      data-wheel
+      data-wheel={disabled ? undefined : ''}
+      aria-disabled={disabled || undefined}
       className={cn(
-        'relative h-wheel w-16 touch-none overflow-hidden rounded-sm wheel-mask select-none',
+        'relative h-wheel w-16 overflow-hidden rounded-sm wheel-mask select-none',
+        disabled ? 'pointer-events-none' : 'touch-none',
         spinning && 'bg-surface-3',
       )}
     >

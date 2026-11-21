@@ -1,4 +1,12 @@
-import { animate, motion, useDragControls, useMotionValue, type PanInfo } from 'motion/react';
+import {
+  animate,
+  motion,
+  useDragControls,
+  useMotionValue,
+  useMotionValueEvent,
+  type PanInfo,
+} from 'motion/react';
+import { useState } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, hapticTick, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
@@ -152,6 +160,11 @@ function SetRow({
   const done = set.completedAt !== null;
   const dragControls = useDragControls();
   const x = useMotionValue(0);
+  // While the delete button is revealed, the wheels ignore touches so the whole row swipes.
+  const [rowOpen, setRowOpen] = useState(false);
+  useMotionValueEvent(x, 'change', (latest) => {
+    setRowOpen(latest < -4);
+  });
 
   // Suggested values for an empty active row: last ticked set, else last workout.
   const suggestion = {
@@ -258,6 +271,7 @@ function SetRow({
               values={suggestion}
               filled={set}
               weightStep={weightStep}
+              disabled={rowOpen}
               onChange={change}
             />
           ) : (
@@ -290,10 +304,12 @@ function ActiveInputs({
   values,
   filled,
   weightStep,
+  disabled,
   onChange,
 }: {
   measure: ExerciseMeasure;
   weightStep: number;
+  disabled: boolean;
   values: Pick<WorkoutSet, 'weightKg' | 'reps' | 'durationSeconds'>;
   filled: Pick<WorkoutSet, 'weightKg' | 'reps' | 'durationSeconds'>;
   onChange: (changes: SetChanges) => void;
@@ -301,6 +317,7 @@ function ActiveInputs({
   if (measure === 'duration') {
     return (
       <NumberWheel
+        disabled={disabled}
         value={values.durationSeconds}
         suggested={filled.durationSeconds === null}
         step={STEP.duration}
@@ -317,6 +334,7 @@ function ActiveInputs({
     <span className="flex items-center gap-1">
       {(measure === 'weight_reps' || values.weightKg !== null) && (
         <NumberWheel
+          disabled={disabled}
           value={values.weightKg}
           suggested={filled.weightKg === null}
           step={weightStep}
@@ -330,6 +348,7 @@ function ActiveInputs({
       )}
       <span className="text-subhead text-text-subtle">×</span>
       <NumberWheel
+        disabled={disabled}
         value={values.reps}
         suggested={filled.reps === null}
         step={STEP.reps}

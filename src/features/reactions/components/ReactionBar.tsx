@@ -26,6 +26,9 @@ export function ReactionBar({ target }: ReactionBarProps) {
   const [picking, setPicking] = useState(false);
   const [showWho, setShowWho] = useState(false);
   const timer = useRef<number | null>(null);
+  const root = useRef<HTMLDivElement>(null);
+  // Sideways shift that keeps the opened choice inside the screen (gutter on both sides).
+  const [shift, setShift] = useState(0);
   const longPressed = useRef(false);
   const mine = reactions.data?.mine ?? null;
   const list = reactions.data?.reactions ?? [];
@@ -54,7 +57,7 @@ export function ReactionBar({ target }: ReactionBarProps) {
   }
 
   return (
-    <div className="relative flex items-center gap-1">
+    <div ref={root} className="relative flex items-center gap-1">
       <motion.button
         type="button"
         aria-pressed={mine !== null}
@@ -134,9 +137,13 @@ export function ReactionBar({ target }: ReactionBarProps) {
               key="picker"
               role="menu"
               aria-label="Reaktion wählen"
-              initial={{ opacity: 0, scale: 0.8, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 8 }}
+              ref={(element) => {
+                const next = element && root.current ? fitShift(root.current, element) : 0;
+                if (next !== shift) setShift(next);
+              }}
+              initial={{ opacity: 0, scale: 0.8, y: 8, x: shift }}
+              animate={{ opacity: 1, scale: 1, y: 0, x: shift }}
+              exit={{ opacity: 0, scale: 0.8, y: 8, x: shift }}
               transition={spring.snappy}
               className="absolute bottom-full left-0 z-40 mb-2 flex origin-bottom-left items-center gap-1 rounded-pill glass p-1"
             >
@@ -170,6 +177,22 @@ export function ReactionBar({ target }: ReactionBarProps) {
       />
     </div>
   );
+}
+
+/**
+ * How far to move the choice (opened at the button's left edge) so it stays inside the
+ * screen with the usual side gutter. Measured without transforms (offsetWidth).
+ */
+function fitShift(anchor: HTMLElement, picker: HTMLElement): number {
+  const rootStyle = getComputedStyle(document.documentElement);
+  const rem = parseFloat(rootStyle.fontSize);
+  const gutter = parseFloat(rootStyle.getPropertyValue('--spacing-gutter')) * rem;
+  const left = anchor.getBoundingClientRect().left;
+  const right = left + picker.offsetWidth;
+  const maxRight = document.documentElement.clientWidth - gutter;
+  if (right > maxRight) return Math.max(gutter - left, maxRight - right);
+  if (left < gutter) return gutter - left;
+  return 0;
 }
 
 function WhoReacted({

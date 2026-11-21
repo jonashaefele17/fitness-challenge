@@ -126,6 +126,179 @@ export type Database = {
           },
         ];
       };
+      device_exercises: {
+        Row: {
+          device_id: string;
+          exercise_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_id: string;
+          exercise_id: string;
+        };
+        Update: {
+          device_id?: string;
+          exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_exercises_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'device_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          image_path: string | null;
+          location_id: string;
+          name: string;
+          weight_max: number | null;
+          weight_min: number | null;
+          weight_step: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          location_id: string;
+          name: string;
+          weight_max?: number | null;
+          weight_min?: number | null;
+          weight_step?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          location_id?: string;
+          name?: string;
+          weight_max?: number | null;
+          weight_min?: number | null;
+          weight_step?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'devices_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      exercise_aliases: {
+        Row: {
+          alias: string;
+          exercise_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          alias: string;
+          exercise_id: string;
+        };
+        Update: {
+          alias?: string;
+          exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_aliases_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      exercise_muscles: {
+        Row: {
+          exercise_id: string;
+          muscle_group: string;
+          role: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          exercise_id: string;
+          muscle_group: string;
+          role: string;
+        };
+        Update: {
+          exercise_id?: string;
+          muscle_group?: string;
+          role?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_muscles_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_muscles_muscle_group_fkey';
+            columns: ['muscle_group'];
+            isOneToOne: false;
+            referencedRelation: 'muscle_groups';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      exercises: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          image_path: string | null;
+          measure: Database['public']['Enums']['exercise_measure'];
+          merged_into: string | null;
+          name: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          measure: Database['public']['Enums']['exercise_measure'];
+          merged_into?: string | null;
+          name: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          measure?: Database['public']['Enums']['exercise_measure'];
+          merged_into?: string | null;
+          name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercises_merged_into_fkey';
+            columns: ['merged_into'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       feed_event_types: {
         Row: {
           description: string;
@@ -348,6 +521,50 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      locations: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          name: string;
+          owner_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name: string;
+          owner_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name?: string;
+          owner_id?: string | null;
+        };
+        Relationships: [];
+      };
+      muscle_groups: {
+        Row: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          sort?: number;
+        };
+        Relationships: [];
       };
       notification_categories: {
         Row: {
@@ -811,6 +1028,107 @@ export type Database = {
         };
         Relationships: [];
       };
+      training_prefs: {
+        Row: {
+          home_location_id: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          home_location_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          home_location_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'training_prefs_home_location_id_fkey';
+            columns: ['home_location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      training_types: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          name: string;
+          owner_id: string | null;
+          sort: number;
+          with_distance: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          name: string;
+          owner_id?: string | null;
+          sort?: number;
+          with_distance?: boolean;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          name?: string;
+          owner_id?: string | null;
+          sort?: number;
+          with_distance?: boolean;
+        };
+        Relationships: [];
+      };
+      user_device_settings: {
+        Row: {
+          device_id: string;
+          exercise_id: string;
+          setting: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_id: string;
+          exercise_id: string;
+          setting: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          device_id?: string;
+          exercise_id?: string;
+          setting?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_device_settings_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_device_settings_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -897,9 +1215,19 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      search_exercises: {
+        Args: { p_limit?: number; p_query: string };
+        Returns: {
+          id: string;
+          matched_alias: string;
+          measure: Database['public']['Enums']['exercise_measure'];
+          name: string;
+        }[];
+      };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
     };
     Enums: {
+      exercise_measure: 'weight_reps' | 'reps' | 'duration';
       group_role: 'admin' | 'member';
     };
     CompositeTypes: {
@@ -1015,6 +1343,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      exercise_measure: ['weight_reps', 'reps', 'duration'],
       group_role: ['admin', 'member'],
     },
   },

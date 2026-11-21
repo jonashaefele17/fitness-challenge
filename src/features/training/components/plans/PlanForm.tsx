@@ -90,8 +90,9 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
               ))}
             </div>
           </FieldGroup>
-          {templates.length > 0 && (
-            <FieldGroup label="Vorlage (optional)">
+          {/* Always there (same height), so the sheet does not jump when the type changes. */}
+          <FieldGroup label="Vorlage (optional)">
+            {templates.length > 0 ? (
               <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
                 {templates.map((template) => (
                   <button
@@ -107,8 +108,14 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
                   </button>
                 ))}
               </div>
-            </FieldGroup>
-          )}
+            ) : (
+              <p className="flex min-h-tap items-center text-subhead text-text-subtle">
+                {draft.trainingTypeId
+                  ? 'Keine Vorlagen für diese Trainingsart.'
+                  : 'Erst eine Trainingsart wählen.'}
+              </p>
+            )}
+          </FieldGroup>
         </>
       ) : (
         <TextField

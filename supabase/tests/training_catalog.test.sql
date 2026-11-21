@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(27);
+select plan(29);
 
 -- Start from an empty catalogue (seed migrations add a starter catalogue).
 delete from public.device_exercises;
@@ -126,6 +126,14 @@ select throws_ok(
   $$insert into public.devices (location_id, name, created_by) values
     ('10000000-0000-4000-8000-000000000002', 'Fremdes Gerät', '22222222-2222-4222-8222-222222222222')$$,
   '42501', null, 'nobody adds devices to someone else''s private place');
+update public.devices set weight_step = 1.25 where id = 'd0000000-0000-4000-8000-000000000002';
+update public.devices set weight_step = 99 where id = 'd0000000-0000-4000-8000-000000000001';
+select is(
+  (select weight_step from public.devices where id = 'd0000000-0000-4000-8000-000000000002'),
+  1.25::numeric, 'members may edit devices at public studios');
+select is(
+  (select weight_step from public.devices where id = 'd0000000-0000-4000-8000-000000000001'),
+  2.50::numeric, 'devices at someone else''s private place stay untouched');
 select throws_ok(
   $$insert into public.exercise_aliases (exercise_id, alias) values
     ('e0000000-0000-4000-8000-000000000001', 'Brustpresse')$$,

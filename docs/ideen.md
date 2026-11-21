@@ -42,5 +42,5 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 - [ ] Muskelgruppen-Wochenübersicht („Sätze pro Muskelgruppe diese Woche“) unter Ich → Training bzw. im Wochenrückblick
 - [ ] Körper-Grafik (vorne/hinten, Muskeln eingefärbt) wie bei Lyfta – eine Komponente für Übungsdetail und Wochenübersicht
-- [ ] Haptik: aktuell iOS-18-Schalter-Trick (inoffiziell) in `shared/lib/haptics.ts` – bei nativer App (Capacitor) durch echte Haptik ersetzen
+- [ ] Haptik auf dem iPhone: im Web nicht möglich (iOS-Schalter-Trick funktioniert auf iOS 26 nicht); mit nativer App (Capacitor) echte Haptik in `shared/lib/haptics.ts` ergänzen
 - [ ] Optional später: Satzpause-Erinnerung per Push (falls doch gewünscht; PWA kann im Hintergrund nicht selbst klingeln)

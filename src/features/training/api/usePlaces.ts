@@ -254,3 +254,52 @@ export async function linkExerciseToDevice(deviceId: string, exerciseId: string)
     .from('device_exercises')
     .upsert({ device_id: deviceId, exercise_id: exerciseId }, { ignoreDuplicates: true });
 }
+
+/** Adds an exercise to a device (e.g. Kabelturm + Face Pulls). */
+export function useLinkExercise(locationId: string) {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async ({ deviceId, exerciseId }: { deviceId: string; exerciseId: string }) => {
+      const { error } = await supabase
+        .from('device_exercises')
+        .upsert({ device_id: deviceId, exercise_id: exerciseId }, { ignoreDuplicates: true });
+      if (error) throw error;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: placeKeys.devices(userId, locationId) }),
+  });
+}
+
+/** Adds an empty device at a place (exercises are linked afterwards). */
+export function useCreateEmptyDevice(locationId: string) {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: {
+      name: string;
+      weightStep: number | null;
+      comparable: boolean;
+    }): Promise<Device> => {
+      const id = crypto.randomUUID();
+      const { error } = await supabase.from('devices').insert({
+        id,
+        location_id: locationId,
+        name: input.name.trim(),
+        weight_step: input.weightStep,
+        comparable: input.comparable,
+        created_by: userId,
+      });
+      if (error) throw error;
+      return {
+        id,
+        name: input.name.trim(),
+        weightStep: input.weightStep,
+        comparable: input.comparable,
+        settingFields: [],
+      };
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: placeKeys.devices(userId, locationId) }),
+  });
+}

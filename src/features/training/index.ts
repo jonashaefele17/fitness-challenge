@@ -20,6 +20,7 @@ export {
   useRemoveItem,
   useReorderItems,
   useRestoreItem,
+  useSetItemDevice,
   useStartWorkout,
   useSwapExercise,
   useTogglePause,
@@ -30,7 +31,10 @@ export {
 } from './api/useWorkout';
 export type * from './types';
 export * from './format';
-export { AddExerciseSheet, type AddExerciseSheetProps } from './components/AddExerciseSheet';
+export {
+  ExercisePickerSheet,
+  type ExercisePickerSheetProps,
+} from './components/ExercisePickerSheet';
 export { StartTrainingSheet, type StartTrainingSheetProps } from './components/StartTrainingSheet';
 export { WorkoutMiniBar, type WorkoutMiniBarProps } from './components/WorkoutMiniBar';
 export { WorkoutScreen, type WorkoutScreenProps } from './components/WorkoutScreen';

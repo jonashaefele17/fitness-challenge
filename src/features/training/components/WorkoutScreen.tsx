@@ -28,6 +28,7 @@ import {
   useRestoreItem,
   useSwapExercise,
   useTogglePause,
+  useSetItemDevice,
   useSetWorkoutLocation,
   useUpdateItemNote,
   type FinishedWorkout,
@@ -40,8 +41,7 @@ import {
   type WorkoutSummary,
 } from '../format';
 import type { ActiveWorkout, Device, ExerciseSummary, WorkoutItem } from '../types';
-import { useDevicesAt } from '../api/usePlaces';
-import { AddExerciseSheet } from './AddExerciseSheet';
+import { ExercisePickerSheet } from './ExercisePickerSheet';
 import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
@@ -70,7 +70,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
     device: Device;
     exercise: ExerciseSummary;
   } | null>(null);
-  const devices = useDevicesAt(workout.location?.id ?? null).data;
+  const setItemDevice = useSetItemDevice();
   const setLocation = useSetWorkoutLocation(workout.id);
   const [summary, setSummary] = useState<(WorkoutSummary & FinishedWorkout) | null>(null);
 
@@ -230,10 +230,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         </nav>
       )}
 
-      <AddExerciseSheet
+      <ExercisePickerSheet
         open={addOpen}
         onOpenChange={setAddOpen}
-        devices={devices}
+        place={workout.location}
         onPick={(exercise, device) => {
           const itemId = crypto.randomUUID();
           addExercise.mutate({
@@ -247,14 +247,17 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           setActiveId(itemId);
         }}
       />
-      <AddExerciseSheet
+      <ExercisePickerSheet
         open={swapItem !== null}
         onOpenChange={(open) => {
           if (!open) setSwapItem(null);
         }}
         title="Übung tauschen"
-        onPick={(exercise) => {
-          if (swapItem) swap.mutate({ itemId: swapItem.id, exercise });
+        place={workout.location}
+        onPick={(exercise, device) => {
+          if (!swapItem) return;
+          swap.mutate({ itemId: swapItem.id, exercise });
+          setItemDevice.mutate({ itemId: swapItem.id, device });
         }}
       />
       <DevicePickerSheet

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
-import type { ExerciseMeasure, ExerciseSummary, TrainingType } from '../types';
+import type { Device, ExerciseMeasure, ExerciseSummary, TrainingType, TrendPoint } from '../types';
 import { trainingKeys } from './keys';
 
 export function useTrainingTypes() {
@@ -160,4 +160,56 @@ export function usePrimaryMuscles(exerciseIds: string[]) {
     byExercise.set(row.exercise_id, list);
   }
   return byExercise;
+}
+
+export interface ExerciseHistory {
+  lastDoneAt: string;
+  lastWeightKg: number | null;
+  lastReps: number | null;
+  lastDurationSeconds: number | null;
+  trend: TrendPoint[];
+}
+
+/**
+ * My history for all exercises in one call, keyed "exerciseId:scope" where scope is the
+ * machine id or "" (no device / comparable device). Use historyFor() to read it.
+ */
+export function useExerciseOverview() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'overview'],
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<Map<string, ExerciseHistory>> => {
+      const { data, error } = await supabase.rpc('exercise_overview');
+      if (error) throw error;
+      const map = new Map<string, ExerciseHistory>();
+      for (const row of data) {
+        // Generated RPC types mark these as non-null, but they are null for the shared scope / no data.
+        const scope = row.scope_device_id as string | null;
+        const trend = row.trend as number[] | null;
+        map.set(`${row.exercise_id}:${scope ?? ''}`, {
+          lastDoneAt: row.last_done_at,
+          lastWeightKg: row.last_weight_kg,
+          lastReps: row.last_reps,
+          lastDurationSeconds: row.last_duration_seconds,
+          trend: (trend ?? []).map((value, index) => ({
+            startedAt: String(index),
+            value,
+          })),
+        });
+      }
+      return map;
+    },
+  });
+}
+
+/** History for an exercise in the scope of a device (machine) or the shared scope. */
+export function historyFor(
+  overview: Map<string, ExerciseHistory> | undefined,
+  exerciseId: string,
+  device: Pick<Device, 'id' | 'comparable'> | null,
+): ExerciseHistory | undefined {
+  if (!overview) return undefined;
+  const scope = device && !device.comparable ? device.id : '';
+  return overview.get(`${exerciseId}:${scope}`);
 }

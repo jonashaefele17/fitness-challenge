@@ -157,3 +157,26 @@ export interface ExerciseRecords {
   /** Most reps per weight, heaviest first. */
   repsAtWeight: { weightKg: number; reps: number; achievedAt: string }[];
 }
+
+/** A finished workout as shown in the calendar. */
+export interface CalendarWorkout {
+  id: string;
+  userId: string;
+  startedAt: string;
+  /** Active time (duration workouts: as entered; others: end − start − pauses). */
+  durationSeconds: number | null;
+  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
+  variant: string | null;
+  focus: { id: string; name: string } | null;
+  locationName: string | null;
+  distanceM: number | null;
+  exerciseCount: number;
+}
+
+/** A finished workout with everything for the detail view. */
+export interface WorkoutDetailData extends CalendarWorkout {
+  endedAt: string | null;
+  intensity: number | null;
+  note: string | null;
+  items: WorkoutItem[];
+}

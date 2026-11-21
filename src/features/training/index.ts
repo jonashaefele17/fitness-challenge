@@ -54,3 +54,12 @@ export {
   type HistoryCompare,
   type UseHistoryCompare,
 } from './components/history/compare';
+export { workoutsInRangeOptions } from './api/useCalendar';
+export {
+  CalendarPeopleContext,
+  type CalendarPeople,
+  type CalendarPerson,
+  type UseCalendarPeople,
+} from './components/calendar/people';
+export { WorkoutCalendar } from './components/calendar/WorkoutCalendar';
+export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailSheet';

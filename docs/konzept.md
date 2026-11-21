@@ -398,6 +398,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 
 **Offen (zu zweit klären)**
 
+- [ ] Ruhetage und Habit-Bewertung nochmal durchdenken: Eine Woche ganz ohne Sport darf nicht über Ruhetage positiv zählen (z. B. Ruhetage nur als Ausnahme, wenn das Wochenziel trotzdem erreicht ist, oder höchstens n pro Woche). Spätestens mit Baustein 6 (Habits) entscheiden.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?
 - [ ] Wiegetag: welcher Wochentag, morgens nüchtern?

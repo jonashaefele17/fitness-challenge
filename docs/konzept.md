@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.15 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.16 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.16 | Besondere Tage im Kalender (Saison, Wiegetag, Pause, Ruhetag, eigene Events) als Marker an der Tageszahl; eigene Events als Termin-Art; Ruhetage ohne Einzelklicks (Wochenbewertung, Rhythmus, Zeiträume) |
 | 21.11.2026 | 1.15 | Darstellung geplanter Termine und Teilnehmer im Kalender festgelegt (Umriss-Icon, Avatar-Punkt mit Status); Ich-Ansicht in eigener Personenfarbe |
 | 21.11.2026 | 1.14 | Kalender: Ich = Monat auf einem Bildschirm, Gruppe = Wochenliste wie iOS-Kalender mit Personenauswahl in einer aufklappenden Pille; Tag als Sheet mit Platz für Planen/Nachtragen; „+“ der Navigation bleibt Starten |
 | 21.11.2026 | 1.13 | Trainings-Log als Monatskarte (‹ › und Wischen), Tag antippen zeigt ihn unter der Karte; bei mehreren Trainings am Tag gewinnt das Krafttraining (Icon vorn, Kürzel); Beschriftung leise grau |
@@ -127,7 +128,8 @@ Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfal
 - **Einladung:** Push an die Eingeladenen; Antworten: Zusage, Absage, andere Zeit vorschlagen (Gegenvorschlag mit einem Tap annehmen), vielleicht.
 - **Bearbeiten:** Datum, Zeit, Vorlage, Teilnehmer; jede Änderung geht als Push raus, Eingeladene bestätigen neu. Absagen mit Bestätigung.
 - **„Ich komm mit“:** auf einen geplanten Termin eines anderen anfragen.
-- **Ausfall:** Termin wird grau, „Nachholen“ legt ihn neu an. Geplante Ruhetage kommen ebenfalls in den Kalender.
+- **Ausfall:** Termin wird grau, „Nachholen“ legt ihn neu an.
+- **Eigene Events:** Termin-Art „Event“ ohne Training (z. B. Stadtlauf, Wettkampf, Gruppen-Grillen), für sich oder die Gruppe; gleiche Einladung/Zusage wie Trainings-Termine.
 - **Export:** Termin als .ics in den Handykalender.
 - Aus einem heutigen Termin startet man direkt das gemeinsame Training.
 
@@ -145,6 +147,28 @@ Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfal
 
 - **Tages-Sheet:** Zeile mit Uhrzeit, Art, Fokus; rechts die Teilnehmer-Avatare mit Status (✓ zugesagt, ? offen, Uhr = anderer Zeitvorschlag, ✗ abgesagt); antippen öffnet den Termin.
 - **Gruppenansicht:** gemeinsamer Termin in beiden Personenzeilen als Umriss-Icon in der jeweiligen Farbe; wer noch nicht zugesagt hat, blasser.
+
+**Besondere Tage im Kalender:** markieren das Datum, nicht die Zelle – der Platz für Trainings (Icon, Kürzel) bleibt frei.
+
+| Art | Quelle | Marker an der Tageszahl | Gilt für |
+| --- | --- | --- | --- |
+| Saisonende | Saison | Fahne als Ziellinie (hervorgehoben, Ziele fällig) | Gruppe |
+| Saisonstart | Saison | Fahne | Gruppe |
+| Eigenes Event | Termin-Art „Event“ | kleiner Stern | Gruppe oder Person |
+| Wiegetag | Saisonregel | Waage | Person |
+| Pause (krank, Urlaub) | Saison, als Zeitraum | dünner Strich unter den Tagen | Person |
+| Ruhetag | Rhythmus oder einzeln | nur gedämpfte Zahl, kein Symbol | Person |
+
+- Pro Tag höchstens ein Marker, Rangfolge wie in der Tabelle; alles Weitere steht im Tages-Sheet oben unter „Besonderes“ (z. B. „Wiegetag · morgens nüchtern“, „Saisonende · noch 3 Ziele offen“).
+- Gruppenansicht: Gruppen-Marker an der Datumszeile der Woche (einmal für alle), persönliche Marker in der Personenzeile.
+- „Heute“ zeigt anstehende besondere Tage („Morgen Wiegetag“, „Noch 5 Tage bis Saisonende“).
+- Technik: Steckplatz „Tages-Marker“ im Kalender; Saisons, Körper und Planung liefern ihre Marker, wenn sie gebaut werden. Marker werden berechnet, nicht gespeichert (außer eigenen Events).
+
+**Ruhetage – nie einzeln anklicken müssen:**
+1. Standard: nichts eintragen. Ein Tag ohne Training ist einfach frei; Sport wird pro Woche bewertet („4× pro Woche“), Streaks und Konsistenz zählen Wochen.
+2. Fester Rhythmus einmal einstellen (z. B. „Sonntag immer frei“); diese Tage zählen bei täglich gewerteten Habits automatisch als erfüllt.
+3. Längere Pausen (Krankheit, Urlaub) einmal als Zeitraum „von – bis“; zählen weder für noch gegen die Konsistenz.
+4. Einzelner bewusster Ruhetag nur bei Bedarf über das „+“ im Tages-Sheet.
 
 ## Feed, Kommentare und Benachrichtigungen
 
@@ -184,7 +208,7 @@ Habits sind ein Baukasten: Jeder definiert seine eigenen, Jonas' 5 Säulen (Spor
 | Häufigkeit | täglich · bestimmte Wochentage · x-mal pro Woche |
 | Zeitpunkt | morgens / abends (Reihenfolge im Check-in, Erinnerung) |
 | Automatisch | optional aus der App, z. B. Sport aus Trainings |
-| Ausnahmen | z. B. geplanter Ruhetag zählt als erfüllt |
+| Ausnahmen | Ruhetage aus dem eingestellten Rhythmus oder einzeln geplant zählen als erfüllt; Pausen-Zeiträume zählen nicht |
 | Fortschritt teilen | privat · nur „erledigt“ · mit Werten |
 | Als Vorlage veröffentlichen | ja/nein (landet in der Habit-Bibliothek der Gruppe) |
 
@@ -365,6 +389,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 | 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Ruhetage muss man nicht eintragen: Sport wird pro Woche bewertet; wer feste Ruhetage hat, stellt einmal einen Rhythmus ein; Krankheit/Urlaub als Zeitraum. Besondere Tage markieren nur die Tageszahl (höchstens ein Marker), Details im Tages-Sheet |
 | 21.11.2026 | Planen und Nachtragen gehören an den Tag (Sheet mit „+“), nicht an das „+“ der Navigation; ein Knopf mit wechselnder Bedeutung ist nicht vorhersagbar. Gruppenansicht gleich in der endgültigen Form (iOS-Kalender mit Zukunft), keine Zwischenlösung |
 | 21.11.2026 | Kalender als Trainings-Log statt Punkte-Kalender: Was wann trainiert wurde, steht direkt in der Zelle (Icon + Kürzel), kein Monat/Woche-Umschalter und keine Liste daneben; mit Gruppe eine Zeile pro Person. Grund: Punkte zeigen nur „dass“, nicht „was“; nur ein Umschalter pro Bildschirm |
 | 21.11.2026 | Navigation nach Fragen: Training-Tab „was wann“ (Kalender, Vorlagen), Ich „wie entwickle ich mich“ (Training · Habits · Einstellungen), Gruppe „wie stehen wir zueinander“ (Feed, Vergleich). Vergleichbar ist alles, was jemand pro Datenart (Training, Habits, Körper) freigibt; Vergleich in den eigenen Ansichten („Vergleichen mit“) und als Übersicht in Gruppe → Vergleich |

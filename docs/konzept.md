@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.16 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.17 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.17 | Vorlagen umgesetzt: Gerätetyp statt Gerät, Wiederholungsbereich pro Übung, Aufwärmsätze, ein Besitzer (andere benutzen/kopieren), Ordnung gegen Chaos, Archiv mit endgültigem Löschen |
 | 21.11.2026 | 1.16 | Besondere Tage im Kalender (Saison, Wiegetag, Pause, Ruhetag, eigene Events) als Marker an der Tageszahl; eigene Events als Termin-Art; Ruhetage ohne Einzelklicks (Wochenbewertung, Rhythmus, Zeiträume) |
 | 21.11.2026 | 1.15 | Darstellung geplanter Termine und Teilnehmer im Kalender festgelegt (Umriss-Icon, Avatar-Punkt mit Status); Ich-Ansicht in eigener Personenfarbe |
 | 21.11.2026 | 1.14 | Kalender: Ich = Monat auf einem Bildschirm, Gruppe = Wochenliste wie iOS-Kalender mit Personenauswahl in einer aufklappenden Pille; Tag als Sheet mit Platz für Planen/Nachtragen; „+“ der Navigation bleibt Starten |
@@ -123,6 +124,10 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfall verschiebt nichts und bestraft niemanden.
 
 - **Vorlagen:** eigene Trainings mit Übungen, Ziel-Sätzen und Wiederholungsbereichen; aus einem vergangenen Training speicherbar; Vorlagen anderer lassen sich kopieren.
+  - Pro Übung: Gerätetyp (nicht das konkrete Gerät – funktioniert in jedem Studio; fehlt der Typ vor Ort, startet die Übung ohne Gerät mit „Gerät wählen“), Sätze, optionale Aufwärmsätze (vorausgewählt), Wiederholungsbereich (z. B. 8–12) bzw. Zielzeit. Kein Gewicht – das kommt aus dem eigenen Verlauf bzw. der Progression.
+  - Eine Vorlage hat genau einen Besitzer, nur er bearbeitet sie. Gruppenmitglieder starten direkt damit (mit eigenen Gewichten) oder „Als eigene kopieren“; „Vorlage aktualisieren?“ fragt am Trainingsende nur den Besitzer, andere bekommen „Als eigene Vorlage speichern?“.
+  - Gegen Chaos: zuletzt benutzte zuerst (6 sichtbar, Rest unter „Alle“); beim Start nur Vorlagen der gewählten Trainingsart; beim Speichern Hinweis auf eine Vorlage mit denselben Übungen („diese aktualisieren?“) und Namensvorschlag aus Fokus + Art; 60 Tage unbenutzt → „Lange nicht genutzt“ (eingeklappt); Gruppen-Vorlagen in eigenem, eingeklapptem Bereich und nur, solange ihr Besitzer sie nutzt – einmal benutzt, wandern sie in die eigene Liste.
+  - Archivieren statt löschen; im Archiv „Endgültig löschen“ (Trainings bleiben, nur der Verweis fällt weg).
 - **Kalender:** Monats- und Wochenansicht, vor und zurück blätterbar; Punkte für erledigt, geplant und „mit jemandem“; „Alle“ blendet die Trainings der anderen ein.
 - **Termin:** Datum (beliebig weit voraus), Uhrzeit, Trainingsart, optional Vorlage, Teilnehmer; optional wiederkehrend.
 - **Einladung:** Push an die Eingeladenen; Antworten: Zusage, Absage, andere Zeit vorschlagen (Gegenvorschlag mit einem Tap annehmen), vielleicht.

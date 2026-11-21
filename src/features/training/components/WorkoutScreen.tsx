@@ -211,15 +211,21 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           >
             + Übung
           </Button>
-          <Button
-            variant="secondary"
-            disabled={index >= items.length - 1}
-            onClick={() => {
-              setActiveId(items[index + 1]?.id ?? null);
-            }}
-          >
-            Nächste ›
-          </Button>
+          {index < items.length - 1 ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setActiveId(items[index + 1]?.id ?? null);
+              }}
+            >
+              Nächste ›
+            </Button>
+          ) : (
+            // Last exercise: the same spot finishes the workout.
+            <Button loading={finish.isPending} onClick={finishWorkout}>
+              Beenden ✓
+            </Button>
+          )}
         </nav>
       )}
 

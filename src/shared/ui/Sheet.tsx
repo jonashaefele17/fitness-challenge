@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { fade, sheetDismiss, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
@@ -12,6 +12,8 @@ export interface SheetProps {
   hideTitle?: boolean;
   description?: string;
   children?: ReactNode;
+  /** Pinned below the scrolling content, e.g. a comment composer. */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -26,9 +28,11 @@ export function Sheet({
   hideTitle = false,
   description,
   children,
+  footer,
   className,
 }: SheetProps) {
   const dragControls = useDragControls();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (info.offset.y > sheetDismiss.offset || info.velocity.y > sheetDismiss.velocity) {
@@ -54,8 +58,15 @@ export function Sheet({
               asChild
               forceMount
               {...(description ? {} : { 'aria-describedby': undefined })}
+              // Focus the sheet itself instead of its first input, so opening a sheet with a
+              // text field does not pop up the iPhone keyboard.
+              onOpenAutoFocus={(event) => {
+                event.preventDefault();
+                contentRef.current?.focus();
+              }}
             >
               <motion.div
+                ref={contentRef}
                 className={cn(
                   'fixed inset-x-0 bottom-0 z-50 flex max-h-(--spacing-sheet-max) flex-col rounded-t-sheet border-t border-border bg-surface pb-safe outline-none',
                   className,
@@ -92,6 +103,11 @@ export function Sheet({
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-4">
                   {children}
                 </div>
+                {footer && (
+                  <div className="shrink-0 border-t border-border px-gutter pt-3 pb-2">
+                    {footer}
+                  </div>
+                )}
               </motion.div>
             </Dialog.Content>
           </Dialog.Portal>

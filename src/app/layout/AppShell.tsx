@@ -1,7 +1,10 @@
 import { motion } from 'motion/react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router';
+import { AppBadgeSync } from '@/features/notifications';
 import { fade } from '@/shared/design-tokens';
 import { PillNav } from './PillNav';
+import { PushTargetHandler } from './PushTargetHandler';
+import { RealtimeSync } from './RealtimeSync';
 
 export function AppShell() {
   const location = useLocation();
@@ -20,6 +23,9 @@ export function AppShell() {
       <PillNav />
       {/* New tabs start at the top; going back restores the previous position. */}
       <ScrollRestoration />
+      <AppBadgeSync />
+      <RealtimeSync />
+      <PushTargetHandler />
     </div>
   );
 }

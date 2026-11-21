@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+
+export { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 import type { Database } from '@/shared/types/database';
 import { env } from './env';
 

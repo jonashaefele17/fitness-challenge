@@ -19,3 +19,8 @@ values
   ('00000000-0000-4000-8000-000000000001', private.hash_invite_code('DEV-INVITE'), 'Local member', 'member', 50),
   ('00000000-0000-4000-8000-000000000002', private.hash_invite_code('DEV-OTHER'), 'Local other group', 'member', 50)
 on conflict (code_hash) do nothing;
+
+-- Local push delivery: pg_cron calls the edge function inside the Docker network.
+select vault.create_secret(
+  'http://supabase_kong_fitness-challenge:8000/functions/v1/send-push', 'push_function_url');
+select vault.create_secret('local-cron-secret', 'cron_secret');

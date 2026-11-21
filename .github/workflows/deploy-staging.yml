@@ -31,6 +31,52 @@ jobs:
         env:
           STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
 
+  functions:
+    name: Deploy edge functions and push config
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Project ref
+        run: |
+          host="${SUPABASE_URL#https://}"
+          echo "PROJECT_REF=${host%%.*}" >> "$GITHUB_ENV"
+      - name: Function secrets
+        run: >-
+          npx supabase secrets set --remote="$PROJECT_REF" --yes
+          VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY"
+          VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY"
+          VAPID_SUBJECT="$VAPID_SUBJECT"
+          CRON_SECRET="$CRON_SECRET"
+        env:
+          VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      - name: Deploy send-push
+        run: npx supabase functions deploy send-push --remote="$PROJECT_REF" --no-verify-jwt --use-api --yes
+      # pg_cron reads the function URL and the shared secret from Vault.
+      - name: Vault values for the push schedule
+        run: |
+          psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -q \
+            -v url="$SUPABASE_URL/functions/v1/send-push" -v secret="$CRON_SECRET" <<'SQL'
+          delete from vault.secrets where name in ('push_function_url', 'cron_secret');
+          select vault.create_secret(:'url', 'push_function_url');
+          select vault.create_secret(:'secret', 'cron_secret');
+          SQL
+        env:
+          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
   build:
     name: Build app
     needs: migrate
@@ -47,6 +93,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
       # GitHub Pages has no SPA fallback; serve the app shell for unknown paths.
       - run: cp dist/index.html dist/404.html
@@ -57,7 +104,7 @@ jobs:
 
   deploy:
     name: Publish to GitHub Pages
-    needs: build
+    needs: [build, functions]
     runs-on: ubuntu-latest
     permissions:
       pages: write

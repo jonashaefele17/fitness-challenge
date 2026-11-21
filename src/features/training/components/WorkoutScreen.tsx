@@ -21,6 +21,7 @@ import { cn, showToast } from '@/shared/lib';
 import { Button, Card, Chip, ChevronDownIcon, Sheet, TextField } from '@/shared/ui';
 import {
   useAddExercise,
+  useDeleteWorkout,
   useDiscardWorkout,
   useFinishWorkout,
   useRemoveItem,
@@ -32,6 +33,7 @@ import {
   useSetWorkoutFocus,
   useSetWorkoutLocation,
   useUpdateItemNote,
+  useUpdateWorkoutTime,
   useWorkoutRecords,
   type FinishedWorkout,
 } from '../api/useWorkout';
@@ -51,11 +53,15 @@ import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
 import { RememberDevices } from './RememberDevices';
 import { RoutinePlayer } from './routine/RoutinePlayer';
+import { parseWhen, whenFrom, type When } from './when';
+import { WhenFields } from './WhenFields';
 import { SaveAsTemplate } from './templates/SaveAsTemplate';
 import { ExerciseHistorySheet, type HistoryTarget } from './history/ExerciseHistorySheet';
 
 export interface WorkoutScreenProps {
   workout: ActiveWorkout;
+  /** live: the running workout. edit: one of my finished workouts (also when added afterwards). */
+  mode?: 'live' | 'edit';
   /** Leave the screen; the workout keeps running (mini bar). */
   onMinimize: () => void;
   /** After finishing and closing the summary, or after discarding. */
@@ -64,7 +70,10 @@ export interface WorkoutScreenProps {
 
 type Menu = { kind: 'workout' } | { kind: 'item'; item: WorkoutItem } | null;
 
-export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenProps) {
+export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: WorkoutScreenProps) {
+  const editing = mode === 'edit';
+  const [timeOpen, setTimeOpen] = useState(false);
+  const deleteWorkout = useDeleteWorkout();
   const [activeId, setActiveId] = useState<string | null>(workout.items[0]?.id ?? null);
   const [menu, setMenu] = useState<Menu>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -154,8 +163,8 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
       <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
         <button
           type="button"
-          aria-label="Minimieren"
-          onClick={onMinimize}
+          aria-label={editing ? 'Schließen' : 'Minimieren'}
+          onClick={editing ? onClose : onMinimize}
           className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
         >
           <ChevronDownIcon />
@@ -165,7 +174,20 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
             {workout.trainingType.name}
             {workout.location ? ` · ${workout.location.name}` : ''}
           </span>
-          <ElapsedTime workout={workout} />
+          {editing ? (
+            <button
+              type="button"
+              onClick={() => {
+                setTimeOpen(true);
+              }}
+              className="text-subhead font-semibold text-accent"
+            >
+              {editDate.format(new Date(workout.startedAt))} ·{' '}
+              {formatMinutesShort(workoutSeconds(workout))}
+            </button>
+          ) : (
+            <ElapsedTime workout={workout} />
+          )}
         </div>
         <button
           type="button"
@@ -180,7 +202,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
       </header>
 
       {/* Guided routines (Mobility): the phone leads instead of a set list. */}
-      {workout.trainingType.guided ? (
+      {workout.trainingType.guided && !editing ? (
         <RoutinePlayer
           workoutId={workout.id}
           trainingTypeId={workout.trainingType.id}
@@ -271,6 +293,8 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
                 >
                   Nächste ›
                 </Button>
+              ) : editing ? (
+                <Button onClick={onClose}>Fertig ✓</Button>
               ) : (
                 // Last exercise: the same spot finishes the workout.
                 <Button loading={finish.isPending} onClick={finishWorkout}>
@@ -418,6 +442,31 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
                 }}
               />
             </>
+          ) : editing ? (
+            <>
+              <MenuButton
+                label="Tag, Uhrzeit & Dauer"
+                onClick={() => {
+                  setMenu(null);
+                  setTimeOpen(true);
+                }}
+              />
+              <MenuButton
+                label="Ort ändern"
+                onClick={() => {
+                  setMenu(null);
+                  setPlaceOpen(true);
+                }}
+              />
+              <MenuButton
+                label="Training löschen"
+                danger
+                onClick={() => {
+                  setMenu(null);
+                  setConfirmDiscard(true);
+                }}
+              />
+            </>
           ) : (
             <>
               <MenuButton
@@ -465,24 +514,30 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
       <Sheet
         open={confirmDiscard}
         onOpenChange={setConfirmDiscard}
-        title="Training verwerfen?"
-        description="Alle Sätze dieses Trainings werden gelöscht. Das lässt sich nicht rückgängig machen."
+        title={editing ? 'Training löschen?' : 'Training verwerfen?'}
+        description={
+          editing
+            ? 'Das Training verschwindet mit allen Sätzen, Kommentaren und Reaktionen. Das lässt sich nicht rückgängig machen.'
+            : 'Alle Sätze dieses Trainings werden gelöscht. Das lässt sich nicht rückgängig machen.'
+        }
       >
         <div className="flex flex-col gap-2">
           <Button
             variant="danger"
             fullWidth
-            loading={discard.isPending}
+            loading={discard.isPending || deleteWorkout.isPending}
             onClick={() => {
-              discard.mutate(workout.id, {
+              const done = {
                 onSuccess: () => {
                   setConfirmDiscard(false);
                   onClose();
                 },
-              });
+              };
+              if (editing) deleteWorkout.mutate(workout.id, done);
+              else discard.mutate(workout.id, done);
             }}
           >
-            Verwerfen
+            {editing ? 'Löschen' : 'Verwerfen'}
           </Button>
           <Button
             variant="ghost"
@@ -491,10 +546,23 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
               setConfirmDiscard(false);
             }}
           >
-            Weiter trainieren
+            {editing ? 'Behalten' : 'Weiter trainieren'}
           </Button>
         </div>
       </Sheet>
+
+      {editing && (
+        <Sheet open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">
+          {timeOpen && (
+            <WorkoutTimeForm
+              workout={workout}
+              onDone={() => {
+                setTimeOpen(false);
+              }}
+            />
+          )}
+        </Sheet>
+      )}
 
       <Sheet
         open={summary !== null}
@@ -739,5 +807,60 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="text-title-3 font-semibold tabular-nums">{value}</span>
       <span className="text-caption text-text-muted">{label}</span>
     </Card>
+  );
+}
+
+const editDate = new Intl.DateTimeFormat('de', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+});
+
+/** Active seconds of a workout: its duration, else start to end minus pauses. */
+function workoutSeconds(workout: ActiveWorkout): number {
+  if (workout.durationSeconds !== null) return workout.durationSeconds;
+  if (!workout.endedAt) return 0;
+  return Math.max(
+    0,
+    (new Date(workout.endedAt).getTime() - new Date(workout.startedAt).getTime()) / 1000 -
+      workout.pausedSeconds,
+  );
+}
+
+/** "58 Min" / "1 h 12 Min" */
+function formatMinutesShort(seconds: number): string {
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${String(minutes)} Min`;
+  const rest = minutes % 60;
+  return `${String(Math.floor(minutes / 60))} h${rest ? ` ${String(rest)} Min` : ''}`;
+}
+
+function WorkoutTimeForm({ workout, onDone }: { workout: ActiveWorkout; onDone: () => void }) {
+  const [when, setWhen] = useState<When>(() =>
+    whenFrom(new Date(workout.startedAt), workoutSeconds(workout)),
+  );
+  const update = useUpdateWorkoutTime(workout.id);
+  const parsed = parseWhen(when);
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        update.mutate(
+          { startedAt: parsed.start, durationMinutes: parsed.minutes },
+          { onSuccess: onDone },
+        );
+      }}
+    >
+      <WhenFields value={when} onChange={setWhen} />
+      {update.isError && (
+        <p role="alert" className="text-footnote text-danger">
+          Speichern hat nicht geklappt.
+        </p>
+      )}
+      <Button type="submit" missing={parsed.missing} loading={update.isPending}>
+        Speichern
+      </Button>
+    </form>
   );
 }

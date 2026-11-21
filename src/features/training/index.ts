@@ -71,3 +71,10 @@ export { TemplatesView } from './components/templates/TemplatesView';
 export { useWorkoutSummaries } from './api/useWorkoutSummaries';
 export { WorkoutSummaryRow } from './components/WorkoutSummaryRow';
 export { WorkoutSocialContext, type WorkoutSocialSlots } from './components/workout-detail/social';
+export {
+  editKey,
+  useEditableWorkout,
+  WorkoutCacheContext,
+  type LogPastWorkoutInput,
+} from './api/useWorkout';
+export { WorkoutEditContext } from './components/workout-detail/edit';

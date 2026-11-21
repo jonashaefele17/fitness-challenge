@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.28 | Feed (4d): eigene Trainings bearbeiten (derselbe Trainingsbildschirm im Bearbeiten-Modus: Sätze, Übungen, Tag/Uhrzeit/Dauer, Ort, löschen mit Rückfrage) und nachtragen (Tag-Sheet „+“: Art, Uhrzeit, Dauer, optional Vorlage; Übungs-Arten öffnen danach den Bearbeiten-Modus); nachgetragen ist ausdrücklich markiert und benachrichtigt nie; verschobene Trainings wandern auf die Karte ihres neuen Tages |
 | 21.11.2026 | 1.27 | Feed: Beitritt als eigene kleine Karte (nicht Teil der Tageskarte); Sortierung als kompakter Umschalter „Neueste | Zuletzt aktiv“ |
 | 21.11.2026 | 1.26 | Feed (4c): Glocke und Push springen an die Stelle – Training öffnet sich, Übung im Blick, Satz markiert, Thread mit dem Kommentar offen; Texte nennen das Objekt („hat deinen Satz kommentiert“) |
 | 21.11.2026 | 1.25 | Feed (4b): Kommentare und Reaktionen am Training, an jeder Übung und an jedem Satz (Satz = Übung + Satz-Index); Satz antippen öffnet seinen Thread, Sätze mit Kommentaren/Reaktionen sind markiert; gilt in jeder Trainingsansicht (Feed und Kalender) |

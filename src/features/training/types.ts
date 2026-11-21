@@ -120,6 +120,10 @@ export interface WorkoutItem {
 export interface ActiveWorkout {
   id: string;
   startedAt: string;
+  /** Set once finished (edit mode). */
+  endedAt: string | null;
+  /** Duration-type entries; else derived from start, end and pauses. */
+  durationSeconds: number | null;
   pausedAt: string | null;
   pausedSeconds: number;
   trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided' | 'catalog' | 'focusIds'>;

@@ -1,4 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import type { QueryData } from '@supabase/supabase-js';
+import { createContext, useContext } from 'react';
 import { useUserId } from '@/features/auth';
 import { showToast } from '@/shared/lib';
 import { supabase } from '@/shared/lib/supabase';
@@ -16,7 +18,8 @@ import { DEVICE_COLUMNS, toDevice } from './deviceRow';
 import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
-  id, user_id, started_at, paused_at, paused_seconds, focus_id, template_id,
+  id, user_id, started_at, ended_at, duration_seconds, paused_at, paused_seconds, focus_id,
+  template_id,
   training_types!inner(id, name, kind, guided, catalog, focus_ids),
   locations(id, name, owner_id),
   workout_items(
@@ -37,74 +40,87 @@ const WORKOUT_SCOPE = { id: 'active-workout' } as const;
 const num = (value: number | string | null): number | null =>
   value === null ? null : Number(value);
 
+const selectWorkout = () => supabase.from('workouts').select(ACTIVE_SELECT);
+type WorkoutRow = QueryData<ReturnType<typeof selectWorkout>>[number];
+
+function toActiveWorkout(data: WorkoutRow): ActiveWorkout {
+  return {
+    id: data.id,
+    startedAt: data.started_at,
+    endedAt: data.ended_at,
+    durationSeconds: data.duration_seconds,
+    pausedAt: data.paused_at,
+    pausedSeconds: data.paused_seconds,
+    focusId: data.focus_id,
+    templateId: data.template_id,
+    location: data.locations
+      ? {
+          id: data.locations.id,
+          name: data.locations.name,
+          private: data.locations.owner_id === data.user_id,
+        }
+      : null,
+    trainingType: {
+      id: data.training_types.id,
+      name: data.training_types.name,
+      kind: data.training_types.kind === 'duration' ? 'duration' : 'exercises',
+      guided: data.training_types.guided,
+      catalog: data.training_types.catalog === 'mobility' ? 'mobility' : 'strength',
+      focusIds: data.training_types.focus_ids,
+    },
+    items: data.workout_items
+      .map((item): WorkoutItem => ({
+        id: item.id,
+        position: item.position,
+        note: item.note,
+        repMin: item.rep_min,
+        repMax: item.rep_max,
+        targetSeconds: item.target_seconds,
+        restSeconds: item.rest_seconds,
+        perSide: item.per_side,
+        sideRestSeconds: item.side_rest_seconds,
+        device: item.devices ? toDevice(item.devices) : null,
+        exercise: {
+          id: item.exercises.id,
+          name: item.exercises.name,
+          measure: item.exercises.measure,
+          instructions: item.exercises.instructions,
+        },
+        sets: item.workout_sets
+          .map((set): WorkoutSet => ({
+            id: set.id,
+            position: set.position,
+            weightKg: num(set.weight_kg),
+            reps: set.reps,
+            durationSeconds: set.duration_seconds,
+            isWarmup: set.is_warmup,
+            completedAt: set.completed_at,
+          }))
+          .sort((a, b) => a.position - b.position),
+      }))
+      .sort((a, b) => a.position - b.position),
+  };
+}
+
+/**
+ * Which cached workout the workout screen edits: the running one (default) or a finished
+ * one opened for editing. All optimistic writes go to this cache entry.
+ */
+export const WorkoutCacheContext = createContext<QueryKey | null>(null);
+
 /** My running workout with exercises and sets, or null. */
 export function useActiveWorkout() {
   const userId = useUserId();
   return useQuery({
     queryKey: trainingKeys.active(userId),
     queryFn: async (): Promise<ActiveWorkout | null> => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select(ACTIVE_SELECT)
+      const { data, error } = await selectWorkout()
         .eq('user_id', userId)
         .eq('status', 'active')
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      return {
-        id: data.id,
-        startedAt: data.started_at,
-        pausedAt: data.paused_at,
-        pausedSeconds: data.paused_seconds,
-        focusId: data.focus_id,
-        templateId: data.template_id,
-        location: data.locations
-          ? {
-              id: data.locations.id,
-              name: data.locations.name,
-              private: data.locations.owner_id === data.user_id,
-            }
-          : null,
-        trainingType: {
-          id: data.training_types.id,
-          name: data.training_types.name,
-          kind: data.training_types.kind === 'duration' ? 'duration' : 'exercises',
-          guided: data.training_types.guided,
-          catalog: data.training_types.catalog === 'mobility' ? 'mobility' : 'strength',
-          focusIds: data.training_types.focus_ids,
-        },
-        items: data.workout_items
-          .map((item): WorkoutItem => ({
-            id: item.id,
-            position: item.position,
-            note: item.note,
-            repMin: item.rep_min,
-            repMax: item.rep_max,
-            targetSeconds: item.target_seconds,
-            restSeconds: item.rest_seconds,
-            perSide: item.per_side,
-            sideRestSeconds: item.side_rest_seconds,
-            device: item.devices ? toDevice(item.devices) : null,
-            exercise: {
-              id: item.exercises.id,
-              name: item.exercises.name,
-              measure: item.exercises.measure,
-              instructions: item.exercises.instructions,
-            },
-            sets: item.workout_sets
-              .map((set): WorkoutSet => ({
-                id: set.id,
-                position: set.position,
-                weightKg: num(set.weight_kg),
-                reps: set.reps,
-                durationSeconds: set.duration_seconds,
-                isWarmup: set.is_warmup,
-                completedAt: set.completed_at,
-              }))
-              .sort((a, b) => a.position - b.position),
-          }))
-          .sort((a, b) => a.position - b.position),
-      };
+      return toActiveWorkout(data);
     },
   });
 }
@@ -116,7 +132,8 @@ function useActiveMutation<TInput>(
   { refetch = false }: { refetch?: boolean } = {},
 ) {
   const queryClient = useQueryClient();
-  const key = trainingKeys.active(useUserId());
+  const activeKey = trainingKeys.active(useUserId());
+  const key = useContext(WorkoutCacheContext) ?? activeKey;
   return useMutation({
     mutationFn,
     scope: WORKOUT_SCOPE,
@@ -679,5 +696,95 @@ export function useWorkoutRecords(workoutId: string | null) {
         previousDurationSeconds: row.previous_duration_seconds,
       }));
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Edit finished workouts, add workouts afterwards
+// ---------------------------------------------------------------------------
+
+export const editKey = (userId: string, workoutId: string) =>
+  [...trainingKeys.all(userId), 'edit', workoutId] as const;
+
+/** One of my finished workouts, loaded for the workout screen in edit mode. */
+export function useEditableWorkout(workoutId: string) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: editKey(userId, workoutId),
+    queryFn: async (): Promise<ActiveWorkout | null> => {
+      const { data, error } = await selectWorkout()
+        .eq('id', workoutId)
+        .eq('user_id', userId)
+        .eq('status', 'finished')
+        .maybeSingle();
+      if (error) throw error;
+      return data ? toActiveWorkout(data) : null;
+    },
+  });
+}
+
+export interface LogPastWorkoutInput {
+  trainingTypeId: string;
+  startedAt: Date;
+  durationMinutes: number;
+  templateId?: string | undefined;
+  distanceKm?: number | undefined;
+  intensity?: number | undefined;
+  note?: string | undefined;
+  variant?: string | undefined;
+}
+
+/** Adds a finished workout afterwards; returns its id (exercise workouts open for editing). */
+export function useLogPastWorkout() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: LogPastWorkoutInput): Promise<string> => {
+      const { data, error } = await supabase.rpc('log_past_workout', {
+        p_training_type_id: input.trainingTypeId,
+        p_started_at: input.startedAt.toISOString(),
+        p_duration_seconds: Math.round(input.durationMinutes * 60),
+        ...(input.templateId && { p_template_id: input.templateId }),
+        ...(input.distanceKm !== undefined && {
+          p_distance_m: Math.round(input.distanceKm * 1000),
+        }),
+        ...(input.intensity !== undefined && { p_intensity: input.intensity }),
+        ...(input.note?.trim() && { p_note: input.note.trim() }),
+        ...(input.variant && { p_variant: input.variant }),
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
+  });
+}
+
+/** Moves a finished workout of mine and/or changes its duration. */
+export function useUpdateWorkoutTime(workoutId: string) {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: { startedAt: Date; durationMinutes: number }) => {
+      const { error } = await supabase.rpc('update_workout_time', {
+        p_workout_id: workoutId,
+        p_started_at: input.startedAt.toISOString(),
+        p_duration_seconds: Math.round(input.durationMinutes * 60),
+      });
+      if (error) throw error;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
+  });
+}
+
+/** Deletes a finished workout of mine (with everything in it). */
+export function useDeleteWorkout() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (workoutId: string) => {
+      const { error } = await supabase.from('workouts').delete().eq('id', workoutId);
+      if (error) throw error;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
   });
 }

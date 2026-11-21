@@ -2,10 +2,15 @@ import { RouterProvider } from 'react-router';
 import { LoginScreen, OnboardingFlow, SplashScreen, useSession } from '@/features/auth';
 import { useCalendarPeople, useHistoryCompare } from '@/features/comparison';
 import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
-import { CalendarPeopleContext, HistoryCompareContext } from '@/features/training';
+import {
+  CalendarPeopleContext,
+  HistoryCompareContext,
+  WorkoutEditContext,
+} from '@/features/training';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
 import { WorkoutSocialProvider } from './feed/WorkoutSocial';
+import { paths } from './paths';
 import { router } from './router';
 
 /**
@@ -49,7 +54,10 @@ export function AppGate() {
         <CalendarPeopleContext.Provider value={useCalendarPeople}>
           {/* Comments and reactions plug into every workout detail. */}
           <WorkoutSocialProvider>
-            <RouterProvider router={router} />
+            {/* Training opens finished workouts for editing through the app's route. */}
+            <WorkoutEditContext.Provider value={editWorkout}>
+              <RouterProvider router={router} />
+            </WorkoutEditContext.Provider>
           </WorkoutSocialProvider>
         </CalendarPeopleContext.Provider>
       </HistoryCompareContext.Provider>
@@ -68,4 +76,8 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
       </Button>
     </main>
   );
+}
+
+function editWorkout(workoutId: string) {
+  void router.navigate(paths.editWorkout.replace(':workoutId', workoutId));
 }

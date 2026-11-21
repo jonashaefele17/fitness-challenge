@@ -166,6 +166,7 @@ export type Database = {
           image_path: string | null;
           location_id: string;
           name: string;
+          setting_fields: string[];
           weight_max: number | null;
           weight_min: number | null;
           weight_step: number | null;
@@ -179,6 +180,7 @@ export type Database = {
           image_path?: string | null;
           location_id: string;
           name: string;
+          setting_fields?: string[];
           weight_max?: number | null;
           weight_min?: number | null;
           weight_step?: number | null;
@@ -191,6 +193,7 @@ export type Database = {
           image_path?: string | null;
           location_id?: string;
           name?: string;
+          setting_fields?: string[];
           weight_max?: number | null;
           weight_min?: number | null;
           weight_step?: number | null;
@@ -1102,24 +1105,24 @@ export type Database = {
         Row: {
           device_id: string;
           exercise_id: string;
-          setting: string;
           updated_at: string;
           user_id: string;
+          values: NonNullable<Json>;
         };
         ComputedFields: never;
         Insert: {
           device_id: string;
           exercise_id: string;
-          setting: string;
           updated_at?: string;
           user_id?: string;
+          values?: NonNullable<Json>;
         };
         Update: {
           device_id?: string;
           exercise_id?: string;
-          setting?: string;
           updated_at?: string;
           user_id?: string;
+          values?: NonNullable<Json>;
         };
         Relationships: [
           {

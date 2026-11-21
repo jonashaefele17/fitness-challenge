@@ -27,7 +27,12 @@ export interface Device {
   weightStep: number | null;
   /** Comparable everywhere (dumbbells, bench, bar) vs. machine. */
   comparable: boolean;
+  /** Names of the device's settings, e.g. ["Rückenlehne", "Beinpolster"]; empty: none. */
+  settingFields: string[];
 }
+
+/** My values per setting field, e.g. { "Rückenlehne": "3" }. */
+export type DeviceSettingValues = Record<string, string>;
 
 export interface DeviceWithExercises extends Device {
   exercises: ExerciseSummary[];

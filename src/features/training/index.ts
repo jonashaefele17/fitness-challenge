@@ -42,3 +42,4 @@ export {
   useSetHomeStudio,
 } from './api/usePlaces';
 export { PlacePicker, type PlacePickerProps } from './components/PlacePicker';
+export { formatSettingValues } from './api/usePlaces';

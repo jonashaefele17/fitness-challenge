@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
-import { useDeviceSetting } from '../api/usePlaces';
+import { formatSettingValues, useDeviceSetting } from '../api/usePlaces';
 import {
   useAddSet,
   useDeleteSet,
@@ -30,7 +30,9 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
   const deviceId = item.device?.id ?? null;
   const previous = usePreviousSets(item.exercise.id, deviceId).data ?? [];
   const trend = useExerciseTrend(item.exercise.id, deviceId).data ?? [];
-  const setting = useDeviceSetting(deviceId, item.exercise.id).data ?? null;
+  const settingValues = useDeviceSetting(deviceId, item.exercise.id).data ?? {};
+  const fields = item.device?.settingFields ?? [];
+  const settingText = formatSettingValues(fields, settingValues);
   const otherDevice = previous.length > 0 && previous.every((set) => !set.sameDevice);
   const weightStep = item.device?.weightStep ?? STEP.weight;
   const addSet = useAddSet();
@@ -67,7 +69,11 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
               className="-ml-1 self-start rounded-sm px-1 text-left text-footnote text-text-muted active:bg-surface-2"
             >
               {item.device.name}
-              {setting ? ` · ${setting}` : ' · Einstellung hinzufügen'}
+              {fields.length === 0
+                ? ''
+                : settingText
+                  ? ` · ${settingText}`
+                  : ' · Einstellungen eintragen'}
             </button>
           )}
           <Sparkline points={trend} />

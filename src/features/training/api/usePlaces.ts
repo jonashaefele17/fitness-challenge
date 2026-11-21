@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
-import type { Device, DeviceWithExercises, Place } from '../types';
+import type { Device, DeviceSettingValues, DeviceWithExercises, Place } from '../types';
 import { trainingKeys } from './keys';
 
 const placeKeys = {
@@ -97,7 +97,9 @@ export function useDevicesAt(locationId: string | null) {
       if (!locationId) return [];
       const { data, error } = await supabase
         .from('devices')
-        .select('id, name, weight_step, comparable, device_exercises(exercises(id, name, measure))')
+        .select(
+          'id, name, weight_step, comparable, setting_fields, device_exercises(exercises(id, name, measure))',
+        )
         .eq('location_id', locationId)
         .order('name');
       if (error) throw error;
@@ -106,6 +108,7 @@ export function useDevicesAt(locationId: string | null) {
         name: row.name,
         weightStep: row.weight_step,
         comparable: row.comparable,
+        settingFields: row.setting_fields,
         exercises: row.device_exercises
           .map((link) => link.exercises)
           .map((exercise) => ({ id: exercise.id, name: exercise.name, measure: exercise.measure }))
@@ -126,6 +129,7 @@ export function useUpdateDevice() {
           name: device.name.trim(),
           weight_step: device.weightStep,
           comparable: device.comparable,
+          setting_fields: device.settingFields,
         })
         .eq('id', device.id);
       if (error) throw error;
@@ -134,23 +138,30 @@ export function useUpdateDevice() {
   });
 }
 
-/** My setting for a device and exercise, e.g. "Sitz 4". */
+/** My values for a device and exercise, e.g. { "Rückenlehne": "3" }. */
 export function useDeviceSetting(deviceId: string | null, exerciseId: string) {
   const userId = useUserId();
   return useQuery({
     queryKey: placeKeys.setting(userId, deviceId ?? 'none', exerciseId),
     enabled: deviceId !== null,
     staleTime: 10 * 60_000,
-    queryFn: async (): Promise<string | null> => {
-      if (!deviceId) return null;
+    queryFn: async (): Promise<DeviceSettingValues> => {
+      if (!deviceId) return {};
       const { data, error } = await supabase
         .from('user_device_settings')
-        .select('setting')
+        .select('values')
         .eq('device_id', deviceId)
         .eq('exercise_id', exerciseId)
         .maybeSingle();
       if (error) throw error;
-      return data?.setting ?? null;
+      const values: DeviceSettingValues = {};
+      const raw = data?.values;
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        for (const [field, value] of Object.entries(raw)) {
+          if (typeof value === 'string' && value.trim()) values[field] = value;
+        }
+      }
+      return values;
     },
   });
 }
@@ -160,24 +171,37 @@ export function useSaveDeviceSetting(deviceId: string, exerciseId: string) {
   const userId = useUserId();
   const key = placeKeys.setting(userId, deviceId, exerciseId);
   return useMutation({
-    mutationFn: async (setting: string) => {
-      const value = setting.trim();
-      const { error } = value
-        ? await supabase
-            .from('user_device_settings')
-            .upsert(
-              { user_id: userId, device_id: deviceId, exercise_id: exerciseId, setting: value },
-              { onConflict: 'user_id,device_id,exercise_id' },
-            )
-        : await supabase
-            .from('user_device_settings')
-            .delete()
-            .eq('device_id', deviceId)
-            .eq('exercise_id', exerciseId);
+    mutationFn: async (values: DeviceSettingValues) => {
+      const cleaned = Object.fromEntries(
+        Object.entries(values)
+          .map(([field, value]) => [field, value.trim()] as const)
+          .filter(([, value]) => value.length > 0),
+      );
+      const { error } =
+        Object.keys(cleaned).length > 0
+          ? await supabase
+              .from('user_device_settings')
+              .upsert(
+                { user_id: userId, device_id: deviceId, exercise_id: exerciseId, values: cleaned },
+                { onConflict: 'user_id,device_id,exercise_id' },
+              )
+          : await supabase
+              .from('user_device_settings')
+              .delete()
+              .eq('device_id', deviceId)
+              .eq('exercise_id', exerciseId);
       if (error) throw error;
     },
-    onMutate: (setting) => {
-      queryClient.setQueryData(key, setting.trim() || null);
+    onMutate: (values) => {
+      queryClient.setQueryData(key, values);
     },
   });
+}
+
+/** "Rückenlehne 3 · Beinpolster 5" in the device's field order. */
+export function formatSettingValues(fields: string[], values: DeviceSettingValues): string {
+  return fields
+    .filter((field) => values[field])
+    .map((field) => `${field} ${values[field] ?? ''}`)
+    .join(' · ');
 }

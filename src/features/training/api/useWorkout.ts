@@ -20,7 +20,7 @@ const ACTIVE_SELECT = `
   workout_items(
     id, position, note,
     exercises!inner(id, name, measure),
-    devices(id, name, weight_step, comparable),
+    devices(id, name, weight_step, comparable, setting_fields),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
   )
 `;
@@ -70,6 +70,7 @@ export function useActiveWorkout() {
                   name: item.devices.name,
                   weightStep: num(item.devices.weight_step),
                   comparable: item.devices.comparable,
+                  settingFields: item.devices.setting_fields,
                 }
               : null,
             exercise: {

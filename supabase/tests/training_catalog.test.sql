@@ -91,8 +91,8 @@ select lives_ok(
     ('d0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001')$$,
   'device editors link exercises');
 select lives_ok(
-  $$insert into public.user_device_settings (device_id, exercise_id, setting) values
-    ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001', 'Höhe 12')$$,
+  $$insert into public.user_device_settings (device_id, exercise_id, "values") values
+    ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001', '{"Höhe": "12"}')$$,
   'personal device settings');
 select lives_ok(
   $$insert into public.training_types (name, kind, owner_id) values

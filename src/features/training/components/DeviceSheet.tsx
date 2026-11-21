@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Button, Sheet, Switch, TextField } from '@/shared/ui';
+import { Button, Chip, Sheet, Switch, TextField } from '@/shared/ui';
 import { useDeviceSetting, useSaveDeviceSetting, useUpdateDevice } from '../api/usePlaces';
-import type { Device, ExerciseSummary } from '../types';
+import type { Device, DeviceSettingValues, ExerciseSummary } from '../types';
 
 export interface DeviceSheetProps {
   target: { device: Device; exercise: ExerciseSummary } | null;
   onClose: () => void;
 }
 
-/** My setting for this device and exercise, plus the device's weight steps. */
+/** My values for the device's settings, plus the device itself (fields, weight steps). */
 export function DeviceSheet({ target, onClose }: DeviceSheetProps) {
   return (
     <Sheet
@@ -39,30 +39,46 @@ function DeviceForm({
   exercise: ExerciseSummary;
   onDone: () => void;
 }) {
-  const current = useDeviceSetting(device.id, exercise.id).data ?? '';
-  const saveSetting = useSaveDeviceSetting(device.id, exercise.id);
+  const saved = useDeviceSetting(device.id, exercise.id).data ?? {};
+  const saveValues = useSaveDeviceSetting(device.id, exercise.id);
   const updateDevice = useUpdateDevice();
-  const [setting, setSetting] = useState<string | null>(null);
+  const [values, setValues] = useState<DeviceSettingValues | null>(null);
+  const [fields, setFields] = useState(device.settingFields);
+  const [newField, setNewField] = useState('');
   const [name, setName] = useState(device.name);
   const [step, setStep] = useState(
     device.weightStep === null ? '' : String(device.weightStep).replace('.', ','),
   );
   const [comparable, setComparable] = useState(device.comparable);
+
+  const current = values ?? saved;
   const stepValue = step.trim() === '' ? null : Number(step.replace(',', '.'));
   const deviceChanged =
     name.trim() !== device.name ||
     stepValue !== device.weightStep ||
-    comparable !== device.comparable;
+    comparable !== device.comparable ||
+    fields.join('\n') !== device.settingFields.join('\n');
+
+  function addField() {
+    const label = newField.trim();
+    if (label && !fields.includes(label) && fields.length < 6) setFields([...fields, label]);
+    setNewField('');
+  }
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (setting !== null && setting !== current) saveSetting.mutate(setting);
+        if (values !== null) {
+          // Only keep values for fields the device still has.
+          saveValues.mutate(
+            Object.fromEntries(fields.map((field) => [field, values[field] ?? ''])),
+          );
+        }
         if (deviceChanged && name.trim().length >= 2 && (stepValue === null || stepValue > 0)) {
           updateDevice.mutate(
-            { ...device, name, weightStep: stepValue, comparable },
+            { ...device, name, weightStep: stepValue, comparable, settingFields: fields },
             { onSuccess: onDone },
           );
         } else {
@@ -70,18 +86,75 @@ function DeviceForm({
         }
       }}
     >
-      <TextField
-        label={`Meine Einstellung für ${exercise.name}`}
-        placeholder="z. B. Sitz 4, Höhe 12"
-        maxLength={80}
-        value={setting ?? current}
-        onChange={(event) => {
-          setSetting(event.target.value);
-        }}
-        hint="Nur für dich sichtbar."
-      />
+      {fields.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <span className="text-footnote font-medium text-text-muted">
+            Meine Einstellungen für {exercise.name}
+          </span>
+          <div className="grid grid-cols-2 gap-3">
+            {fields.map((field) => (
+              <TextField
+                key={field}
+                label={field}
+                inputMode="decimal"
+                maxLength={20}
+                value={current[field] ?? ''}
+                onChange={(event) => {
+                  setValues({ ...current, [field]: event.target.value });
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-subhead text-text-muted">
+          Dieses Gerät hat keine Einstellungen. Falls doch (Sitz, Polster, Höhe …), füg sie unten
+          hinzu.
+        </p>
+      )}
+
       <div className="flex flex-col gap-3 border-t border-border pt-4">
         <span className="text-footnote font-medium text-text-muted">Gerät</span>
+        <div className="flex flex-col gap-2">
+          <span className="text-footnote text-text-muted">Einstellungen des Geräts</span>
+          <div className="flex flex-wrap gap-2">
+            {fields.map((field) => (
+              <Chip
+                key={field}
+                aria-label={`${field} entfernen`}
+                onClick={() => {
+                  setFields(fields.filter((other) => other !== field));
+                }}
+              >
+                {field} ×
+              </Chip>
+            ))}
+          </div>
+          {fields.length < 6 && (
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField
+                  label="Neue Einstellung"
+                  placeholder="z. B. Rückenlehne"
+                  maxLength={20}
+                  value={newField}
+                  onChange={(event) => {
+                    setNewField(event.target.value);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      addField();
+                    }
+                  }}
+                />
+              </div>
+              <Button variant="secondary" disabled={!newField.trim()} onClick={addField}>
+                + Feld
+              </Button>
+            </div>
+          )}
+        </div>
         <TextField
           label="Name"
           value={name}
@@ -111,7 +184,7 @@ function DeviceForm({
           </p>
         )}
       </div>
-      <Button type="submit" loading={saveSetting.isPending || updateDevice.isPending}>
+      <Button type="submit" loading={saveValues.isPending || updateDevice.isPending}>
         Speichern
       </Button>
     </form>

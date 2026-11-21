@@ -383,6 +383,49 @@ export type Database = {
           },
         ];
       };
+      feed_days: {
+        Row: {
+          actor_id: string;
+          created_at: string;
+          day: string;
+          group_id: string;
+          id: string;
+          last_activity_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_id: string;
+          created_at?: string;
+          day: string;
+          group_id: string;
+          id?: string;
+          last_activity_at?: string;
+        };
+        Update: {
+          actor_id?: string;
+          created_at?: string;
+          day?: string;
+          group_id?: string;
+          id?: string;
+          last_activity_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'feed_days_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'feed_days_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       feed_event_types: {
         Row: {
           description: string;
@@ -404,9 +447,11 @@ export type Database = {
           actor_id: string;
           created_at: string;
           data: NonNullable<Json>;
+          feed_day_id: string;
           group_id: string;
           id: string;
           last_activity_at: string;
+          occurred_at: string;
           target_id: string | null;
           target_type: string | null;
           type: string;
@@ -416,9 +461,11 @@ export type Database = {
           actor_id: string;
           created_at?: string;
           data?: NonNullable<Json>;
+          feed_day_id: string;
           group_id: string;
           id?: string;
           last_activity_at?: string;
+          occurred_at: string;
           target_id?: string | null;
           target_type?: string | null;
           type: string;
@@ -427,9 +474,11 @@ export type Database = {
           actor_id?: string;
           created_at?: string;
           data?: NonNullable<Json>;
+          feed_day_id?: string;
           group_id?: string;
           id?: string;
           last_activity_at?: string;
+          occurred_at?: string;
           target_id?: string | null;
           target_type?: string | null;
           type?: string;
@@ -440,6 +489,13 @@ export type Database = {
             columns: ['actor_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'feed_events_feed_day_id_fkey';
+            columns: ['feed_day_id'];
+            isOneToOne: false;
+            referencedRelation: 'feed_days';
             referencedColumns: ['id'];
           },
           {
@@ -1709,6 +1765,24 @@ export type Database = {
           workout_started_at: string;
         }[];
       };
+      feed_cards: {
+        Args: {
+          p_before_at?: string;
+          p_before_day?: string;
+          p_before_id?: string;
+          p_group_id: string;
+          p_limit?: number;
+          p_sort?: string;
+        };
+        Returns: {
+          actor_id: string;
+          day: string;
+          events: Json;
+          id: string;
+          last_activity_at: string;
+          latest_at: string;
+        }[];
+      };
       finish_workout: {
         Args: { p_workout_id: string };
         Returns: {
@@ -1822,6 +1896,16 @@ export type Database = {
         }[];
       };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
+      set_reaction: {
+        Args: {
+          p_group_id: string;
+          p_kind: string;
+          p_target_id: string;
+          p_target_index: number;
+          p_target_type: string;
+        };
+        Returns: undefined;
+      };
       start_workout: {
         Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
         Returns: {
@@ -1881,6 +1965,29 @@ export type Database = {
           previous_weight_kg: number;
           reps: number;
           weight_kg: number;
+        }[];
+      };
+      workout_summaries: {
+        Args: { p_workout_ids: string[] };
+        Returns: {
+          distance_m: number;
+          duration_seconds: number;
+          exercise_count: number;
+          exercise_names: string[];
+          focus_name: string;
+          guided: boolean;
+          id: string;
+          location_name: string;
+          record_count: number;
+          started_at: string;
+          training_type_id: string;
+          type_icon: string;
+          type_kind: string;
+          type_name: string;
+          user_id: string;
+          variant: string;
+          volume_kg: number;
+          working_sets: number;
         }[];
       };
     };

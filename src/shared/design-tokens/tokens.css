@@ -87,6 +87,7 @@
   --spacing-sheet-max: 90dvh;
   --spacing-sheet-min: 60dvh;
   --spacing-wheel: 5.25rem; /* number wheel: value plus half a neighbour above and below */
+  --spacing-chart: 10.5rem; /* exercise history charts (168px, matches HistoryChart HEIGHT) */
 
   /* Radii */
   --radius-*: initial;

@@ -128,3 +128,32 @@ export interface DurationEntryInput {
   note?: string | undefined;
   variant?: string | undefined;
 }
+
+export interface SetValues {
+  weightKg: number | null;
+  reps: number | null;
+  durationSeconds: number | null;
+}
+
+/** One workout in an exercise's history. */
+export interface ExerciseSession {
+  workoutId: string;
+  startedAt: string;
+  locationName: string | null;
+  deviceName: string | null;
+  /** Best working set (by estimated 1RM, reps or time). */
+  best: SetValues | null;
+  /** Its score: only for ordering and drawing, never shown as a number. */
+  score: number | null;
+  /** kg × reps of the working sets (weight exercises only). */
+  volumeKg: number | null;
+  sets: (SetValues & { isWarmup: boolean })[];
+}
+
+export interface ExerciseRecords {
+  best: (SetValues & { achievedAt: string }) | null;
+  heaviest: (SetValues & { achievedAt: string }) | null;
+  volume: { volumeKg: number; achievedAt: string } | null;
+  /** Most reps per weight, heaviest first. */
+  repsAtWeight: { weightKg: number; reps: number; achievedAt: string }[];
+}

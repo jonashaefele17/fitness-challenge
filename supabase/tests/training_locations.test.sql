@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(19);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -114,7 +114,7 @@ select results_eq(
 select results_eq(
   $$select scope_device_id, trend from public.exercise_overview()
      where exercise_id = 'e0000000-0000-4000-8000-000000000002'$$,
-  $$values (null::uuid, array[10.00, 6.00]::numeric[])$$,
+  $$values (null::uuid, array[13.33, 8.00]::numeric[])$$,
   'comparable devices share one history (oldest first)');
 select lives_ok(
   $$insert into public.device_type_exercises (device_type_id, exercise_id)
@@ -149,6 +149,28 @@ select results_eq(
       'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001')$$,
   $$values (100.00::numeric, true)$$,
   'a newer workout without a device does not hide the machine''s own history');
+
+-- Exercise history: per workout, scoped like the history, or across all devices
+select results_eq(
+  $$select best_weight_kg, best_reps, volume_kg, jsonb_array_length(sets)
+      from public.exercise_sessions(
+        'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001')$$,
+  $$values (100.00::numeric, 10, 1000.00::numeric, 1)$$,
+  'sessions of a machine: best set, volume and sets');
+select is(
+  (select count(*) from public.exercise_sessions(
+     'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', true)),
+  3::bigint, '"alle Geräte" includes other machines and no device');
+select results_eq(
+  $$select kind, weight_kg, reps from public.exercise_records(
+      'e0000000-0000-4000-8000-000000000001', null, true)
+     where kind in ('best', 'heaviest') order by kind$$,
+  $$values ('best'::text, 100.00::numeric, 10), ('heaviest'::text, 100.00::numeric, 10)$$,
+  'records: best and heaviest set');
+select is(
+  (select count(*) from public.exercise_records(
+     'e0000000-0000-4000-8000-000000000001', null, true) where kind = 'reps_at_weight'),
+  3::bigint, 'one rep record per weight');
 reset role;
 
 select * from finish();

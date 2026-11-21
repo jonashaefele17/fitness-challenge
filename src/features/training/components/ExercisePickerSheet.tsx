@@ -14,6 +14,7 @@ import { measureLabel } from '../measures';
 import { CreateExerciseForm } from './CreateExerciseForm';
 import { DeviceTypeGrid, NewDeviceTypeForm, type NewTypeValues } from './picker/AddDevices';
 import { DeviceDetails } from './picker/DeviceDetails';
+import { ExerciseHistory } from './history/ExerciseHistory';
 import { FocusChips, NewFocusForm } from './picker/FocusChips';
 import { lastDoneText } from './picker/historyText';
 import { PickerTile } from './picker/PickerTile';
@@ -39,7 +40,8 @@ type View =
   | { kind: 'add-devices' }
   | { kind: 'new-type'; initialName: string }
   | { kind: 'new-exercise'; forDeviceId: string | null }
-  | { kind: 'new-focus' };
+  | { kind: 'new-focus' }
+  | { kind: 'history'; exercise: ExerciseSummary; deviceId: string | null };
 
 /**
  * Two ways in: the devices at this place (one tap for single-exercise devices, details for
@@ -127,7 +129,9 @@ export function ExercisePickerSheet({
           ? { kind: 'link', deviceId: view.forDeviceId }
           : view.kind === 'new-type'
             ? { kind: 'add-devices' }
-            : { kind: 'browse' };
+            : view.kind === 'history' && view.deviceId
+              ? { kind: 'device', deviceId: view.deviceId }
+              : { kind: 'browse' };
 
   const sheetTitle =
     view.kind === 'device' || view.kind === 'link'
@@ -140,7 +144,9 @@ export function ExercisePickerSheet({
             ? 'Neue Übung'
             : view.kind === 'new-focus'
               ? 'Eigener Fokus'
-              : title;
+              : view.kind === 'history'
+                ? view.exercise.name
+                : title;
 
   return (
     <Sheet
@@ -225,6 +231,9 @@ export function ExercisePickerSheet({
               onCreate={() => {
                 setView({ kind: 'new-exercise', forDeviceId: null });
               }}
+              onHistory={(exercise) => {
+                setView({ kind: 'history', exercise, deviceId: null });
+              }}
             />
           )}
         </div>
@@ -241,6 +250,16 @@ export function ExercisePickerSheet({
           onAddExercise={() => {
             setView({ kind: 'link', deviceId: device.id });
           }}
+          onHistory={(exercise) => {
+            setView({ kind: 'history', exercise, deviceId: device.id });
+          }}
+        />
+      )}
+
+      {view.kind === 'history' && (
+        <ExerciseHistory
+          exercise={view.exercise}
+          device={deviceList.find((d) => d.id === view.deviceId) ?? null}
         />
       )}
 
@@ -517,11 +536,13 @@ function ExercisesGrid({
   focus,
   onPick,
   onCreate,
+  onHistory,
 }: {
   query: string;
   focus: TrainingFocus | null;
   onPick: (exercise: ExerciseSummary) => void;
   onCreate: () => void;
+  onHistory: (exercise: ExerciseSummary) => void;
 }) {
   const search = useExerciseSearch(query);
   const overview = useExerciseOverview().data;
@@ -559,6 +580,13 @@ function ExercisesGrid({
               onClick={() => {
                 onPick(exercise);
               }}
+              onInfo={
+                history
+                  ? () => {
+                      onHistory(exercise);
+                    }
+                  : undefined
+              }
             />
           );
         })}

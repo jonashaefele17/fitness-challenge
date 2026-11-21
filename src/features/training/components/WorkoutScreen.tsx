@@ -47,6 +47,7 @@ import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
+import { ExerciseHistorySheet, type HistoryTarget } from './history/ExerciseHistorySheet';
 
 export interface WorkoutScreenProps {
   workout: ActiveWorkout;
@@ -67,6 +68,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
   const [pickDeviceFor, setPickDeviceFor] = useState<WorkoutItem | null>(null);
+  const [historyTarget, setHistoryTarget] = useState<HistoryTarget | null>(null);
   const [deviceTarget, setDeviceTarget] = useState<{
     device: Device;
     exercise: ExerciseSummary;
@@ -175,6 +177,9 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
                 onMenu={() => {
                   setMenu({ kind: 'item', item: active });
                 }}
+                onHistory={() => {
+                  setHistoryTarget({ exercise: active.exercise, device: active.device });
+                }}
               />
             </motion.div>
           ) : (
@@ -270,6 +275,12 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           setItemDevice.mutate({ itemId: swapItem.id, device });
         }}
       />
+      <ExerciseHistorySheet
+        target={historyTarget}
+        onClose={() => {
+          setHistoryTarget(null);
+        }}
+      />
       <DevicePickerSheet
         item={pickDeviceFor}
         place={workout.location}
@@ -325,6 +336,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
                 label={menu.item.device ? 'Anderes Gerät wählen' : 'Gerät wählen'}
                 onClick={() => {
                   setPickDeviceFor(menu.item);
+                  setMenu(null);
+                }}
+              />
+              <MenuButton
+                label="Verlauf"
+                onClick={() => {
+                  setHistoryTarget({ exercise: menu.item.exercise, device: menu.item.device });
                   setMenu(null);
                 }}
               />

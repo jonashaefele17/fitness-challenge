@@ -1475,6 +1475,32 @@ export type Database = {
           uses: number;
         }[];
       };
+      exercise_records: {
+        Args: { p_all_devices?: boolean; p_device_id?: string; p_exercise_id: string };
+        Returns: {
+          achieved_at: string;
+          duration_seconds: number;
+          kind: string;
+          reps: number;
+          value: number;
+          weight_kg: number;
+        }[];
+      };
+      exercise_sessions: {
+        Args: { p_all_devices?: boolean; p_device_id?: string; p_exercise_id: string };
+        Returns: {
+          best_duration_seconds: number;
+          best_reps: number;
+          best_score: number;
+          best_weight_kg: number;
+          device_name: string;
+          location_name: string;
+          sets: Json;
+          started_at: string;
+          volume_kg: number;
+          workout_id: string;
+        }[];
+      };
       exercise_trend: {
         Args: { p_device_id?: string; p_exercise_id: string; p_limit?: number };
         Returns: {

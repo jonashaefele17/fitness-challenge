@@ -40,6 +40,7 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 ## Training
 
+- [ ] Nächster Schritt (abgesprochen 21.11.): im Übungsverlauf die Linien der Freunde in ihrer Personenfarbe einblenden – Kraft und Volumen; bei „überall vergleichbaren“ Übungen immer, bei Maschinen am selben Gerät (später: in derselben Kette). Eigenes soziales Modul (Vergleich), hängt sich über einen Steckplatz in die Verlaufsansicht; Sichtbarkeit über `can_view_user_data`.
 - [ ] Muskelgruppen-Wochenübersicht („Sätze pro Muskelgruppe diese Woche“) unter Ich → Training bzw. im Wochenrückblick
 - [ ] Körper-Grafik (vorne/hinten, Muskeln eingefärbt) wie bei Lyfta – eine Komponente für Übungsdetail und Wochenübersicht
 - [ ] Haptik auf dem iPhone: im Web nicht möglich (iOS-Schalter-Trick funktioniert auf iOS 26 nicht); mit nativer App (Capacitor) echte Haptik in `shared/lib/haptics.ts` ergänzen

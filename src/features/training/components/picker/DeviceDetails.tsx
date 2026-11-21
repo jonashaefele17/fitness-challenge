@@ -36,12 +36,14 @@ export function DeviceDetails({
   focus,
   onPick,
   onAddExercise,
+  onHistory,
 }: {
   device: DeviceWithExercises;
   placeId: string;
   focus: TrainingFocus | null;
   onPick: (exercise: ExerciseSummary) => void;
   onAddExercise: () => void;
+  onHistory: (exercise: ExerciseSummary) => void;
 }) {
   const overview = useExerciseOverview().data;
   const popularity = useExercisePopularity().data;
@@ -119,6 +121,13 @@ export function DeviceDetails({
               }
               trend={editing ? undefined : entry.history?.trend}
               muted={editing}
+              onInfo={
+                !editing && entry.history
+                  ? () => {
+                      onHistory(entry.exercise);
+                    }
+                  : undefined
+              }
               onClick={() => {
                 if (editing && own.has(entry.exercise.id)) remove(entry.exercise);
                 else if (editing) hide(entry.exercise);

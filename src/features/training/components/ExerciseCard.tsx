@@ -39,9 +39,11 @@ export interface ExerciseCardProps {
   onMenu: () => void;
   /** Open device details (setting, weight steps). */
   onDevice: () => void;
+  /** Open the exercise history (charts, records, workouts). */
+  onHistory: () => void;
 }
 
-export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
+export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCardProps) {
   const deviceId = item.device?.id ?? null;
   const previous = usePreviousSets(item.exercise.id, deviceId).data ?? [];
   const trend = useExerciseTrend(item.exercise.id, deviceId).data ?? [];
@@ -97,7 +99,16 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
                   : ' · Einstellungen eintragen'}
             </button>
           )}
-          <Sparkline points={trend} />
+          {trend.length >= 2 && (
+            <button
+              type="button"
+              aria-label="Verlauf anzeigen"
+              onClick={onHistory}
+              className="-ml-1 flex min-h-tap items-center self-start rounded-sm px-1 active:bg-surface-2"
+            >
+              <Sparkline points={trend} />
+            </button>
+          )}
           {item.note && <p className="text-footnote text-text-muted">{item.note}</p>}
         </div>
         <button

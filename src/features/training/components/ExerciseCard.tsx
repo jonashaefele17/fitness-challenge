@@ -1,5 +1,4 @@
-import { motion, type PanInfo } from 'motion/react';
-import { useState } from 'react';
+import { motion, useDragControls, type PanInfo } from 'motion/react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, hapticTick, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
@@ -14,6 +13,7 @@ import {
 } from '../api/useWorkout';
 import { formatDuration, formatKg, formatSet } from '../format';
 import type { ExerciseMeasure, PreviousSet, WorkoutItem, WorkoutSet } from '../types';
+import { NumberWheel } from './NumberWheel';
 import { Sparkline } from './Sparkline';
 
 const STEP = { weight: 2.5, reps: 1, duration: 5 } as const;
@@ -149,6 +149,7 @@ function SetRow({
   const remove = useDeleteSet();
   const addSet = useAddSet();
   const done = set.completedAt !== null;
+  const dragControls = useDragControls();
 
   // Suggested values for an empty active row: last ticked set, else last workout.
   const suggestion = {
@@ -192,6 +193,13 @@ function SetRow({
       </div>
       <motion.div
         drag="x"
+        dragListener={false}
+        dragControls={dragControls}
+        onPointerDown={(event) => {
+          // Swipe-to-delete starts anywhere on the row except on the number wheels.
+          if ((event.target as Element).closest('[data-wheel]')) return;
+          dragControls.start(event);
+        }}
         dragDirectionLock
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={{ left: 0.6, right: 0 }}
@@ -270,7 +278,7 @@ function ActiveInputs({
 }) {
   if (measure === 'duration') {
     return (
-      <Stepper
+      <NumberWheel
         value={values.durationSeconds}
         suggested={filled.durationSeconds === null}
         step={STEP.duration}
@@ -286,7 +294,7 @@ function ActiveInputs({
   return (
     <span className="flex items-center gap-1">
       {(measure === 'weight_reps' || values.weightKg !== null) && (
-        <Stepper
+        <NumberWheel
           value={values.weightKg}
           suggested={filled.weightKg === null}
           step={weightStep}
@@ -299,7 +307,7 @@ function ActiveInputs({
         />
       )}
       <span className="text-subhead text-text-subtle">×</span>
-      <Stepper
+      <NumberWheel
         value={values.reps}
         suggested={filled.reps === null}
         step={STEP.reps}
@@ -317,115 +325,4 @@ function ActiveInputs({
 function parseDuration(text: string): number {
   const [m, s] = text.split(':');
   return s === undefined ? Number(m) : Number(m) * 60 + Number(s);
-}
-
-/** Pixels of vertical swipe per step. */
-const SWIPE_STEP_PX = 32;
-
-/**
- * Number you can swipe: drag up/down on it to change it in fixed steps (device weight steps),
- * tap to type. Compact, so the "previous" column stays readable on small phones.
- */
-function Stepper({
-  value,
-  suggested,
-  step,
-  format,
-  parse,
-  label,
-  onChange,
-}: {
-  value: number | null;
-  suggested: boolean;
-  step: number;
-  format: (value: number) => string;
-  parse: (text: string) => number;
-  label: string;
-  onChange: (value: number) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [drag, setDrag] = useState<{ startY: number; base: number; value: number } | null>(null);
-  const current = value ?? 0;
-  const clamp = (next: number) => Math.max(0, Math.round(next * 100) / 100);
-  const shown = drag ? drag.value : value;
-
-  if (editing) {
-    return (
-      <input
-        autoFocus
-        aria-label={label}
-        inputMode="decimal"
-        value={draft}
-        onChange={(event) => {
-          setDraft(event.target.value);
-        }}
-        onBlur={() => {
-          const parsed = parse(draft);
-          if (Number.isFinite(parsed) && parsed >= 0) onChange(parsed);
-          setEditing(false);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') event.currentTarget.blur();
-        }}
-        className="h-tap w-16 rounded-sm bg-surface-3 text-center text-body tabular-nums focus:outline-none"
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      aria-label={`${label}: ${value === null ? 'leer' : format(value)}. Nach oben oder unten wischen zum Ändern, tippen zum Eintippen.`}
-      onPointerDown={(event) => {
-        // The number owns this gesture; the row's swipe-to-delete must not start.
-        event.stopPropagation();
-        event.currentTarget.setPointerCapture(event.pointerId);
-        setDrag({ startY: event.clientY, base: current, value: current });
-      }}
-      onPointerMove={(event) => {
-        if (!drag) return;
-        const steps = Math.round((drag.startY - event.clientY) / SWIPE_STEP_PX);
-        const next = clamp(drag.base + steps * step);
-        if (next !== drag.value) {
-          hapticTick();
-          setDrag({ ...drag, value: next });
-        }
-      }}
-      onPointerUp={(event) => {
-        if (!drag) return;
-        const moved = Math.abs(drag.startY - event.clientY) >= SWIPE_STEP_PX / 2;
-        setDrag(null);
-        if (moved) {
-          if (drag.value !== value) onChange(drag.value);
-        } else {
-          setDraft(value === null ? '' : format(value));
-          setEditing(true);
-        }
-      }}
-      onPointerCancel={() => {
-        setDrag(null);
-      }}
-      className={cn(
-        'relative flex h-tap min-w-14 touch-none flex-col items-center justify-center rounded-sm px-1 tabular-nums transition-colors duration-(--duration-fast) select-none',
-        drag ? 'bg-surface-3' : 'active:bg-surface-3',
-      )}
-    >
-      <span aria-hidden className="text-caption leading-none text-text-subtle">
-        ⌃
-      </span>
-      <span
-        className={cn(
-          'text-body leading-tight font-semibold',
-          suggested && !drag && 'text-text-muted',
-          drag && 'text-accent',
-        )}
-      >
-        {shown === null ? '–' : format(shown)}
-      </span>
-      <span aria-hidden className="text-caption leading-none text-text-subtle">
-        ⌄
-      </span>
-    </button>
-  );
 }

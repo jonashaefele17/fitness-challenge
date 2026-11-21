@@ -102,6 +102,11 @@
     var(--color-surface-2) 70%
   );
 }
+/* Number wheel: neighbours fade out above and below the centre value. */
+@utility wheel-mask {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
+}
 /* Toasts sit at the top, below the status bar. */
 @utility top-toast {
   top: calc(env(safe-area-inset-top) + --spacing(3));

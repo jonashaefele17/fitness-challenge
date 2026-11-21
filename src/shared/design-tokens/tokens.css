@@ -86,6 +86,7 @@
   --spacing-nav: 4rem; /* floating nav height */
   --spacing-sheet-max: 90dvh;
   --spacing-sheet-min: 60dvh;
+  --spacing-wheel: 5.25rem; /* number wheel: value plus half a neighbour above and below */
 
   /* Radii */
   --radius-*: initial;

@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, Chip, SegmentedControl, Sheet, TextField } from '@/shared/ui';
-import { useCreateExercise, useExerciseSearch, useMuscleGroups } from '../api/useCatalog';
+import {
+  useCreateExercise,
+  useExerciseSearch,
+  useMuscleGroups,
+  usePrimaryMuscles,
+} from '../api/useCatalog';
 import type { Device, DeviceWithExercises, ExerciseMeasure, ExerciseSummary } from '../types';
 
 export interface AddExerciseSheetProps {
@@ -47,7 +52,15 @@ export function AddExerciseSheet({
     );
     return offering.length === 1 ? (offering[0] ?? null) : null;
   };
-  const showDevices = query.trim().length === 0 && devices.length > 0;
+  const deviceTiles = devices.flatMap((device) =>
+    device.exercises.map((exercise) => ({ exercise, device })),
+  );
+  const showDevices = query.trim().length === 0 && deviceTiles.length > 0;
+  const shownIds = [
+    ...results.map((exercise) => exercise.id),
+    ...(showDevices ? deviceTiles.map((tile) => tile.exercise.id) : []),
+  ];
+  const muscles = usePrimaryMuscles(shownIds);
   const exactMatch = results.some(
     (exercise) => exercise.name.toLowerCase() === query.trim().toLowerCase(),
   );
@@ -56,6 +69,11 @@ export function AddExerciseSheet({
     setQuery('');
     setCreating(false);
     onOpenChange(false);
+  }
+
+  function pick(exercise: ExerciseSummary, device: Device | null) {
+    onPick(exercise, device);
+    close();
   }
 
   return (
@@ -74,12 +92,11 @@ export function AddExerciseSheet({
             setCreating(false);
           }}
           onCreated={(exercise) => {
-            onPick(exercise, null);
-            close();
+            pick(exercise, null);
           }}
         />
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <TextField
             label="Übung suchen"
             placeholder="z. B. Bankdrücken"
@@ -90,57 +107,43 @@ export function AddExerciseSheet({
             }}
           />
           {showDevices && (
-            <div className="flex flex-col gap-3">
-              <span className="text-footnote font-medium text-text-muted">Geräte hier</span>
-              {devices
-                .filter((device) => device.exercises.length > 0)
-                .map((device) => (
-                  <div key={device.id} className="flex flex-col gap-1.5">
-                    <span className="text-caption text-text-subtle">{device.name}</span>
-                    <div className="flex flex-wrap gap-2">
-                      {device.exercises.map((exercise) => (
-                        <Chip
-                          key={exercise.id}
-                          onClick={() => {
-                            onPick(exercise, device);
-                            close();
-                          }}
-                        >
-                          {exercise.name}
-                        </Chip>
-                      ))}
-                    </div>
-                  </div>
+            <section className="flex flex-col gap-2">
+              <h3 className="text-footnote font-medium text-text-muted">An den Geräten hier</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {deviceTiles.map(({ exercise, device }) => (
+                  <ExerciseTile
+                    key={`${device.id}:${exercise.id}`}
+                    exercise={exercise}
+                    subtitle={device.name === exercise.name ? undefined : device.name}
+                    muscles={muscles.get(exercise.id)}
+                    onClick={() => {
+                      pick(exercise, device);
+                    }}
+                  />
                 ))}
-              <span className="pt-2 text-footnote font-medium text-text-muted">Alle Übungen</span>
-            </div>
+              </div>
+            </section>
           )}
-          <ul className="-mx-gutter flex flex-col">
-            {results.map((exercise) => (
-              <li key={exercise.id}>
-                <button
-                  type="button"
-                  className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
-                  onClick={() => {
-                    onPick(exercise, deviceFor(exercise.id));
-                    close();
-                  }}
-                >
-                  <span className="flex flex-col">
-                    <span className="text-body">{exercise.name}</span>
-                    {exercise.matchedAlias && (
-                      <span className="text-footnote text-text-subtle">
-                        auch: {exercise.matchedAlias}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-footnote text-text-subtle">
-                    {measureLabel[exercise.measure]}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {results.length > 0 && (
+            <section className="flex flex-col gap-2">
+              {showDevices && (
+                <h3 className="text-footnote font-medium text-text-muted">Alle Übungen</h3>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {results.map((exercise) => (
+                  <ExerciseTile
+                    key={exercise.id}
+                    exercise={exercise}
+                    subtitle={exercise.matchedAlias ? `auch: ${exercise.matchedAlias}` : undefined}
+                    muscles={muscles.get(exercise.id)}
+                    onClick={() => {
+                      pick(exercise, deviceFor(exercise.id));
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
           {!search.isPending && results.length === 0 && query.trim().length < 2 && (
             <p className="text-subhead text-text-muted">
               Noch keine Übungen im Katalog. Leg die erste an – der Katalog wächst mit dem, was ihr
@@ -160,6 +163,41 @@ export function AddExerciseSheet({
         </div>
       )}
     </Sheet>
+  );
+}
+
+/** Tile with an image area (placeholder until illustrations exist), name and muscles. */
+function ExerciseTile({
+  exercise,
+  subtitle,
+  muscles,
+  onClick,
+}: {
+  exercise: ExerciseSummary;
+  subtitle?: string | undefined;
+  muscles?: string[] | undefined;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col overflow-hidden rounded-card border border-border bg-surface-2 text-left active:bg-surface-3"
+    >
+      <span
+        aria-hidden
+        className="flex aspect-[4/3] items-center justify-center image-backdrop text-large-title font-bold text-accent/70"
+      >
+        {exercise.name.charAt(0).toUpperCase()}
+      </span>
+      <span className="flex flex-col gap-0.5 p-3">
+        <span className="line-clamp-2 text-subhead font-semibold">{exercise.name}</span>
+        <span className="truncate text-caption text-text-muted">
+          {muscles && muscles.length > 0 ? muscles.join(' · ') : measureLabel[exercise.measure]}
+        </span>
+        {subtitle && <span className="truncate text-caption text-text-subtle">{subtitle}</span>}
+      </span>
+    </button>
   );
 }
 

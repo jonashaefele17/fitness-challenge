@@ -89,7 +89,7 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-[2.5rem_1fr_auto_2.75rem] items-center gap-x-2 px-4 pb-1 text-caption font-medium text-text-subtle">
+      <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_auto_2.75rem] items-center gap-x-2 px-4 pb-1 text-caption font-medium text-text-subtle">
         <span>Satz</span>
         <span>{otherDevice ? 'Vorher (anderes Gerät)' : 'Vorher'}</span>
         <span className="text-center">{measure === 'duration' ? 'Zeit' : 'Neu'}</span>
@@ -196,7 +196,7 @@ function SetRow({
         dragElastic={{ left: 0.6, right: 0 }}
         onDragEnd={handleDragEnd}
         className={cn(
-          'relative grid min-h-tap grid-cols-[2.5rem_1fr_auto_2.75rem] items-center gap-x-2 bg-surface px-4 py-1',
+          'relative grid min-h-tap grid-cols-[2.25rem_minmax(0,1fr)_auto_2.75rem] items-center gap-x-2 bg-surface px-4 py-1',
           active && 'bg-surface-2',
         )}
       >
@@ -318,7 +318,13 @@ function parseDuration(text: string): number {
   return s === undefined ? Number(m) : Number(m) * 60 + Number(s);
 }
 
-/** ‹ value ›: arrows step in fixed increments, tapping the value allows typing. */
+/** Pixels of vertical swipe per step. */
+const SWIPE_STEP_PX = 14;
+
+/**
+ * Number you can swipe: drag up/down on it to change it in fixed steps (device weight steps),
+ * tap to type. Compact, so the "previous" column stays readable on small phones.
+ */
 function Stepper({
   value,
   suggested,
@@ -338,68 +344,84 @@ function Stepper({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [drag, setDrag] = useState<{ startY: number; base: number; value: number } | null>(null);
   const current = value ?? 0;
-  const nudge = (delta: number) => {
-    onChange(Math.max(0, Math.round((current + delta) * 100) / 100));
-  };
+  const clamp = (next: number) => Math.max(0, Math.round(next * 100) / 100);
+  const shown = drag ? drag.value : value;
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        aria-label={label}
+        inputMode="decimal"
+        value={draft}
+        onChange={(event) => {
+          setDraft(event.target.value);
+        }}
+        onBlur={() => {
+          const parsed = parse(draft);
+          if (Number.isFinite(parsed) && parsed >= 0) onChange(parsed);
+          setEditing(false);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+        }}
+        className="h-tap w-16 rounded-sm bg-surface-3 text-center text-body tabular-nums focus:outline-none"
+      />
+    );
+  }
 
   return (
-    <span className="flex items-center">
-      <button
-        type="button"
-        aria-label={`${label} verringern`}
-        onClick={() => {
-          nudge(-step);
-        }}
-        className="flex h-tap w-7 items-center justify-center text-title-3 text-text-muted"
-      >
-        ‹
-      </button>
-      {editing ? (
-        <input
-          autoFocus
-          aria-label={label}
-          inputMode="decimal"
-          value={draft}
-          onChange={(event) => {
-            setDraft(event.target.value);
-          }}
-          onBlur={() => {
-            const parsed = parse(draft);
-            if (Number.isFinite(parsed) && parsed >= 0) onChange(parsed);
-            setEditing(false);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') event.currentTarget.blur();
-          }}
-          className="w-14 rounded-sm bg-surface-3 py-1 text-center text-body tabular-nums focus:outline-none"
-        />
-      ) : (
-        <button
-          type="button"
-          aria-label={`${label}: ${value === null ? 'leer' : format(value)}`}
-          onClick={() => {
-            setDraft(value === null ? '' : format(value));
-            setEditing(true);
-          }}
-          className={cn(
-            'min-w-12 rounded-sm py-1 text-center text-body font-semibold tabular-nums',
-            suggested && 'text-text-muted',
-          )}
-        >
-          {value === null ? '–' : format(value)}
-        </button>
+    <button
+      type="button"
+      aria-label={`${label}: ${value === null ? 'leer' : format(value)}. Nach oben oder unten wischen zum Ändern, tippen zum Eintippen.`}
+      onPointerDown={(event) => {
+        // The number owns this gesture; the row's swipe-to-delete must not start.
+        event.stopPropagation();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDrag({ startY: event.clientY, base: current, value: current });
+      }}
+      onPointerMove={(event) => {
+        if (!drag) return;
+        const steps = Math.round((drag.startY - event.clientY) / SWIPE_STEP_PX);
+        const next = clamp(drag.base + steps * step);
+        if (next !== drag.value) setDrag({ ...drag, value: next });
+      }}
+      onPointerUp={(event) => {
+        if (!drag) return;
+        const moved = Math.abs(drag.startY - event.clientY) >= SWIPE_STEP_PX / 2;
+        setDrag(null);
+        if (moved) {
+          if (drag.value !== value) onChange(drag.value);
+        } else {
+          setDraft(value === null ? '' : format(value));
+          setEditing(true);
+        }
+      }}
+      onPointerCancel={() => {
+        setDrag(null);
+      }}
+      className={cn(
+        'relative flex h-tap min-w-14 touch-none flex-col items-center justify-center rounded-sm px-1 tabular-nums transition-colors duration-(--duration-fast) select-none',
+        drag ? 'bg-surface-3' : 'active:bg-surface-3',
       )}
-      <button
-        type="button"
-        aria-label={`${label} erhöhen`}
-        onClick={() => {
-          nudge(step);
-        }}
-        className="flex h-tap w-7 items-center justify-center text-title-3 text-text-muted"
+    >
+      <span aria-hidden className="text-caption leading-none text-text-subtle">
+        ⌃
+      </span>
+      <span
+        className={cn(
+          'text-body leading-tight font-semibold',
+          suggested && !drag && 'text-text-muted',
+          drag && 'text-accent',
+        )}
       >
-        ›
-      </button>
-    </span>
+        {shown === null ? '–' : format(shown)}
+      </span>
+      <span aria-hidden className="text-caption leading-none text-text-subtle">
+        ⌄
+      </span>
+    </button>
   );
 }

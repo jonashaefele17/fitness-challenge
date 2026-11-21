@@ -536,3 +536,17 @@ export function useSetWorkoutLocation(workoutId: string) {
     (workout, place) => ({ ...workout, location: place }),
   );
 }
+
+/** Choose (or clear) the device for an exercise in the running workout. */
+export function useSetItemDevice() {
+  return useActiveMutation(
+    async ({ itemId, device }: { itemId: string; device: Device | null }) => {
+      const { error } = await supabase
+        .from('workout_items')
+        .update({ device_id: device?.id ?? null })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    (workout, { itemId, device }) => mapItem(workout, itemId, (item) => ({ ...item, device })),
+  );
+}

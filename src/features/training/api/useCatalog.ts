@@ -132,3 +132,32 @@ export function useCreateExercise() {
       queryClient.invalidateQueries({ queryKey: [...trainingKeys.all(userId), 'exercise-search'] }),
   });
 }
+
+/** Primary muscle labels per exercise, for tiles ("Brust · Trizeps"). */
+export function usePrimaryMuscles(exerciseIds: string[]) {
+  const userId = useUserId();
+  const muscles = useMuscleGroups();
+  const ids = [...exerciseIds].sort();
+  const query = useQuery({
+    queryKey: [...trainingKeys.all(userId), 'primary-muscles', ids],
+    enabled: ids.length > 0,
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exercise_muscles')
+        .select('exercise_id, muscle_group')
+        .in('exercise_id', ids)
+        .eq('role', 'primary');
+      if (error) throw error;
+      return data;
+    },
+  });
+  const labels = new Map((muscles.data ?? []).map((m) => [m.key, m.label]));
+  const byExercise = new Map<string, string[]>();
+  for (const row of query.data ?? []) {
+    const list = byExercise.get(row.exercise_id) ?? [];
+    list.push(labels.get(row.muscle_group) ?? row.muscle_group);
+    byExercise.set(row.exercise_id, list);
+  }
+  return byExercise;
+}

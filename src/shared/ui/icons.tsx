@@ -89,3 +89,9 @@ export const SendIcon = (p: IconProps) => (
     <path d="M12 19V5M5 12l7-7 7 7" />
   </Icon>
 );
+
+export const ChevronDownIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </Icon>
+);

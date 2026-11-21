@@ -94,6 +94,14 @@
   }
 }
 
+/* Soft spotlight behind exercise/device images (transparent PNG/WebP) and placeholders. */
+@utility image-backdrop {
+  background-image: radial-gradient(
+    circle at 50% 40%,
+    var(--color-surface-3),
+    var(--color-surface-2) 70%
+  );
+}
 /* Toasts sit at the top, below the status bar. */
 @utility top-toast {
   top: calc(env(safe-area-inset-top) + --spacing(3));

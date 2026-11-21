@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { fade } from '@/shared/design-tokens';
 import { cn, showToast } from '@/shared/lib';
-import { Button, Card, Chip, Sheet, TextField } from '@/shared/ui';
+import { Button, Card, Chip, ChevronDownIcon, Sheet, TextField } from '@/shared/ui';
 import {
   useAddExercise,
   useDiscardWorkout,
@@ -42,6 +42,7 @@ import {
 import type { ActiveWorkout, Device, ExerciseSummary, WorkoutItem } from '../types';
 import { useDevicesAt } from '../api/usePlaces';
 import { AddExerciseSheet } from './AddExerciseSheet';
+import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
@@ -64,6 +65,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   const [noteItem, setNoteItem] = useState<WorkoutItem | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
+  const [pickDeviceFor, setPickDeviceFor] = useState<WorkoutItem | null>(null);
   const [deviceTarget, setDeviceTarget] = useState<{
     device: Device;
     exercise: ExerciseSummary;
@@ -111,16 +113,18 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
 
   return (
     <div className="flex min-h-dvh flex-col pt-safe pb-safe">
-      <header className="flex items-center justify-between gap-3 px-gutter pt-3 pb-2">
+      {/* Equal-width side buttons keep the title exactly centred. */}
+      <header className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
         <button
           type="button"
+          aria-label="Minimieren"
           onClick={onMinimize}
-          className="min-h-tap rounded-pill px-1 text-subhead font-semibold text-accent"
+          className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
         >
-          Minimieren
+          <ChevronDownIcon />
         </button>
-        <div className="flex flex-col items-center">
-          <span className="text-footnote text-text-muted">
+        <div className="flex min-w-0 flex-col items-center text-center">
+          <span className="max-w-full truncate text-footnote text-text-muted">
             {workout.trainingType.name}
             {workout.location ? ` · ${workout.location.name}` : ''}
           </span>
@@ -246,6 +250,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           if (swapItem) swap.mutate({ itemId: swapItem.id, exercise });
         }}
       />
+      <DevicePickerSheet
+        item={pickDeviceFor}
+        place={workout.location}
+        onClose={() => {
+          setPickDeviceFor(null);
+        }}
+      />
       <DeviceSheet
         target={deviceTarget}
         onClose={() => {
@@ -279,6 +290,24 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         <div className="flex flex-col gap-2">
           {menu?.kind === 'item' ? (
             <>
+              {menu.item.device && (
+                <MenuButton
+                  label="Gerät & Einstellungen"
+                  onClick={() => {
+                    if (menu.item.device) {
+                      setDeviceTarget({ device: menu.item.device, exercise: menu.item.exercise });
+                    }
+                    setMenu(null);
+                  }}
+                />
+              )}
+              <MenuButton
+                label={menu.item.device ? 'Anderes Gerät wählen' : 'Gerät wählen'}
+                onClick={() => {
+                  setPickDeviceFor(menu.item);
+                  setMenu(null);
+                }}
+              />
               <MenuButton
                 label="Übung tauschen"
                 onClick={() => {

@@ -205,3 +205,52 @@ export function formatSettingValues(fields: string[], values: DeviceSettingValue
     .map((field) => `${field} ${values[field] ?? ''}`)
     .join(' · ');
 }
+
+export interface CreateDeviceInput {
+  locationId: string;
+  name: string;
+  weightStep: number | null;
+  comparable: boolean;
+  /** Exercise to link to the new device. */
+  exerciseId: string;
+}
+
+/** Adds a device at a place and links the exercise to it. */
+export function useCreateDevice() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: CreateDeviceInput): Promise<Device> => {
+      const id = crypto.randomUUID();
+      const { error } = await supabase.from('devices').insert({
+        id,
+        location_id: input.locationId,
+        name: input.name.trim(),
+        weight_step: input.weightStep,
+        comparable: input.comparable,
+        created_by: userId,
+      });
+      if (error) throw error;
+      const { error: linkError } = await supabase
+        .from('device_exercises')
+        .insert({ device_id: id, exercise_id: input.exerciseId });
+      if (linkError) throw linkError;
+      return {
+        id,
+        name: input.name.trim(),
+        weightStep: input.weightStep,
+        comparable: input.comparable,
+        settingFields: [],
+      };
+    },
+    onSuccess: (_device, input) =>
+      queryClient.invalidateQueries({ queryKey: placeKeys.devices(userId, input.locationId) }),
+  });
+}
+
+/** Links an exercise to a device (best effort: only the device's editors may). */
+export async function linkExerciseToDevice(deviceId: string, exerciseId: string) {
+  await supabase
+    .from('device_exercises')
+    .upsert({ device_id: deviceId, exercise_id: exerciseId }, { ignoreDuplicates: true });
+}

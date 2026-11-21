@@ -25,6 +25,8 @@ export function DaySheet({
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [logging, setLogging] = useState(false);
+  // A fresh "nachtragen" sheet each time it opens (starts at the type choice).
+  const [logRound, setLogRound] = useState(0);
   // Today and earlier: add a workout afterwards (planning ahead follows with Baustein 5).
   const [today] = useState(() => {
     const now = new Date();
@@ -47,6 +49,7 @@ export function DaySheet({
             type="button"
             aria-label="Training nachtragen"
             onClick={() => {
+              setLogRound((round) => round + 1);
               setLogging(true);
             }}
             className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
@@ -57,7 +60,7 @@ export function DaySheet({
       }
     >
       <DayList entries={entries} showNames={showNames} onOpen={setOpenId} />
-      {day && <LogPastSheet day={day} open={logging} onOpenChange={setLogging} />}
+      {day && <LogPastSheet key={logRound} day={day} open={logging} onOpenChange={setLogging} />}
       <WorkoutDetailSheet
         workoutId={openId}
         onClose={() => {

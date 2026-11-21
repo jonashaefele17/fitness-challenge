@@ -42,10 +42,7 @@ export function LogPastSheet({
   return (
     <Sheet
       open={open}
-      onOpenChange={(next) => {
-        if (!next) setType(null);
-        onOpenChange(next);
-      }}
+      onOpenChange={onOpenChange}
       title={type ? `${type.name} nachtragen` : 'Training nachtragen'}
       className="min-h-sheet-min"
     >
@@ -57,8 +54,9 @@ export function LogPastSheet({
           onBack={() => {
             setType(null);
           }}
+          // Close without switching back to the type choice first (the sheet would change
+          // height and jump); the parent mounts a fresh sheet for the next time.
           onDone={() => {
-            setType(null);
             onOpenChange(false);
           }}
         />
@@ -130,9 +128,9 @@ function LogPastForm({
           },
           {
             onSuccess: (workoutId) => {
-              onDone();
-              // Exercises and sets are filled in the workout screen.
+              // Exercises and sets are filled in the workout screen: go there right away.
               if (!duration) editWorkout?.(workoutId);
+              onDone();
             },
           },
         );

@@ -50,6 +50,8 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 ## Training
 
+- [ ] „…“-Menü im Training: Nach einer Aktion (Verlauf, Gerät wählen, Notiz …) zurück ins Menü statt ins Training? Vorerst bleibt es wie bei iOS-Aktionsmenüs (Menü schließt sich).
+
 - [ ] Muskelgruppen-Wochenübersicht („Sätze pro Muskelgruppe diese Woche“) unter Ich → Training bzw. im Wochenrückblick
 - [ ] Körper-Grafik (vorne/hinten, Muskeln eingefärbt) wie bei Lyfta – eine Komponente für Übungsdetail und Wochenübersicht
 - [ ] Haptik auf dem iPhone: im Web nicht möglich (iOS-Schalter-Trick funktioniert auf iOS 26 nicht); mit nativer App (Capacitor) echte Haptik in `shared/lib/haptics.ts` ergänzen

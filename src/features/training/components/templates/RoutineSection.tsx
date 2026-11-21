@@ -288,7 +288,6 @@ function ExerciseSettingsSheet({
         if (!next) close();
       }}
       title={editing ? 'Übung bearbeiten' : (item?.exercise.name ?? 'Übung')}
-      className="min-h-sheet-min"
     >
       {item && editing && details && (
         <CreateExerciseForm

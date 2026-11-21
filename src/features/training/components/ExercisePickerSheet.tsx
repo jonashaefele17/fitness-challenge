@@ -50,6 +50,7 @@ export interface ExercisePickerSheetProps {
 }
 
 type Tab = 'devices' | 'exercises';
+type SubView = Exclude<View, { kind: 'browse' }>;
 type View =
   | { kind: 'browse' }
   | { kind: 'device'; deviceId: string }
@@ -140,38 +141,43 @@ export function ExercisePickerSheet({
     );
   }
 
+  // Steps below the list open as a sheet stacked on it (closing it returns to the list).
+  // The last step stays rendered while that sheet slides away.
+  const [lastSub, setLastSub] = useState<SubView | null>(null);
+  if (view.kind !== 'browse' && view !== lastSub) setLastSub(view);
+  const sub: SubView | null = view.kind !== 'browse' ? view : lastSub;
+
   const device =
-    view.kind === 'device' || view.kind === 'link'
-      ? deviceList.find((d) => d.id === view.deviceId)
+    sub?.kind === 'device' || sub?.kind === 'link'
+      ? deviceList.find((d) => d.id === sub.deviceId)
       : undefined;
 
+  // Back within the stacked sheet; its first step goes back by closing it.
   const back: View | null =
-    view.kind === 'browse'
-      ? null
-      : view.kind === 'link'
-        ? { kind: 'device', deviceId: view.deviceId }
-        : view.kind === 'new-exercise' && view.forDeviceId
-          ? { kind: 'link', deviceId: view.forDeviceId }
-          : view.kind === 'new-type'
-            ? { kind: 'add-devices' }
-            : view.kind === 'history' && view.deviceId
-              ? { kind: 'device', deviceId: view.deviceId }
-              : { kind: 'browse' };
+    sub?.kind === 'link'
+      ? { kind: 'device', deviceId: sub.deviceId }
+      : sub?.kind === 'new-exercise' && sub.forDeviceId
+        ? { kind: 'link', deviceId: sub.forDeviceId }
+        : sub?.kind === 'new-type'
+          ? { kind: 'add-devices' }
+          : sub?.kind === 'history' && sub.deviceId
+            ? { kind: 'device', deviceId: sub.deviceId }
+            : null;
 
-  const sheetTitle =
-    view.kind === 'device' || view.kind === 'link'
+  const subTitle =
+    sub?.kind === 'device' || sub?.kind === 'link'
       ? (device?.name ?? 'Gerät')
-      : view.kind === 'add-devices'
+      : sub?.kind === 'add-devices'
         ? `Geräte · ${place?.name ?? ''}`
-        : view.kind === 'new-type'
+        : sub?.kind === 'new-type'
           ? 'Neuer Gerätetyp'
-          : view.kind === 'new-exercise'
+          : sub?.kind === 'new-exercise'
             ? 'Neue Übung'
-            : view.kind === 'new-focus'
+            : sub?.kind === 'new-focus'
               ? 'Eigener Fokus'
-              : view.kind === 'history'
-                ? view.exercise.name
-                : title;
+              : sub?.kind === 'history'
+                ? sub.exercise.name
+                : 'Übung';
 
   return (
     <Sheet
@@ -179,16 +185,10 @@ export function ExercisePickerSheet({
       onOpenChange={(next) => {
         if (!next) close();
       }}
-      title={sheetTitle}
+      title={title}
       className="min-h-sheet-min"
       footer={
-        view.kind === 'add-devices' && selectedTypes.size > 0 ? (
-          <Button className="w-full" loading={addDevices.isPending} onClick={addSelected}>
-            {selectedTypes.size === 1
-              ? '1 Gerät hinzufügen'
-              : `${String(selectedTypes.size)} Geräte hinzufügen`}
-          </Button>
-        ) : multiple && view.kind === 'browse' ? (
+        multiple ? (
           <Button className="w-full" onClick={close}>
             {selectedIds.length === 1
               ? 'Fertig · 1 Übung'
@@ -197,19 +197,7 @@ export function ExercisePickerSheet({
         ) : undefined
       }
     >
-      {back && (
-        <button
-          type="button"
-          onClick={() => {
-            setView(back);
-          }}
-          className="-mt-2 mb-2 min-h-tap text-subhead font-semibold text-accent"
-        >
-          ‹ Zurück
-        </button>
-      )}
-
-      {view.kind === 'browse' && (
+      {
         <div className="flex flex-col gap-4">
           <TextField
             label={activeTab === 'devices' ? 'Gerät oder Übung suchen' : 'Übung suchen'}
@@ -272,101 +260,131 @@ export function ExercisePickerSheet({
             />
           )}
         </div>
-      )}
+      }
 
-      {view.kind === 'device' && device && place && (
-        <DeviceDetails
-          device={device}
-          placeId={place.id}
-          focus={focus}
-          onPick={(exercise) => {
-            pick(exercise, device);
-          }}
-          onAddExercise={() => {
-            setView({ kind: 'link', deviceId: device.id });
-          }}
-          onHistory={(exercise) => {
-            setView({ kind: 'history', exercise, deviceId: device.id });
-          }}
-        />
-      )}
+      <Sheet
+        open={open && view.kind !== 'browse'}
+        onOpenChange={(next) => {
+          if (!next) setView({ kind: 'browse' });
+        }}
+        title={subTitle}
+        className="min-h-sheet-min"
+        footer={
+          sub?.kind === 'add-devices' && selectedTypes.size > 0 ? (
+            <Button className="w-full" loading={addDevices.isPending} onClick={addSelected}>
+              {selectedTypes.size === 1
+                ? '1 Gerät hinzufügen'
+                : `${String(selectedTypes.size)} Geräte hinzufügen`}
+            </Button>
+          ) : undefined
+        }
+      >
+        {back && (
+          <button
+            type="button"
+            onClick={() => {
+              setView(back);
+            }}
+            className="-mt-2 mb-2 min-h-tap text-subhead font-semibold text-accent"
+          >
+            ‹ Zurück
+          </button>
+        )}
 
-      {view.kind === 'history' && (
-        <ExerciseHistory
-          exercise={view.exercise}
-          device={deviceList.find((d) => d.id === view.deviceId) ?? null}
-        />
-      )}
+        {sub?.kind === 'device' && device && place && (
+          <DeviceDetails
+            device={device}
+            placeId={place.id}
+            focus={focus}
+            onPick={(exercise) => {
+              pick(exercise, device);
+            }}
+            onAddExercise={() => {
+              setView({ kind: 'link', deviceId: device.id });
+            }}
+            onHistory={(exercise) => {
+              setView({ kind: 'history', exercise, deviceId: device.id });
+            }}
+          />
+        )}
 
-      {view.kind === 'link' && device && (
-        <LinkExercise
-          device={device}
-          onLinked={() => {
-            setView({ kind: 'device', deviceId: device.id });
-          }}
-          onCreate={() => {
-            setView({ kind: 'new-exercise', forDeviceId: device.id });
-          }}
-        />
-      )}
+        {sub?.kind === 'history' && (
+          <ExerciseHistory
+            exercise={sub.exercise}
+            device={deviceList.find((d) => d.id === sub.deviceId) ?? null}
+          />
+        )}
 
-      {view.kind === 'add-devices' && place && (
-        <DeviceTypeGrid
-          devices={deviceList}
-          selected={selectedTypes}
-          onToggle={(typeId) => {
-            setSelectedTypes((current) => {
-              const next = new Set(current);
-              if (next.has(typeId)) next.delete(typeId);
-              else next.add(typeId);
-              return next;
-            });
-          }}
-          onOpenDevice={(deviceId) => {
-            setView({ kind: 'device', deviceId });
-          }}
-          onNewType={(name) => {
-            setTypeError(null);
-            setView({ kind: 'new-type', initialName: name });
-          }}
-        />
-      )}
+        {sub?.kind === 'link' && device && (
+          <LinkExercise
+            device={device}
+            onLinked={() => {
+              setView({ kind: 'device', deviceId: device.id });
+            }}
+            onCreate={() => {
+              setView({ kind: 'new-exercise', forDeviceId: device.id });
+            }}
+          />
+        )}
 
-      {view.kind === 'new-type' && (
-        <NewDeviceTypeForm
-          initialName={view.initialName}
-          pending={addDevices.isPending}
-          error={typeError}
-          onSubmit={createType}
-        />
-      )}
+        {sub?.kind === 'add-devices' && place && (
+          <DeviceTypeGrid
+            devices={deviceList}
+            selected={selectedTypes}
+            onToggle={(typeId) => {
+              setSelectedTypes((current) => {
+                const next = new Set(current);
+                if (next.has(typeId)) next.delete(typeId);
+                else next.add(typeId);
+                return next;
+              });
+            }}
+            onOpenDevice={(deviceId) => {
+              setView({ kind: 'device', deviceId });
+            }}
+            onNewType={(name) => {
+              setTypeError(null);
+              setView({ kind: 'new-type', initialName: name });
+            }}
+          />
+        )}
 
-      {view.kind === 'new-exercise' && (
-        <NewExerciseForDevice
-          catalog={catalog}
-          device={deviceList.find((d) => d.id === view.forDeviceId) ?? null}
-          initialName={query}
-          onCancel={() => {
-            setView(back ?? { kind: 'browse' });
-          }}
-          onCreated={(exercise) => {
-            if (view.forDeviceId) {
-              setView({ kind: 'device', deviceId: view.forDeviceId });
-            } else {
-              pick(exercise, null);
-            }
-          }}
-        />
-      )}
+        {sub?.kind === 'new-type' && (
+          <NewDeviceTypeForm
+            initialName={sub.initialName}
+            pending={addDevices.isPending}
+            error={typeError}
+            onSubmit={createType}
+          />
+        )}
 
-      {view.kind === 'new-focus' && (
-        <NewFocusForm
-          onCreated={(id) => {
-            onFocusChange(id);
-            setView({ kind: 'browse' });
-          }}
-        />
-      )}
+        {sub?.kind === 'new-exercise' && (
+          <NewExerciseForDevice
+            catalog={catalog}
+            device={deviceList.find((d) => d.id === sub.forDeviceId) ?? null}
+            initialName={query}
+            onCancel={() => {
+              setView(back ?? { kind: 'browse' });
+            }}
+            onCreated={(exercise) => {
+              if (sub.forDeviceId) {
+                setView({ kind: 'device', deviceId: sub.forDeviceId });
+              } else {
+                pick(exercise, null);
+              }
+            }}
+          />
+        )}
+
+        {sub?.kind === 'new-focus' && (
+          <NewFocusForm
+            onCreated={(id) => {
+              onFocusChange(id);
+              setView({ kind: 'browse' });
+            }}
+          />
+        )}
+      </Sheet>
     </Sheet>
   );
 }

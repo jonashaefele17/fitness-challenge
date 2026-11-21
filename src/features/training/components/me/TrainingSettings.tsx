@@ -103,7 +103,8 @@ export function TrainingSettings() {
               ? editing.type.name
               : 'Neue Trainingsart'
         }
-        className="min-h-sheet-min"
+        // The place list keeps a steady height; the short forms fit their content.
+        {...(editing?.kind === 'home' ? { className: 'min-h-sheet-min' } : {})}
       >
         {editing?.kind === 'home' && (
           <PlacePicker

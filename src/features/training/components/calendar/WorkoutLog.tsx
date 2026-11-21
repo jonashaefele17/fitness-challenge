@@ -3,7 +3,7 @@ import { startOfDay } from '../../calendar';
 import { WorkoutDetailSheet } from '../workout-detail/WorkoutDetailSheet';
 import { GroupPicker } from './GroupPicker';
 import { GroupWeeks } from './GroupWeeks';
-import { readSetting, writeSetting } from './logData';
+import { ACCENT, readSetting, writeSetting } from './logData';
 import { MonthView } from './MonthView';
 import { CalendarPeopleContext } from './people';
 
@@ -63,7 +63,12 @@ export function WorkoutLog() {
           onOpen={setOpenId}
         />
       ) : (
-        <MonthView today={today} headerEnd={groupButton} onOpen={setOpenId} />
+        <MonthView
+          today={today}
+          color={group.myColor ?? ACCENT}
+          headerEnd={groupButton}
+          onOpen={setOpenId}
+        />
       )}
 
       <WorkoutDetailSheet

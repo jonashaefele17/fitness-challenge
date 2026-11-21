@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.14 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.15 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.15 | Darstellung geplanter Termine und Teilnehmer im Kalender festgelegt (Umriss-Icon, Avatar-Punkt mit Status); Ich-Ansicht in eigener Personenfarbe |
 | 21.11.2026 | 1.14 | Kalender: Ich = Monat auf einem Bildschirm, Gruppe = Wochenliste wie iOS-Kalender mit Personenauswahl in einer aufklappenden Pille; Tag als Sheet mit Platz für Planen/Nachtragen; „+“ der Navigation bleibt Starten |
 | 21.11.2026 | 1.13 | Trainings-Log als Monatskarte (‹ › und Wischen), Tag antippen zeigt ihn unter der Karte; bei mehreren Trainings am Tag gewinnt das Krafttraining (Icon vorn, Kürzel); Beschriftung leise grau |
 | 21.11.2026 | 1.12 | Trainings-Kalender als Trainings-Log: Wochen als Zeilen (neueste oben), jede Zelle zeigt Icon der Trainingsart und Fokus-Kürzel bzw. Distanz; „Gruppe“ macht jede Woche zur Tabelle mit einer Zeile pro Person; Icons als Daten an der Trainingsart, Kürzel am Fokus; Tischtennis als Standardart |
@@ -129,6 +130,21 @@ Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfal
 - **Ausfall:** Termin wird grau, „Nachholen“ legt ihn neu an. Geplante Ruhetage kommen ebenfalls in den Kalender.
 - **Export:** Termin als .ics in den Handykalender.
 - Aus einem heutigen Termin startet man direkt das gemeinsame Training.
+
+**Darstellung im Kalender (vorläufig festgelegt):** jede Person in ihrer Personenfarbe, auch man selbst in der Ich-Ansicht. Ein Avatar-Punkt liegt über dem Icon (oben rechts) und braucht keinen eigenen Platz; Raster und Zellengröße ändern sich nicht.
+
+| Zustand | Monatszelle (Ich) |
+| --- | --- |
+| Erledigt | gefülltes Icon |
+| Geplant, allein | Umriss-Icon (leicht transparent) |
+| Geplant mit Person, zugesagt | Umriss-Icon + gefüllter Avatar-Punkt der Person |
+| Geplant mit Person, offen | Umriss-Icon + Avatar-Punkt als Ring |
+| Person hat abgesagt | Punkt verschwindet, Termin bleibt „allein“ |
+| Erledigt mit Person | gefülltes Icon + gefüllter Avatar-Punkt |
+| Mehrere Personen | ein Punkt + „+1“ |
+
+- **Tages-Sheet:** Zeile mit Uhrzeit, Art, Fokus; rechts die Teilnehmer-Avatare mit Status (✓ zugesagt, ? offen, Uhr = anderer Zeitvorschlag, ✗ abgesagt); antippen öffnet den Termin.
+- **Gruppenansicht:** gemeinsamer Termin in beiden Personenzeilen als Umriss-Icon in der jeweiligen Farbe; wer noch nicht zugesagt hat, blasser.
 
 ## Feed, Kommentare und Benachrichtigungen
 

@@ -5,7 +5,7 @@ import { useWorkoutsInRange } from '../../api/useCalendar';
 import { addDays, addMonths, dayKey, monthWeeks, startOfMonth } from '../../calendar';
 import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
-import { ACCENT, byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
+import { byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
 
 /** Horizontal finger travel (px) that flips the month. */
 const SWIPE_PX = 60;
@@ -20,10 +20,13 @@ function sameMonth(a: Date, b: Date): boolean {
  */
 export function MonthView({
   today,
+  color,
   headerEnd,
   onOpen,
 }: {
   today: Date;
+  /** My person colour (accent when there is none, e.g. without a group). */
+  color: string;
   /** Right end of the header row (the "Gruppe" switch). */
   headerEnd: ReactNode;
   onOpen: (workoutId: string) => void;
@@ -36,7 +39,7 @@ export function MonthView({
   const range = { from: mondays[0] ?? month, to: addDays(mondays.at(-1) ?? month, 7) };
   const workouts = useWorkoutsInRange(range).data ?? [];
   const days = byDay(workouts);
-  const me: LogRow = { id: 'me', initial: '', name: 'Du', color: ACCENT, workouts };
+  const me: LogRow = { id: 'me', initial: '', name: 'Du', color, workouts };
   const todayKey = dayKey(today);
 
   function showMonth(next: Date) {
@@ -138,7 +141,7 @@ export function MonthView({
                     'active:bg-surface-3',
                     outside && 'opacity-40',
                   )}
-                  style={{ color: ACCENT }}
+                  style={{ color }}
                 >
                   <span
                     className={cn(

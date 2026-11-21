@@ -54,3 +54,11 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Vergleichbarkeit in drei Stufen: überall vergleichbar (Typ, z. B. Kurzhanteln) · in der Kette vergleichbar (Standard für Maschinen: gemeinsamer Verlauf, „Vorher“, Mini-Kurve) · eigenes Gerät.
 - [ ] Schalter am Gerät „Eigenes Modell“ (anderes Modell als in den anderen Studios der Kette) → eigener Verlauf; jederzeit umschaltbar, da Verlauf berechnet wird. Studios ohne Kette verhalten sich wie „eigenes Gerät“.
 - [ ] Einstellungen (Höhe, Rückenlehne …): bei in der Kette vergleichbaren Geräten die eigene Einstellung vom anderen Studio als Vorschlag übernehmen („aus FitX Ostbahnhof“); bei „Eigenes Modell“ leer starten. Gewichtsstufe bleibt pro Gerät überschreibbar.
+
+## Saisons
+
+### Saison-Rückblick (mit dem Saisons-Baustein bauen, berechnet als `season_recap`)
+
+- [ ] Pro Person: Anzahl Trainings, Gesamtvolumen, neue Rekorde, größte Kraftzuwächse (Anfang → Ende der Saison in %), meisttrainierte Muskelgruppen, Lieblingsgerät, längste Serie; später Habits, Gewicht, erreichte Saisonziele.
+- [ ] Gruppe: Auszeichnungen wie „Meiste Trainings“, „Größter Kraftzuwachs“, „Meiste Rekorde“, „Volumen-Monster“. Vergleich über Zuwachs in % (fair unabhängig davon, wer absolut stärker ist); dafür ggf. geschätztes 1RM nur intern.
+- [ ] Darstellung wie „Wrapped“: Karten zum Durchwischen, am Saisonende per Push, als Bild teilbar.

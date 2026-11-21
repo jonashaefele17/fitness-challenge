@@ -35,9 +35,17 @@ export function ReactionBar({ target }: ReactionBarProps) {
     .map((kind) => ({ ...kind, count: list.filter((r) => r.kind === kind.key).length }))
     .filter((kind) => kind.count > 0);
 
+  // iOS starts selecting the text around a long press (and offers "Kopieren"): while the
+  // finger is down nothing on the page is selectable.
+  function lockSelection(locked: boolean) {
+    document.documentElement.classList.toggle('select-none', locked);
+    if (locked) window.getSelection()?.removeAllRanges();
+  }
+
   function cancelPress() {
     if (timer.current !== null) window.clearTimeout(timer.current);
     timer.current = null;
+    lockSelection(false);
   }
 
   function choose(key: string) {
@@ -57,8 +65,10 @@ export function ReactionBar({ target }: ReactionBarProps) {
         onPointerDown={() => {
           longPressed.current = false;
           cancelPress();
+          lockSelection(true);
           timer.current = window.setTimeout(() => {
             longPressed.current = true;
+            window.getSelection()?.removeAllRanges();
             setPicking(true);
           }, LONG_PRESS_MS);
         }}

@@ -108,6 +108,9 @@ function toActiveWorkout(data: WorkoutRow): ActiveWorkout {
  */
 export const WorkoutCacheContext = createContext<QueryKey | null>(null);
 
+/** Editing an older workout: "Vorher" means before its start (null: the latest). */
+export const PreviousBeforeContext = createContext<string | null>(null);
+
 /** My running workout with exercises and sets, or null. */
 export function useActiveWorkout() {
   const userId = useUserId();
@@ -498,13 +501,15 @@ export function useDeleteSet() {
 // ---------------------------------------------------------------------------
 export function usePreviousSets(exerciseId: string, deviceId: string | null) {
   const userId = useUserId();
+  const before = useContext(PreviousBeforeContext);
   return useQuery({
-    queryKey: [...trainingKeys.previous(userId, exerciseId), deviceId],
+    queryKey: [...trainingKeys.previous(userId, exerciseId), deviceId, before],
     staleTime: 10 * 60_000,
     queryFn: async (): Promise<PreviousSet[]> => {
       const { data, error } = await supabase.rpc('previous_sets', {
         p_exercise_id: exerciseId,
         ...(deviceId && { p_device_id: deviceId }),
+        ...(before && { p_before: before }),
       });
       if (error) throw error;
       return data.map((row) => ({

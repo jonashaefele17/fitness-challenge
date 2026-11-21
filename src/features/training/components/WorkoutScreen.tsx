@@ -21,6 +21,7 @@ import { cn, showToast } from '@/shared/lib';
 import { Button, Card, Chip, ChevronDownIcon, Sheet, TextField } from '@/shared/ui';
 import {
   useAddExercise,
+  PreviousBeforeContext,
   useDeleteWorkout,
   useDiscardWorkout,
   useFinishWorkout,
@@ -157,456 +158,459 @@ export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: W
   }
 
   return (
-    // Fixed frame: header, chips and the bottom bar never move; only the exercise scrolls.
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-bg pt-safe pb-safe">
-      {/* Equal-width side buttons keep the title exactly centred. */}
-      <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
-        <button
-          type="button"
-          aria-label={editing ? 'Schließen' : 'Minimieren'}
-          onClick={editing ? onClose : onMinimize}
-          className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
-        >
-          <ChevronDownIcon />
-        </button>
-        <div className="flex min-w-0 flex-col items-center text-center">
-          <span className="max-w-full truncate text-footnote text-text-muted">
-            {workout.trainingType.name}
-            {workout.location ? ` · ${workout.location.name}` : ''}
-          </span>
-          {editing ? (
-            <button
-              type="button"
-              onClick={() => {
-                setTimeOpen(true);
-              }}
-              className="text-subhead font-semibold text-accent"
-            >
-              {editDate.format(new Date(workout.startedAt))} ·{' '}
-              {formatMinutesShort(workoutSeconds(workout))}
-            </button>
-          ) : (
-            <ElapsedTime workout={workout} />
-          )}
-        </div>
-        <button
-          type="button"
-          aria-label="Trainingsmenü"
-          onClick={() => {
-            setMenu({ kind: 'workout' });
-          }}
-          className="flex size-tap items-center justify-center rounded-pill text-title-3 text-text-muted active:bg-surface-2"
-        >
-          …
-        </button>
-      </header>
+    // Editing an older workout: "Vorher" is the workout before it.
+    <PreviousBeforeContext.Provider value={editing ? workout.startedAt : null}>
+      {/* Fixed frame: header, chips and the bottom bar never move; only the exercise scrolls. */}
+      <div className="fixed inset-0 flex flex-col overflow-hidden bg-bg pt-safe pb-safe">
+        {/* Equal-width side buttons keep the title exactly centred. */}
+        <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
+          <button
+            type="button"
+            aria-label={editing ? 'Schließen' : 'Minimieren'}
+            onClick={editing ? onClose : onMinimize}
+            className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
+          >
+            <ChevronDownIcon />
+          </button>
+          <div className="flex min-w-0 flex-col items-center text-center">
+            <span className="max-w-full truncate text-footnote text-text-muted">
+              {workout.trainingType.name}
+              {workout.location ? ` · ${workout.location.name}` : ''}
+            </span>
+            {editing ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setTimeOpen(true);
+                }}
+                className="text-subhead font-semibold text-accent"
+              >
+                {editDate.format(new Date(workout.startedAt))} ·{' '}
+                {formatMinutesShort(workoutSeconds(workout))}
+              </button>
+            ) : (
+              <ElapsedTime workout={workout} />
+            )}
+          </div>
+          <button
+            type="button"
+            aria-label="Trainingsmenü"
+            onClick={() => {
+              setMenu({ kind: 'workout' });
+            }}
+            className="flex size-tap items-center justify-center rounded-pill text-title-3 text-text-muted active:bg-surface-2"
+          >
+            …
+          </button>
+        </header>
 
-      {/* Guided routines (Mobility): the phone leads instead of a set list. */}
-      {workout.trainingType.guided && !editing ? (
-        <RoutinePlayer
-          workoutId={workout.id}
-          trainingTypeId={workout.trainingType.id}
-          items={items}
-          onFinish={finishWorkout}
-          finishing={finish.isPending}
-        />
-      ) : (
-        <>
-          {items.length > 0 && (
-            <ExerciseChips
-              items={items}
-              activeId={active?.id ?? null}
-              onSelect={setActiveId}
-              onReorder={(next) => {
-                reorder.mutate(next);
-              }}
-            />
-          )}
+        {/* Guided routines (Mobility): the phone leads instead of a set list. */}
+        {workout.trainingType.guided && !editing ? (
+          <RoutinePlayer
+            workoutId={workout.id}
+            trainingTypeId={workout.trainingType.id}
+            items={items}
+            onFinish={finishWorkout}
+            finishing={finish.isPending}
+          />
+        ) : (
+          <>
+            {items.length > 0 && (
+              <ExerciseChips
+                items={items}
+                activeId={active?.id ?? null}
+                onSelect={setActiveId}
+                onReorder={(next) => {
+                  reorder.mutate(next);
+                }}
+              />
+            )}
 
-          <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
-            <AnimatePresence mode="wait" initial={false}>
-              {active ? (
-                <motion.div
-                  key={active.id}
-                  initial={{ opacity: 0, x: 16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -16 }}
-                  transition={fade.fast}
-                >
-                  <ExerciseCard
-                    item={active}
-                    onDevice={() => {
-                      if (active.device)
-                        setDeviceTarget({ device: active.device, exercise: active.exercise });
-                    }}
-                    onMenu={() => {
-                      setMenu({ kind: 'item', item: active });
-                    }}
-                    onHistory={() => {
-                      setHistoryTarget({ exercise: active.exercise, device: active.device });
-                    }}
-                  />
-                </motion.div>
-              ) : (
-                <Card className="flex flex-col items-start gap-3">
-                  <p className="text-subhead text-text-muted">
-                    Füg deine erste Übung hinzu. Sätze werden beim Abhaken sofort gespeichert.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setAddOpen(true);
-                    }}
+            <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
+              <AnimatePresence mode="wait" initial={false}>
+                {active ? (
+                  <motion.div
+                    key={active.id}
+                    initial={{ opacity: 0, x: 16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    transition={fade.fast}
                   >
-                    Übung hinzufügen
-                  </Button>
-                </Card>
-              )}
-            </AnimatePresence>
-          </main>
+                    <ExerciseCard
+                      item={active}
+                      onDevice={() => {
+                        if (active.device)
+                          setDeviceTarget({ device: active.device, exercise: active.exercise });
+                      }}
+                      onMenu={() => {
+                        setMenu({ kind: 'item', item: active });
+                      }}
+                      onHistory={() => {
+                        setHistoryTarget({ exercise: active.exercise, device: active.device });
+                      }}
+                    />
+                  </motion.div>
+                ) : (
+                  <Card className="flex flex-col items-start gap-3">
+                    <p className="text-subhead text-text-muted">
+                      Füg deine erste Übung hinzu. Sätze werden beim Abhaken sofort gespeichert.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setAddOpen(true);
+                      }}
+                    >
+                      Übung hinzufügen
+                    </Button>
+                  </Card>
+                )}
+              </AnimatePresence>
+            </main>
 
-          {items.length > 0 && (
-            <nav className="mx-gutter mb-3 flex shrink-0 items-center justify-between rounded-pill glass p-1">
-              <Button
-                variant="ghost"
-                aria-label="Vorherige Übung"
-                disabled={index === 0}
-                onClick={() => {
-                  setActiveId(items[index - 1]?.id ?? null);
-                }}
-              >
-                ‹
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setAddOpen(true);
-                }}
-              >
-                + Übung
-              </Button>
-              {index < items.length - 1 ? (
+            {items.length > 0 && (
+              <nav className="mx-gutter mb-3 flex shrink-0 items-center justify-between rounded-pill glass p-1">
                 <Button
-                  variant="secondary"
+                  variant="ghost"
+                  aria-label="Vorherige Übung"
+                  disabled={index === 0}
                   onClick={() => {
-                    setActiveId(items[index + 1]?.id ?? null);
+                    setActiveId(items[index - 1]?.id ?? null);
                   }}
                 >
-                  Nächste ›
+                  ‹
                 </Button>
-              ) : editing ? (
-                <Button onClick={onClose}>Fertig ✓</Button>
-              ) : (
-                // Last exercise: the same spot finishes the workout.
-                <Button loading={finish.isPending} onClick={finishWorkout}>
-                  Beenden ✓
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setAddOpen(true);
+                  }}
+                >
+                  + Übung
                 </Button>
-              )}
-            </nav>
-          )}
-        </>
-      )}
+                {index < items.length - 1 ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setActiveId(items[index + 1]?.id ?? null);
+                    }}
+                  >
+                    Nächste ›
+                  </Button>
+                ) : editing ? (
+                  <Button onClick={onClose}>Fertig ✓</Button>
+                ) : (
+                  // Last exercise: the same spot finishes the workout.
+                  <Button loading={finish.isPending} onClick={finishWorkout}>
+                    Beenden ✓
+                  </Button>
+                )}
+              </nav>
+            )}
+          </>
+        )}
 
-      <ExercisePickerSheet
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        place={workout.location}
-        catalog={workout.trainingType.catalog}
-        allowedFocusIds={workout.trainingType.focusIds}
-        focusId={workout.focusId}
-        onFocusChange={(focusId) => {
-          setFocus.mutate(focusId);
-        }}
-        onPick={(exercise, device) => {
-          const itemId = crypto.randomUUID();
-          addExercise.mutate({
-            itemId,
-            setId: crypto.randomUUID(),
-            exercise,
-            device,
-            afterItemId: active?.id ?? null,
-            items,
-          });
-          setActiveId(itemId);
-        }}
-      />
-      <ExercisePickerSheet
-        open={swapItem !== null}
-        onOpenChange={(open) => {
-          if (!open) setSwapItem(null);
-        }}
-        title="Übung tauschen"
-        place={workout.location}
-        catalog={workout.trainingType.catalog}
-        allowedFocusIds={workout.trainingType.focusIds}
-        focusId={workout.focusId}
-        onFocusChange={(focusId) => {
-          setFocus.mutate(focusId);
-        }}
-        onPick={(exercise, device) => {
-          if (!swapItem) return;
-          swap.mutate({ itemId: swapItem.id, exercise });
-          setItemDevice.mutate({ itemId: swapItem.id, device });
-        }}
-      />
-      <ExerciseHistorySheet
-        target={historyTarget}
-        onClose={() => {
-          setHistoryTarget(null);
-        }}
-      />
-      <DevicePickerSheet
-        item={pickDeviceFor}
-        place={workout.location}
-        onClose={() => {
-          setPickDeviceFor(null);
-        }}
-      />
-      <DeviceSheet
-        target={deviceTarget}
-        onClose={() => {
-          setDeviceTarget(null);
-        }}
-      />
-      <Sheet open={placeOpen} onOpenChange={setPlaceOpen} title="Wo trainierst du?">
-        <PlacePicker
-          allowNone
-          currentId={workout.location?.id ?? null}
-          onPick={(place) => {
-            setLocation.mutate(place);
-            setPlaceOpen(false);
+        <ExercisePickerSheet
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          place={workout.location}
+          catalog={workout.trainingType.catalog}
+          allowedFocusIds={workout.trainingType.focusIds}
+          focusId={workout.focusId}
+          onFocusChange={(focusId) => {
+            setFocus.mutate(focusId);
+          }}
+          onPick={(exercise, device) => {
+            const itemId = crypto.randomUUID();
+            addExercise.mutate({
+              itemId,
+              setId: crypto.randomUUID(),
+              exercise,
+              device,
+              afterItemId: active?.id ?? null,
+              items,
+            });
+            setActiveId(itemId);
           }}
         />
-      </Sheet>
-      <NoteSheet
-        item={noteItem}
-        onClose={() => {
-          setNoteItem(null);
-        }}
-      />
+        <ExercisePickerSheet
+          open={swapItem !== null}
+          onOpenChange={(open) => {
+            if (!open) setSwapItem(null);
+          }}
+          title="Übung tauschen"
+          place={workout.location}
+          catalog={workout.trainingType.catalog}
+          allowedFocusIds={workout.trainingType.focusIds}
+          focusId={workout.focusId}
+          onFocusChange={(focusId) => {
+            setFocus.mutate(focusId);
+          }}
+          onPick={(exercise, device) => {
+            if (!swapItem) return;
+            swap.mutate({ itemId: swapItem.id, exercise });
+            setItemDevice.mutate({ itemId: swapItem.id, device });
+          }}
+        />
+        <ExerciseHistorySheet
+          target={historyTarget}
+          onClose={() => {
+            setHistoryTarget(null);
+          }}
+        />
+        <DevicePickerSheet
+          item={pickDeviceFor}
+          place={workout.location}
+          onClose={() => {
+            setPickDeviceFor(null);
+          }}
+        />
+        <DeviceSheet
+          target={deviceTarget}
+          onClose={() => {
+            setDeviceTarget(null);
+          }}
+        />
+        <Sheet open={placeOpen} onOpenChange={setPlaceOpen} title="Wo trainierst du?">
+          <PlacePicker
+            allowNone
+            currentId={workout.location?.id ?? null}
+            onPick={(place) => {
+              setLocation.mutate(place);
+              setPlaceOpen(false);
+            }}
+          />
+        </Sheet>
+        <NoteSheet
+          item={noteItem}
+          onClose={() => {
+            setNoteItem(null);
+          }}
+        />
 
-      <Sheet
-        open={menu !== null}
-        onOpenChange={(open) => {
-          if (!open) setMenu(null);
-        }}
-        title={menu?.kind === 'item' ? menu.item.exercise.name : 'Training'}
-      >
-        <div className="flex flex-col gap-2">
-          {menu?.kind === 'item' ? (
-            <>
-              {menu.item.device && (
+        <Sheet
+          open={menu !== null}
+          onOpenChange={(open) => {
+            if (!open) setMenu(null);
+          }}
+          title={menu?.kind === 'item' ? menu.item.exercise.name : 'Training'}
+        >
+          <div className="flex flex-col gap-2">
+            {menu?.kind === 'item' ? (
+              <>
+                {menu.item.device && (
+                  <MenuButton
+                    label="Gerät & Einstellungen"
+                    onClick={() => {
+                      if (menu.item.device) {
+                        setDeviceTarget({ device: menu.item.device, exercise: menu.item.exercise });
+                      }
+                      setMenu(null);
+                    }}
+                  />
+                )}
                 <MenuButton
-                  label="Gerät & Einstellungen"
+                  label={menu.item.device ? 'Anderes Gerät wählen' : 'Gerät wählen'}
                   onClick={() => {
-                    if (menu.item.device) {
-                      setDeviceTarget({ device: menu.item.device, exercise: menu.item.exercise });
-                    }
+                    setPickDeviceFor(menu.item);
                     setMenu(null);
                   }}
                 />
-              )}
-              <MenuButton
-                label={menu.item.device ? 'Anderes Gerät wählen' : 'Gerät wählen'}
-                onClick={() => {
-                  setPickDeviceFor(menu.item);
-                  setMenu(null);
-                }}
-              />
-              <MenuButton
-                label="Verlauf"
-                onClick={() => {
-                  setHistoryTarget({ exercise: menu.item.exercise, device: menu.item.device });
-                  setMenu(null);
-                }}
-              />
-              <MenuButton
-                label="Übung tauschen"
-                onClick={() => {
-                  setSwapItem(menu.item);
-                  setMenu(null);
-                }}
-              />
-              <MenuButton
-                label={menu.item.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen'}
-                onClick={() => {
-                  setNoteItem(menu.item);
-                  setMenu(null);
-                }}
-              />
-              <MenuButton
-                label="Übung entfernen"
-                danger
-                onClick={() => {
-                  remove(menu.item);
-                  setMenu(null);
-                }}
-              />
-            </>
-          ) : editing ? (
-            <>
-              <MenuButton
-                label="Tag, Uhrzeit & Dauer"
-                onClick={() => {
-                  setMenu(null);
-                  setTimeOpen(true);
-                }}
-              />
-              <MenuButton
-                label="Ort ändern"
-                onClick={() => {
-                  setMenu(null);
-                  setPlaceOpen(true);
-                }}
-              />
-              <MenuButton
-                label="Training löschen"
-                danger
-                onClick={() => {
-                  setMenu(null);
-                  setConfirmDiscard(true);
-                }}
-              />
-            </>
-          ) : (
-            <>
-              <MenuButton
-                label={workout.pausedAt ? 'Fortsetzen' : 'Pausieren'}
-                onClick={() => {
-                  pause.mutate(workout);
-                  setMenu(null);
-                }}
-              />
-              <MenuButton
-                label="Ort ändern"
-                onClick={() => {
-                  setMenu(null);
-                  setPlaceOpen(true);
-                }}
-              />
-              <MenuButton
-                label="Minimieren"
-                onClick={() => {
-                  setMenu(null);
-                  onMinimize();
-                }}
-              />
-              <MenuButton
-                label="Beenden & speichern"
-                loading={finish.isPending}
-                onClick={() => {
-                  setMenu(null);
-                  finishWorkout();
-                }}
-              />
-              <MenuButton
-                label="Abbrechen & verwerfen"
-                danger
-                onClick={() => {
-                  setMenu(null);
-                  setConfirmDiscard(true);
-                }}
-              />
-            </>
-          )}
-        </div>
-      </Sheet>
-
-      <Sheet
-        open={confirmDiscard}
-        onOpenChange={setConfirmDiscard}
-        title={editing ? 'Training löschen?' : 'Training verwerfen?'}
-        description={
-          editing
-            ? 'Das Training verschwindet mit allen Sätzen, Kommentaren und Reaktionen. Das lässt sich nicht rückgängig machen.'
-            : 'Alle Sätze dieses Trainings werden gelöscht. Das lässt sich nicht rückgängig machen.'
-        }
-      >
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="danger"
-            fullWidth
-            loading={discard.isPending || deleteWorkout.isPending}
-            onClick={() => {
-              const done = {
-                onSuccess: () => {
-                  setConfirmDiscard(false);
-                  onClose();
-                },
-              };
-              if (editing) deleteWorkout.mutate(workout.id, done);
-              else discard.mutate(workout.id, done);
-            }}
-          >
-            {editing ? 'Löschen' : 'Verwerfen'}
-          </Button>
-          <Button
-            variant="ghost"
-            fullWidth
-            onClick={() => {
-              setConfirmDiscard(false);
-            }}
-          >
-            {editing ? 'Behalten' : 'Weiter trainieren'}
-          </Button>
-        </div>
-      </Sheet>
-
-      {editing && (
-        <Sheet open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">
-          {timeOpen && (
-            <WorkoutTimeForm
-              workout={workout}
-              onDone={() => {
-                setTimeOpen(false);
-              }}
-            />
-          )}
-        </Sheet>
-      )}
-
-      <Sheet
-        open={summary !== null}
-        onOpenChange={(open) => {
-          if (!open) onClose();
-        }}
-        title="Starkes Training! 💪"
-      >
-        {summary && (
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-3 gap-2">
-              <Stat
-                label="Dauer"
-                value={formatDuration(
-                  (new Date(summary.endedAt).getTime() - new Date(summary.startedAt).getTime()) /
-                    1000 -
-                    summary.pausedSeconds,
-                )}
-              />
-              <Stat label="Arbeitssätze" value={String(summary.workingSets)} />
-              <Stat label="Volumen" value={`${formatKg(Math.round(summary.volumeKg))} kg`} />
-            </div>
-            <NewBests workoutId={summary.id} exercises={summary.exerciseList} />
-            {summary.location && summary.deviceless.length > 0 && (
-              <RememberDevices
-                locationId={summary.location.id}
-                locationName={summary.location.name}
-                items={summary.deviceless}
-              />
+                <MenuButton
+                  label="Verlauf"
+                  onClick={() => {
+                    setHistoryTarget({ exercise: menu.item.exercise, device: menu.item.device });
+                    setMenu(null);
+                  }}
+                />
+                <MenuButton
+                  label="Übung tauschen"
+                  onClick={() => {
+                    setSwapItem(menu.item);
+                    setMenu(null);
+                  }}
+                />
+                <MenuButton
+                  label={menu.item.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen'}
+                  onClick={() => {
+                    setNoteItem(menu.item);
+                    setMenu(null);
+                  }}
+                />
+                <MenuButton
+                  label="Übung entfernen"
+                  danger
+                  onClick={() => {
+                    remove(menu.item);
+                    setMenu(null);
+                  }}
+                />
+              </>
+            ) : editing ? (
+              <>
+                <MenuButton
+                  label="Tag, Uhrzeit & Dauer"
+                  onClick={() => {
+                    setMenu(null);
+                    setTimeOpen(true);
+                  }}
+                />
+                <MenuButton
+                  label="Ort ändern"
+                  onClick={() => {
+                    setMenu(null);
+                    setPlaceOpen(true);
+                  }}
+                />
+                <MenuButton
+                  label="Training löschen"
+                  danger
+                  onClick={() => {
+                    setMenu(null);
+                    setConfirmDiscard(true);
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <MenuButton
+                  label={workout.pausedAt ? 'Fortsetzen' : 'Pausieren'}
+                  onClick={() => {
+                    pause.mutate(workout);
+                    setMenu(null);
+                  }}
+                />
+                <MenuButton
+                  label="Ort ändern"
+                  onClick={() => {
+                    setMenu(null);
+                    setPlaceOpen(true);
+                  }}
+                />
+                <MenuButton
+                  label="Minimieren"
+                  onClick={() => {
+                    setMenu(null);
+                    onMinimize();
+                  }}
+                />
+                <MenuButton
+                  label="Beenden & speichern"
+                  loading={finish.isPending}
+                  onClick={() => {
+                    setMenu(null);
+                    finishWorkout();
+                  }}
+                />
+                <MenuButton
+                  label="Abbrechen & verwerfen"
+                  danger
+                  onClick={() => {
+                    setMenu(null);
+                    setConfirmDiscard(true);
+                  }}
+                />
+              </>
             )}
-            <SaveAsTemplate
-              workoutId={summary.id}
-              trainingTypeId={summary.trainingTypeId}
-              focusId={summary.focusId}
-              templateId={summary.templateId}
-              exerciseIds={summary.exerciseIds}
-            />
-            <Button size="lg" fullWidth onClick={onClose}>
-              Fertig
+          </div>
+        </Sheet>
+
+        <Sheet
+          open={confirmDiscard}
+          onOpenChange={setConfirmDiscard}
+          title={editing ? 'Training löschen?' : 'Training verwerfen?'}
+          description={
+            editing
+              ? 'Das Training verschwindet mit allen Sätzen, Kommentaren und Reaktionen. Das lässt sich nicht rückgängig machen.'
+              : 'Alle Sätze dieses Trainings werden gelöscht. Das lässt sich nicht rückgängig machen.'
+          }
+        >
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="danger"
+              fullWidth
+              loading={discard.isPending || deleteWorkout.isPending}
+              onClick={() => {
+                const done = {
+                  onSuccess: () => {
+                    setConfirmDiscard(false);
+                    onClose();
+                  },
+                };
+                if (editing) deleteWorkout.mutate(workout.id, done);
+                else discard.mutate(workout.id, done);
+              }}
+            >
+              {editing ? 'Löschen' : 'Verwerfen'}
+            </Button>
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => {
+                setConfirmDiscard(false);
+              }}
+            >
+              {editing ? 'Behalten' : 'Weiter trainieren'}
             </Button>
           </div>
+        </Sheet>
+
+        {editing && (
+          <Sheet open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">
+            {timeOpen && (
+              <WorkoutTimeForm
+                workout={workout}
+                onDone={() => {
+                  setTimeOpen(false);
+                }}
+              />
+            )}
+          </Sheet>
         )}
-      </Sheet>
-    </div>
+
+        <Sheet
+          open={summary !== null}
+          onOpenChange={(open) => {
+            if (!open) onClose();
+          }}
+          title="Starkes Training! 💪"
+        >
+          {summary && (
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-3 gap-2">
+                <Stat
+                  label="Dauer"
+                  value={formatDuration(
+                    (new Date(summary.endedAt).getTime() - new Date(summary.startedAt).getTime()) /
+                      1000 -
+                      summary.pausedSeconds,
+                  )}
+                />
+                <Stat label="Arbeitssätze" value={String(summary.workingSets)} />
+                <Stat label="Volumen" value={`${formatKg(Math.round(summary.volumeKg))} kg`} />
+              </div>
+              <NewBests workoutId={summary.id} exercises={summary.exerciseList} />
+              {summary.location && summary.deviceless.length > 0 && (
+                <RememberDevices
+                  locationId={summary.location.id}
+                  locationName={summary.location.name}
+                  items={summary.deviceless}
+                />
+              )}
+              <SaveAsTemplate
+                workoutId={summary.id}
+                trainingTypeId={summary.trainingTypeId}
+                focusId={summary.focusId}
+                templateId={summary.templateId}
+                exerciseIds={summary.exerciseIds}
+              />
+              <Button size="lg" fullWidth onClick={onClose}>
+                Fertig
+              </Button>
+            </div>
+          )}
+        </Sheet>
+      </div>
+    </PreviousBeforeContext.Provider>
   );
 }
 

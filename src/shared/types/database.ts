@@ -1873,7 +1873,7 @@ export type Database = {
         };
       };
       previous_sets: {
-        Args: { p_device_id?: string; p_exercise_id: string };
+        Args: { p_before?: string; p_device_id?: string; p_exercise_id: string };
         Returns: {
           duration_seconds: number;
           is_warmup: boolean;

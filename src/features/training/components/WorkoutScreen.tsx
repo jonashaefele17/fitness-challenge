@@ -163,15 +163,27 @@ export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: W
       {/* Fixed frame: header, chips and the bottom bar never move; only the exercise scrolls. */}
       <div className="fixed inset-0 flex flex-col overflow-hidden bg-bg pt-safe pb-safe">
         {/* Equal-width side buttons keep the title exactly centred. */}
-        <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
-          <button
-            type="button"
-            aria-label={editing ? 'Schließen' : 'Minimieren'}
-            onClick={editing ? onClose : onMinimize}
-            className="flex size-tap items-center justify-center rounded-pill text-title-2 text-accent active:bg-surface-2"
-          >
-            <ChevronDownIcon />
-          </button>
+        {/* Equal side columns keep the title centred ("Fertig" is wider than the arrow). */}
+        <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,1fr)] items-center gap-2 px-gutter pt-3 pb-2">
+          {editing ? (
+            // Editing saves every change at once: nothing to minimise, just close.
+            <button
+              type="button"
+              onClick={onClose}
+              className="-ml-2 flex min-h-tap items-center justify-self-start rounded-pill px-2 text-body font-semibold text-accent active:bg-surface-2"
+            >
+              Fertig
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-label="Minimieren"
+              onClick={onMinimize}
+              className="flex size-tap items-center justify-center justify-self-start rounded-pill text-title-2 text-accent active:bg-surface-2"
+            >
+              <ChevronDownIcon />
+            </button>
+          )}
           <div className="flex min-w-0 flex-col items-center text-center">
             <span className="max-w-full truncate text-footnote text-text-muted">
               {workout.trainingType.name}
@@ -198,7 +210,7 @@ export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: W
             onClick={() => {
               setMenu({ kind: 'workout' });
             }}
-            className="flex size-tap items-center justify-center rounded-pill text-title-3 text-text-muted active:bg-surface-2"
+            className="flex size-tap items-center justify-center justify-self-end rounded-pill text-title-3 text-text-muted active:bg-surface-2"
           >
             …
           </button>

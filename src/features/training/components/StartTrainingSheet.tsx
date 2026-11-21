@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button, Card, SegmentedControl, Sheet, TextField } from '@/shared/ui';
 import { useTrainingTypes } from '../api/useCatalog';
+import { useTemplates } from '../api/useTemplates';
+import { templateSections } from '../templateRules';
 import { TrainingTypeForm } from './TrainingTypeForm';
 import { TrainingTypeIcon } from './TrainingTypeIcon';
 import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
@@ -19,7 +21,8 @@ type Step =
   | { kind: 'types' }
   | { kind: 'duration'; type: TrainingType }
   | { kind: 'new-type' }
-  | { kind: 'home'; type: TrainingType };
+  | { kind: 'home'; type: TrainingType }
+  | { kind: 'template'; type: TrainingType };
 
 const variantKey = (typeId: string) => `training-variant:${typeId}`;
 
@@ -41,10 +44,24 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
   const start = useStartWorkout();
   const home = useHomeStudio();
   const setHome = useSetHomeStudio();
+  const templates = useTemplates().data ?? [];
+  const [now] = useState(() => Date.now());
 
-  function startWorkout(type: TrainingType) {
+  /** Templates to offer for a type: mine/used ones, then group mates' active ones. */
+  function templatesFor(type: TrainingType) {
+    const sections = templateSections(templates, now, type.id);
+    return [...sections.active, ...sections.group];
+  }
+
+  /** Ask "Vorlage oder frei" when there are templates for the type, else start free. */
+  function next(type: TrainingType) {
+    if (templatesFor(type).length > 0) setStep({ kind: 'template', type });
+    else startWorkout(type);
+  }
+
+  function startWorkout(type: TrainingType, templateId?: string) {
     start.mutate(
-      { trainingTypeId: type.id },
+      { trainingTypeId: type.id, templateId },
       {
         onSuccess: () => {
           close();
@@ -66,7 +83,9 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
         ? 'Wo ist dein Heimstudio?'
         : step.kind === 'new-type'
           ? 'Neue Trainingsart'
-          : 'Training starten';
+          : step.kind === 'template'
+            ? step.type.name
+            : 'Training starten';
 
   return (
     <Sheet
@@ -76,7 +95,46 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
       }}
       title={title}
     >
-      {step.kind === 'duration' ? (
+      {step.kind === 'template' ? (
+        <div className="flex flex-col gap-2">
+          <Button
+            size="lg"
+            loading={start.isPending && !start.variables.templateId}
+            onClick={() => {
+              startWorkout(step.type);
+            }}
+          >
+            Frei starten
+          </Button>
+          <span className="pt-2 text-footnote font-semibold text-text-muted">Mit Vorlage</span>
+          <ul className="flex flex-col gap-2">
+            {templatesFor(step.type).map((template) => (
+              <li key={template.id}>
+                <button
+                  type="button"
+                  disabled={start.isPending}
+                  onClick={() => {
+                    startWorkout(step.type, template.id);
+                  }}
+                  className="flex min-h-tap w-full flex-col rounded-card bg-surface-2 px-4 py-3 text-left active:bg-surface-3 disabled:opacity-50"
+                >
+                  <span className="text-subhead font-semibold">{template.name}</span>
+                  <span className="text-footnote text-text-muted">
+                    {[
+                      template.exerciseCount === 1
+                        ? '1 Übung'
+                        : `${String(template.exerciseCount)} Übungen`,
+                      template.mine ? null : `von ${template.ownerName ?? '…'}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : step.kind === 'duration' ? (
         <DurationEntryForm type={step.type} onDone={close} />
       ) : step.kind === 'home' ? (
         <PlacePicker
@@ -85,7 +143,7 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
             const type = step.type;
             setHome.mutate(place.id, {
               onSuccess: () => {
-                startWorkout(type);
+                next(type);
               },
             });
           }}
@@ -132,7 +190,7 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
                     setStep({ kind: 'home', type });
                     return;
                   }
-                  startWorkout(type);
+                  next(type);
                 }}
                 className="flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border border-border bg-surface-2 p-4 text-left active:bg-surface-3 disabled:opacity-50"
               >

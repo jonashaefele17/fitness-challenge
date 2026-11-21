@@ -44,3 +44,12 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Körper-Grafik (vorne/hinten, Muskeln eingefärbt) wie bei Lyfta – eine Komponente für Übungsdetail und Wochenübersicht
 - [ ] Haptik auf dem iPhone: im Web nicht möglich (iOS-Schalter-Trick funktioniert auf iOS 26 nicht); mit nativer App (Capacitor) echte Haptik in `shared/lib/haptics.ts` ergänzen
 - [ ] Optional später: Satzpause-Erinnerung per Push (falls doch gewünscht; PWA kann im Hintergrund nicht selbst klingeln)
+
+### Studio-Ketten (zusammen mit dem Bild-Upload bauen)
+
+- [ ] Tabelle `chains` (Name, Logo); Studios bekommen optional eine Kette (`locations.chain_id`). Beim Anlegen eines Studios Kette auswählen oder neu anlegen; Studios ohne Kette (Home Gym, kleines Studio) bleiben möglich.
+- [ ] Logo der Kette (selbst hochgeladen über Supabase Storage, nicht im Repo) anzeigen: Ortswahl, Kopf im Training, später Feed-Karte.
+- [ ] Studio einrichten: „Geräte von FitX Neuperlach übernehmen?“ – Geräteliste eines anderen Studios derselben Kette als Vorschlag; danach pro Studio frei hinzufügen/entfernen/ausblenden.
+- [ ] Vergleichbarkeit in drei Stufen: überall vergleichbar (Typ, z. B. Kurzhanteln) · in der Kette vergleichbar (Standard für Maschinen: gemeinsamer Verlauf, „Vorher“, Mini-Kurve) · eigenes Gerät.
+- [ ] Schalter am Gerät „Eigenes Modell“ (anderes Modell als in den anderen Studios der Kette) → eigener Verlauf; jederzeit umschaltbar, da Verlauf berechnet wird. Studios ohne Kette verhalten sich wie „eigenes Gerät“.
+- [ ] Einstellungen (Höhe, Rückenlehne …): bei in der Kette vergleichbaren Geräten die eigene Einstellung vom anderen Studio als Vorschlag übernehmen („aus FitX Ostbahnhof“); bei „Eigenes Modell“ leer starten. Gewichtsstufe bleibt pro Gerät überschreibbar.

@@ -7,6 +7,7 @@ import { formatKg, formatSet, summarize } from '../../format';
 import type { WorkoutDetailData, WorkoutItem } from '../../types';
 import { formatDistance, formatMinutes } from '../calendar/workoutText';
 import { ExerciseHistorySheet, type HistoryTarget } from '../history/ExerciseHistorySheet';
+import { SaveAsTemplate } from '../templates/SaveAsTemplate';
 
 const when = new Intl.DateTimeFormat('de', {
   weekday: 'long',
@@ -96,6 +97,16 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
             />
           ))}
         </ul>
+      )}
+
+      {mine && !isDuration && (
+        <SaveAsTemplate
+          workoutId={workout.id}
+          trainingTypeId={workout.trainingType.id}
+          focusId={workout.focus?.id ?? null}
+          templateId={workout.templateId}
+          exerciseIds={workout.items.map((item) => item.exercise.id)}
+        />
       )}
 
       <ExerciseHistorySheet

@@ -109,7 +109,7 @@ export function useWorkoutDetail(workoutId: string | null) {
       const { data, error } = await supabase
         .from('workouts')
         .select(
-          `${SUMMARY_COLUMNS}, intensity, note,
+          `${SUMMARY_COLUMNS}, intensity, note, template_id,
            items:workout_items(
              id, position, note,
              exercises!inner(id, name, measure),
@@ -126,6 +126,7 @@ export function useWorkoutDetail(workoutId: string | null) {
         endedAt: data.ended_at,
         intensity: data.intensity,
         note: data.note,
+        templateId: data.template_id,
         items: data.items
           .map((item): WorkoutItem => ({
             id: item.id,

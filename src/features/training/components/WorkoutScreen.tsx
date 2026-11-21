@@ -47,6 +47,7 @@ import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
+import { SaveAsTemplate } from './templates/SaveAsTemplate';
 import { ExerciseHistorySheet, type HistoryTarget } from './history/ExerciseHistorySheet';
 
 export interface WorkoutScreenProps {
@@ -76,7 +77,16 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   const setItemDevice = useSetItemDevice();
   const setLocation = useSetWorkoutLocation(workout.id);
   const setFocus = useSetWorkoutFocus(workout.id);
-  const [summary, setSummary] = useState<(WorkoutSummary & FinishedWorkout) | null>(null);
+  const [summary, setSummary] = useState<
+    | (WorkoutSummary &
+        FinishedWorkout & {
+          exerciseIds: string[];
+          templateId: string | null;
+          trainingTypeId: string;
+          focusId: string | null;
+        })
+    | null
+  >(null);
 
   const addExercise = useAddExercise(workout.id);
   const reorder = useReorderItems();
@@ -110,7 +120,17 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
     const stats = summarize(items);
     finish.mutate(workout.id, {
       onSuccess: (finished) => {
-        setSummary({ ...stats, ...finished });
+        setSummary({
+          ...stats,
+          ...finished,
+          // Snapshot for "save as template" (the running workout goes away now).
+          exerciseIds: items
+            .filter((item) => item.sets.some((set) => set.completedAt !== null))
+            .map((item) => item.exercise.id),
+          templateId: workout.templateId,
+          trainingTypeId: workout.trainingType.id,
+          focusId: workout.focusId,
+        });
       },
     });
   }
@@ -468,6 +488,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
               <Stat label="Arbeitssätze" value={String(summary.workingSets)} />
               <Stat label="Volumen" value={`${formatKg(Math.round(summary.volumeKg))} kg`} />
             </div>
+            <SaveAsTemplate
+              workoutId={summary.id}
+              trainingTypeId={summary.trainingTypeId}
+              focusId={summary.focusId}
+              templateId={summary.templateId}
+              exerciseIds={summary.exerciseIds}
+            />
             <Button size="lg" fullWidth onClick={onClose}>
               Fertig
             </Button>

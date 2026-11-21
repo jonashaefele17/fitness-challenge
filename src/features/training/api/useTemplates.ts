@@ -167,3 +167,26 @@ export function useDeleteTemplate() {
     onSettled: () => invalidate(queryClient, userId),
   });
 }
+
+/** Exercise order of each of the given templates (to spot near-duplicates). */
+export function useTemplateExerciseLists(templateIds: string[]) {
+  const userId = useUserId();
+  const ids = [...templateIds].sort();
+  return useQuery({
+    queryKey: [...templateKeys.all(userId), 'exercise-lists', ids],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<{ id: string; exerciseIds: string[] }[]> => {
+      const { data, error } = await supabase
+        .from('workout_template_items')
+        .select('template_id, exercise_id, position')
+        .in('template_id', ids)
+        .order('position');
+      if (error) throw error;
+      const lists = new Map<string, string[]>();
+      for (const row of data) {
+        lists.set(row.template_id, [...(lists.get(row.template_id) ?? []), row.exercise_id]);
+      }
+      return [...lists].map(([id, exerciseIds]) => ({ id, exerciseIds }));
+    },
+  });
+}

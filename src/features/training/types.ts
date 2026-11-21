@@ -106,6 +106,8 @@ export interface ActiveWorkout {
   trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
   location: Place | null;
   focusId: string | null;
+  /** Template the workout was started with. */
+  templateId: string | null;
   items: WorkoutItem[];
 }
 
@@ -182,6 +184,7 @@ export interface WorkoutDetailData extends CalendarWorkout {
   endedAt: string | null;
   intensity: number | null;
   note: string | null;
+  templateId: string | null;
   items: WorkoutItem[];
 }
 

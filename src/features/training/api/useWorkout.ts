@@ -16,7 +16,7 @@ import { DEVICE_COLUMNS, toDevice } from './deviceRow';
 import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
-  id, user_id, started_at, paused_at, paused_seconds, focus_id,
+  id, user_id, started_at, paused_at, paused_seconds, focus_id, template_id,
   training_types!inner(id, name, kind),
   locations(id, name, owner_id),
   workout_items(
@@ -57,6 +57,7 @@ export function useActiveWorkout() {
         pausedAt: data.paused_at,
         pausedSeconds: data.paused_seconds,
         focusId: data.focus_id,
+        templateId: data.template_id,
         location: data.locations
           ? {
               id: data.locations.id,

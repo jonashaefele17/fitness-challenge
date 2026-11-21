@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.9 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.10 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.10 | Personenfarbe unter „Ich“ selbst wählbar (nur Farben, die in den eigenen Gruppen frei sind); Farbe 7 und 8 neu (Terrakotta, Senf), weil 7 fast gleich 1 war |
 | 21.11.2026 | 1.9 | Übungsverlauf: Freunde zum Vergleich einblendbar (soziales Modul Vergleich) |
 | 21.11.2026 | 1.8 | Training: bester Satz nach Lombardi statt Epley (passt zu Double Progression) |
 | 21.11.2026 | 1.7 | Training: Übungsverlauf (Kraft- und Volumen-Graph, Rekorde, Trainingsliste); bester Satz wird nach geschätztem 1RM gewertet; eigene Übungszuordnungen entfernbar |

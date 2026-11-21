@@ -34,7 +34,6 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 ## Feinschliff
 
-- [ ] Personenfarben 1 (#5ac8fa) und 7 (#64d2ff) sind fast gleich (Farbprüfung ΔE 2,9, auch bei normalem Sehen kaum unterscheidbar); Farbe 7 auf einen anderen Farbton legen. Farbe 8 (#ac8e68) wirkt grau. Betrifft Gruppen ab 6 Personen bzw. Leute in mehreren Gruppen.
 - [ ] Pillen-Navigation wie iOS 26: beim Runterscrollen zu einer kompakten Pille zusammenschrumpfen (nur Symbole bzw. aktiver Tab), beim Hochscrollen oder Antippen wieder aufklappen; mit Federanimation, „Bewegung reduzieren“ respektieren. Erst mit echtem langem Inhalt (Feed, Kalender) abstimmen.
 - [ ] Bundle nach Tabs aufteilen (Code-Splitting), aktuell ~290 kB gzip.
 - [ ] Prüfen, sobald Seiten lang genug zum Scrollen sind: Gleitet die Tab-Linse nach dem Runterscrollen seitlich (Fix `layoutRoot` vom 21.11.2026) statt von unten einzufliegen?

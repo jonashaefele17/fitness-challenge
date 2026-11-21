@@ -52,8 +52,8 @@
   --color-person-4: #ff6482;
   --color-person-5: #30d158;
   --color-person-6: #ffd60a;
-  --color-person-7: #64d2ff;
-  --color-person-8: #ac8e68;
+  --color-person-7: #c7664c; /* terracotta (was nearly identical to 1) */
+  --color-person-8: #b79420; /* mustard (was greyish) */
 
   /* Typography (system stack → SF Pro on Apple devices) */
   --font-sans:

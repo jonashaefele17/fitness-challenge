@@ -1613,6 +1613,7 @@ export type Database = {
           name: string;
         }[];
       };
+      set_my_color: { Args: { p_color: string }; Returns: undefined };
       start_workout: {
         Args: { p_location_id?: string; p_training_type_id: string };
         Returns: {

@@ -2,6 +2,8 @@ import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { cn } from '@/shared/lib';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/shared/ui';
 import { useWorkoutsInRange } from '../../api/useCalendar';
+import { usePlanOccurrences } from '../../api/usePlans';
+import type { PlanOccurrence } from '../../types';
 import { addDays, addMonths, dayKey, monthWeeks, startOfMonth } from '../../calendar';
 import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
@@ -37,6 +39,13 @@ export function MonthView({
   const range = { from: mondays[0] ?? month, to: addDays(mondays.at(-1) ?? month, 7) };
   const workouts = useWorkoutsInRange(range).data ?? [];
   const days = byDay(workouts);
+  // The range ends the day after the last week; plans are asked up to its last day.
+  const plans = usePlanOccurrences({ from: range.from, to: addDays(range.to, -1) }).data ?? [];
+  const plansByDay = new Map<string, PlanOccurrence[]>();
+  for (const plan of plans) {
+    if (plan.status === 'done') continue;
+    plansByDay.set(plan.onDate, [...(plansByDay.get(plan.onDate) ?? []), plan]);
+  }
   const me: LogRow = { id: 'me', initial: '', name: 'Du', color, workouts };
   const todayKey = dayKey(today);
 
@@ -153,7 +162,7 @@ export function MonthView({
                   >
                     {day.getDate()}
                   </span>
-                  <DayMarks workouts={list} />
+                  <DayMarks workouts={list} plans={plansByDay.get(key)} />
                 </button>
               );
             })}
@@ -164,6 +173,7 @@ export function MonthView({
       <DaySheet
         day={day}
         entries={(days.get(day ?? '') ?? []).map((workout) => ({ row: me, workout }))}
+        plans={(plansByDay.get(day ?? '') ?? []).map((plan) => ({ row: me, plan }))}
         showNames={false}
         onClose={() => {
           setDay(null);

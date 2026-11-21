@@ -176,14 +176,18 @@ export function useStartWorkout() {
     mutationFn: async ({
       trainingTypeId,
       templateId,
+      plan,
     }: {
       trainingTypeId: string;
       /** Start with a template (mine or a group mate's). */
       templateId?: string | undefined;
+      /** Started from a plan: that date counts as done once finished. */
+      plan?: { id: string; onDate: string } | undefined;
     }) => {
       const { error } = await supabase.rpc('start_workout', {
         p_training_type_id: trainingTypeId,
         ...(templateId && { p_template_id: templateId }),
+        ...(plan && { p_plan_id: plan.id, p_plan_on: plan.onDate }),
       });
       if (error) throw error;
     },

@@ -1,5 +1,5 @@
 import { dayKey } from '../../calendar';
-import type { CalendarWorkout } from '../../types';
+import type { CalendarWorkout, PlanOccurrence } from '../../types';
 
 /** One person's line in the log (me, or a group mate in "Gruppe"). */
 export interface LogRow {
@@ -9,6 +9,18 @@ export interface LogRow {
   /** CSS colour of their marks. */
   color: string;
   workouts: CalendarWorkout[];
+  /** Planned dates (not yet done). */
+  plans?: PlanOccurrence[] | undefined;
+}
+
+/** Open plans per local day (done ones show as their workout). */
+export function plansByDay(plans: PlanOccurrence[] = []): Map<string, PlanOccurrence[]> {
+  const map = new Map<string, PlanOccurrence[]>();
+  for (const plan of plans) {
+    if (plan.status === 'done') continue;
+    map.set(plan.onDate, [...(map.get(plan.onDate) ?? []), plan]);
+  }
+  return map;
 }
 
 export const ACCENT = 'var(--color-accent)';

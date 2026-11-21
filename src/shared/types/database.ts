@@ -1958,6 +1958,8 @@ export type Database = {
           template_id: string;
           title: string;
           training_type_id: string;
+          type_icon: string;
+          type_name: string;
           user_id: string;
           workout_id: string;
         }[];

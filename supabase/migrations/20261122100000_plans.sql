@@ -101,6 +101,8 @@ returns table (
   start_time time,
   kind text,
   training_type_id uuid,
+  type_name text,
+  type_icon text,
   template_id uuid,
   title text,
   note text,
@@ -129,7 +131,8 @@ as $$
      where cardinality(v.repeat_weekdays) > 0
        and extract(isodow from d)::smallint = any (v.repeat_weekdays)
   )
-  select v.id, v.user_id, d.on_date, v.start_time, v.kind, v.training_type_id, v.template_id,
+  select v.id, v.user_id, d.on_date, v.start_time, v.kind, v.training_type_id, t.name, t.icon,
+         v.template_id,
          v.title, v.note, cardinality(v.repeat_weekdays) > 0,
          case
            when w.id is not null then 'done'
@@ -139,6 +142,7 @@ as $$
          w.id
     from dates d
     join visible v on v.id = d.id
+    left join public.training_types t on t.id = v.training_type_id
     left join public.plan_skips s on s.plan_id = v.id and s.on_date = d.on_date
     left join lateral (
       select wo.id from public.workouts wo

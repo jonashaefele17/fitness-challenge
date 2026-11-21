@@ -278,3 +278,40 @@ export interface WorkoutCardSummary {
   /** Exercises with a new best set. */
   recordCount: number;
 }
+
+/** One date of a plan (a single plan or one of a weekly series). */
+export interface PlanOccurrence {
+  planId: string;
+  userId: string;
+  /** "2026-12-07" */
+  onDate: string;
+  /** "18:00", or null for no fixed time. */
+  startTime: string | null;
+  kind: 'training' | 'event';
+  trainingType: { id: string; name: string; icon: string } | null;
+  templateId: string | null;
+  title: string | null;
+  note: string | null;
+  recurring: boolean;
+  status: 'planned' | 'cancelled' | 'done';
+  /** The finished workout started from it (status done). */
+  workoutId: string | null;
+}
+
+/** A plan as edited in the form. */
+export interface PlanDraft {
+  id: string | null;
+  kind: 'training' | 'event';
+  trainingTypeId: string | null;
+  templateId: string | null;
+  title: string;
+  note: string;
+  /** "2026-12-07" */
+  startsOn: string;
+  /** "18:00" or "" (no fixed time). */
+  startTime: string;
+  /** ISO weekdays 1–7; empty: once. */
+  repeatWeekdays: number[];
+  /** "2026-12-31" or "" (open ended). */
+  repeatUntil: string;
+}

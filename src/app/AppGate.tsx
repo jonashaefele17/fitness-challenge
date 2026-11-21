@@ -5,6 +5,7 @@ import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
 import {
   CalendarPeopleContext,
   HistoryCompareContext,
+  OpenLiveWorkoutContext,
   WorkoutEditContext,
 } from '@/features/training';
 import { useMyProfile } from '@/features/profile';
@@ -56,7 +57,9 @@ export function AppGate() {
           <WorkoutSocialProvider>
             {/* Training opens finished workouts for editing through the app's route. */}
             <WorkoutEditContext.Provider value={editWorkout}>
-              <RouterProvider router={router} />
+              <OpenLiveWorkoutContext.Provider value={openLiveWorkout}>
+                <RouterProvider router={router} />
+              </OpenLiveWorkoutContext.Provider>
             </WorkoutEditContext.Provider>
           </WorkoutSocialProvider>
         </CalendarPeopleContext.Provider>
@@ -80,4 +83,8 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 
 function editWorkout(workoutId: string) {
   void router.navigate(paths.editWorkout.replace(':workoutId', workoutId));
+}
+
+function openLiveWorkout() {
+  void router.navigate(paths.liveWorkout);
 }

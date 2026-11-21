@@ -78,3 +78,6 @@ export {
   type LogPastWorkoutInput,
 } from './api/useWorkout';
 export { WorkoutEditContext } from './components/workout-detail/edit';
+export { planOccurrencesOptions, usePlanOccurrences } from './api/usePlans';
+export { OpenLiveWorkoutContext } from './components/plans/open-live';
+export { TodayPlans } from './components/plans/TodayPlans';

@@ -14,6 +14,8 @@ export interface SheetProps {
   children?: ReactNode;
   /** Pinned below the scrolling content, e.g. a comment composer. */
   footer?: ReactNode;
+  /** Button(s) at the right of the title, e.g. "+" to add something. */
+  action?: ReactNode;
   className?: string;
 }
 
@@ -29,6 +31,7 @@ export function Sheet({
   description,
   children,
   footer,
+  action,
   className,
 }: SheetProps) {
   const dragControls = useDragControls();
@@ -89,11 +92,24 @@ export function Sheet({
                   }}
                 >
                   <div aria-hidden className="mx-auto mb-3 h-1.5 w-10 rounded-pill bg-surface-3" />
-                  <Dialog.Title
-                    className={cn('text-title-3 font-semibold', hideTitle && 'sr-only')}
-                  >
-                    {title}
-                  </Dialog.Title>
+                  <div className="flex min-h-tap items-center justify-between gap-3">
+                    <Dialog.Title
+                      className={cn('text-title-3 font-semibold', hideTitle && 'sr-only')}
+                    >
+                      {title}
+                    </Dialog.Title>
+                    {action && (
+                      // Taps on the action must not start dragging the sheet.
+                      <div
+                        className="shrink-0"
+                        onPointerDown={(event) => {
+                          event.stopPropagation();
+                        }}
+                      >
+                        {action}
+                      </div>
+                    )}
+                  </div>
                   {description && (
                     <Dialog.Description className="mt-1 text-subhead text-text-muted">
                       {description}

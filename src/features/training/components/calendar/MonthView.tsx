@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/shared/ui';
 import { useWorkoutsInRange } from '../../api/useCalendar';
 import { addDays, addMonths, dayKey, monthWeeks, startOfMonth } from '../../calendar';
-import { DayList } from './DayList';
+import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
 import { ACCENT, byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
 
@@ -16,7 +16,7 @@ function sameMonth(a: Date, b: Date): boolean {
 
 /**
  * My month on one screen: seven full-width columns, fixed square-ish cells with the date,
- * the type icon and a quiet label. Tap a day to see it below; swipe or arrows for months.
+ * the type icon and a quiet label. Tap a day to open it as a sheet; swipe or arrows for months.
  */
 export function MonthView({
   today,
@@ -29,7 +29,7 @@ export function MonthView({
   onOpen: (workoutId: string) => void;
 }) {
   const [month, setMonth] = useState(() => startOfMonth(today));
-  const [selected, setSelected] = useState<string | null>(() => dayKey(today));
+  const [day, setDay] = useState<string | null>(null);
   const swipe = useRef<{ x: number; y: number; moved: boolean } | null>(null);
 
   const mondays = monthWeeks(month);
@@ -41,7 +41,6 @@ export function MonthView({
 
   function showMonth(next: Date) {
     setMonth(next);
-    setSelected(sameMonth(next, today) ? todayKey : null);
   }
 
   function onPointerDown(event: PointerEvent) {
@@ -57,8 +56,6 @@ export function MonthView({
       showMonth(addMonths(month, dx < 0 ? 1 : -1));
     }
   }
-
-  const selectedDate = selected ? new Date(`${selected}T00:00:00`) : null;
 
   return (
     <div className="flex flex-col gap-3">
@@ -131,15 +128,14 @@ export function MonthView({
                 <button
                   key={key}
                   type="button"
-                  aria-pressed={key === selected}
                   aria-label={`${dayTitle.format(day)}${list.length ? `: ${String(list.length)} Training${list.length > 1 ? 's' : ''}` : ''}`}
                   onClick={() => {
-                    setSelected(key);
+                    setDay(key);
                   }}
                   className={cn(
                     // Short screens (iPhone SE): flatter cells so the whole month fits above the navigation.
                     'flex h-14 min-w-0 flex-col items-center gap-0.5 rounded-sm pt-1 [@media(max-height:700px)]:h-11 [@media(max-height:700px)]:gap-0 [@media(max-height:700px)]:pt-0.5 [@media(max-height:700px)]:[&_svg]:size-4',
-                    key === selected ? 'bg-surface-3' : 'active:bg-surface-3',
+                    'active:bg-surface-3',
                     outside && 'opacity-40',
                   )}
                   style={{ color: ACCENT }}
@@ -164,23 +160,15 @@ export function MonthView({
         ))}
       </div>
 
-      {selectedDate ? (
-        <section className="flex flex-col gap-2">
-          {/* Full tap height: the day's actions (plan, add a past workout) go on the right. */}
-          <div className="flex min-h-tap items-center justify-between gap-2">
-            <h3 className="text-footnote font-semibold text-text-muted">
-              {dayTitle.format(selectedDate)}
-            </h3>
-          </div>
-          <DayList
-            entries={(days.get(selected ?? '') ?? []).map((workout) => ({ row: me, workout }))}
-            showNames={false}
-            onOpen={onOpen}
-          />
-        </section>
-      ) : (
-        <p className="text-footnote text-text-subtle">Tippe auf einen Tag, um ihn zu sehen.</p>
-      )}
+      <DaySheet
+        day={day}
+        entries={(days.get(day ?? '') ?? []).map((workout) => ({ row: me, workout }))}
+        showNames={false}
+        onOpen={onOpen}
+        onClose={() => {
+          setDay(null);
+        }}
+      />
     </div>
   );
 }

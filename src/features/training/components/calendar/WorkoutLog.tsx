@@ -1,53 +1,71 @@
 import { useContext, useState } from 'react';
-import { cn } from '@/shared/lib';
 import { startOfDay } from '../../calendar';
 import { WorkoutDetailSheet } from '../workout-detail/WorkoutDetailSheet';
+import { GroupPicker } from './GroupPicker';
 import { GroupWeeks } from './GroupWeeks';
 import { readSetting, writeSetting } from './logData';
 import { MonthView } from './MonthView';
 import { CalendarPeopleContext } from './people';
 
-const GROUP_KEY = 'training.log.all';
+const SHOWN_KEY = 'training.log.people';
+
+function readShown(): string[] {
+  try {
+    const parsed: unknown = JSON.parse(readSetting(SHOWN_KEY) ?? '[]');
+    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
- * Training log: my month on one screen, or with "Gruppe" the group's weeks like the iOS
- * calendar (today's week at the top, one row per person).
+ * Training log. Nobody else chosen: my month on one screen. One or more group mates
+ * chosen (the "Gruppe" pill unfolds to pick them): the group's weeks like the iOS calendar, one row per
+ * person. The choice is remembered.
  */
 export function WorkoutLog() {
   const [today] = useState(() => startOfDay(new Date()));
-  const [group, setGroup] = useState(() => readSetting(GROUP_KEY) === '1');
+  const [shownIds, setShownIds] = useState(readShown);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
-  // Only asks whether anyone else is there; loads nothing while disabled.
+  // People only (names, colours); loads no workouts while disabled.
   const usePeople = useContext(CalendarPeopleContext);
-  const available = usePeople({ from: today, to: today }, false).available;
-  const showGroup = group && available;
+  const group = usePeople({ from: today, to: today }, false);
+  const shown = group.people.filter((person) => shownIds.includes(person.id));
 
-  const groupSwitch = available ? (
-    <button
-      type="button"
-      aria-pressed={group}
-      onClick={() => {
-        setGroup((on) => {
-          writeSetting(GROUP_KEY, on ? '0' : '1');
-          return !on;
-        });
-      }}
-      className={cn(
-        'flex min-h-tap shrink-0 items-center rounded-pill border px-4 text-subhead font-semibold',
-        group ? 'border-accent bg-accent text-on-accent' : 'border-border bg-surface-2',
-      )}
-    >
-      Gruppe
-    </button>
+  function toggle(personId: string) {
+    setShownIds((current) => {
+      const next = current.includes(personId)
+        ? current.filter((id) => id !== personId)
+        : [...current, personId];
+      writeSetting(SHOWN_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
+  const groupButton = group.available ? (
+    <GroupPicker
+      people={group.people}
+      shownIds={shownIds}
+      onToggle={toggle}
+      open={pickerOpen}
+      onOpenChange={setPickerOpen}
+    />
   ) : null;
 
   return (
     <>
-      {showGroup ? (
-        <GroupWeeks today={today} headerEnd={groupSwitch} onOpen={setOpenId} />
+      {shown.length > 0 ? (
+        <GroupWeeks
+          today={today}
+          shownIds={shown.map((person) => person.id)}
+          headerEnd={groupButton}
+          onOpen={setOpenId}
+        />
       ) : (
-        <MonthView today={today} headerEnd={groupSwitch} onOpen={setOpenId} />
+        <MonthView today={today} headerEnd={groupButton} onOpen={setOpenId} />
       )}
+
       <WorkoutDetailSheet
         workoutId={openId}
         onClose={() => {

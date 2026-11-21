@@ -1,21 +1,11 @@
 import { useContext, useLayoutEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
 import { cn } from '@/shared/lib';
-import { Sheet } from '@/shared/ui';
 import { useWorkoutsInRange } from '../../api/useCalendar';
 import { addDays, dayKey, startOfWeek } from '../../calendar';
 import type { CalendarWorkout } from '../../types';
-import { DayList } from './DayList';
+import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
-import {
-  ACCENT,
-  byDay,
-  dayTitle,
-  monthTitle,
-  readSetting,
-  WEEKDAYS,
-  writeSetting,
-  type LogRow,
-} from './logData';
+import { ACCENT, byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
 import { CalendarPeopleContext } from './people';
 
 /** Weeks loaded before today's week at first, and added each time the top is reached. */
@@ -24,33 +14,26 @@ const PAST_STEP = 26;
 const FUTURE_WEEKS = 12;
 /** Load older weeks when the list is scrolled this close to its top (px). */
 const LOAD_MARGIN_PX = 400;
-const HIDDEN_KEY = 'training.log.hidden';
 const GRID = 'grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] gap-x-0.5';
 
 /**
  * The group's weeks like the iOS calendar: today's week at the top, scroll up into the
  * past and down into the future, one row per person (avatar, type icon, focus). Fills the
- * rest of the screen and scrolls inside without a visible scroll bar. People can be shown
- * or hidden (e.g. only my training partner).
+ * rest of the screen, scrolls behind the navigation without a visible scroll bar.
  */
 export function GroupWeeks({
   today,
+  shownIds,
   headerEnd,
   onOpen,
 }: {
   today: Date;
+  /** Group mates to show next to me. */
+  shownIds: string[];
   headerEnd: ReactNode;
   onOpen: (workoutId: string) => void;
 }) {
   const [past, setPast] = useState(PAST_STEP);
-  const [hidden, setHidden] = useState<string[]>(() => {
-    try {
-      const parsed: unknown = JSON.parse(readSetting(HIDDEN_KEY) ?? '[]');
-      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [];
-    } catch {
-      return [];
-    }
-  });
   const [visibleMonth, setVisibleMonth] = useState(today);
   const [day, setDay] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -76,7 +59,7 @@ export function GroupWeeks({
       workouts: mine,
     },
     ...others.people
-      .filter((person) => !hidden.includes(person.id))
+      .filter((person) => shownIds.includes(person.id))
       .map((person) => ({
         id: person.id,
         initial: person.name.charAt(0).toUpperCase(),
@@ -130,16 +113,6 @@ export function GroupWeeks({
     }
   }
 
-  function toggle(personId: string) {
-    setHidden((current) => {
-      const next = current.includes(personId)
-        ? current.filter((id) => id !== personId)
-        : [...current, personId];
-      writeSetting(HIDDEN_KEY, JSON.stringify(next));
-      return next;
-    });
-  }
-
   const dayEntries = day
     ? rows.flatMap((row, index) =>
         (rowDays[index]?.get(day) ?? []).map((workout) => ({ row, workout })),
@@ -168,35 +141,6 @@ export function GroupWeeks({
         </div>
         {headerEnd}
       </div>
-
-      {others.people.length > 0 && (
-        <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
-          {others.people.map((person) => {
-            const on = !hidden.includes(person.id);
-            return (
-              <button
-                key={person.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => {
-                  toggle(person.id);
-                }}
-                className={cn(
-                  'flex min-h-tap shrink-0 items-center gap-2 rounded-pill border px-3 text-subhead font-semibold',
-                  on ? 'border-text-muted bg-surface-3' : 'border-border text-text-muted',
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn('size-2.5 rounded-pill', !on && 'opacity-40')}
-                  style={{ backgroundColor: person.color }}
-                />
-                {person.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       <div className="pull-nav-clearance flex flex-col rounded-t-card bg-surface-2">
         <div
@@ -279,22 +223,15 @@ export function GroupWeeks({
         </div>
       </div>
 
-      <Sheet
-        open={day !== null}
-        onOpenChange={(open) => {
-          if (!open) setDay(null);
+      <DaySheet
+        day={day}
+        entries={dayEntries}
+        showNames
+        onOpen={onOpen}
+        onClose={() => {
+          setDay(null);
         }}
-        title={day ? dayTitle.format(new Date(`${day}T00:00:00`)) : 'Tag'}
-      >
-        <DayList
-          entries={dayEntries}
-          showNames
-          onOpen={(workoutId) => {
-            setDay(null);
-            onOpen(workoutId);
-          }}
-        />
-      </Sheet>
+      />
     </div>
   );
 }

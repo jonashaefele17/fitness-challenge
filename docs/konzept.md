@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.13 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.14 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.14 | Kalender: Ich = Monat auf einem Bildschirm, Gruppe = Wochenliste wie iOS-Kalender mit Personenauswahl in einer aufklappenden Pille; Tag als Sheet mit Platz für Planen/Nachtragen; „+“ der Navigation bleibt Starten |
 | 21.11.2026 | 1.13 | Trainings-Log als Monatskarte (‹ › und Wischen), Tag antippen zeigt ihn unter der Karte; bei mehreren Trainings am Tag gewinnt das Krafttraining (Icon vorn, Kürzel); Beschriftung leise grau |
 | 21.11.2026 | 1.12 | Trainings-Kalender als Trainings-Log: Wochen als Zeilen (neueste oben), jede Zelle zeigt Icon der Trainingsart und Fokus-Kürzel bzw. Distanz; „Gruppe“ macht jede Woche zur Tabelle mit einer Zeile pro Person; Icons als Daten an der Trainingsart, Kürzel am Fokus; Tischtennis als Standardart |
 | 21.11.2026 | 1.11 | Navigation nach Fragen getrennt: Training-Tab = Kalender · Vorlagen (was wann), Ich = Training · Habits · Einstellungen (wie entwickle ich mich), Gruppe = Feed · Vergleich; Vergleichbarkeit per Freigabe pro Datenart; „mit jemandem“ markieren schon vor den Einladungen |
@@ -70,7 +71,7 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 | Tab | Inhalt |
 | --- | --- |
 | **Heute** | Heute geplant (Termin, mit wem), Tages-Check-in als 5 Kacheln, „Neu für dich“, Glocke mit Mitteilungen, Streak |
-| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. Kalender als **Trainings-Log in Monatskarten** (‹ › und Wischen, „Heute“): Wochen als Zeilen, jede Zelle zeigt das Icon der Trainingsart und das Fokus-Kürzel (Push, Pull, Beine, OK, UK, GK, Arme) bzw. Distanz/Dauer, rechts die Anzahl pro Woche; bei mehreren Trainings am Tag steht das Krafttraining vorn (Icon und Kürzel), Ausdauer klein daneben. Datum antippen zeigt den Tag unter der Karte. Filter „Gruppe“: jede Woche wird eine kleine Tabelle mit einer Zeile pro Person (Personenfarbe, soweit geteilt), damit man Pläne angleichen kann. Tippen → Trainingsdetail. Später: geplante Termine als Umriss-Icons, „mit …“, „An diesem Tag planen“ |
+| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. **Ich:** mein Monat auf einem Bildschirm (‹ › und Wischen, „Heute“), 7 volle Spalten, jede Zelle zeigt Datum, Icon der Trainingsart und leises Kürzel (Push, Pull, Beine, OK, UK, GK, Arme bzw. Distanz/Dauer); bei mehreren Trainings gewinnt das Krafttraining. **Gruppe:** die Pille „Gruppe“ klappt auf, Avatare an-/abwählen (gemerkt); sobald jemand gewählt ist, Wochenliste wie im iOS-Kalender (aktuelle Woche oben, nach oben Vergangenheit, nach unten Zukunft), eine Zeile pro Person, läuft hinter der Navigation weiter. **Tag antippen** öffnet ihn als Sheet; dort oben rechts das „+“ zum Planen (Zukunft) bzw. Nachtragen (Vergangenheit), heute beides. Geplante Termine erscheinen als Umriss-Icons in denselben Zellen. Das „+“ der Navigation bleibt immer „Training starten“. |
 | **Gruppe** | Avatar-Leiste „Heute“, Feed aus Tageskarten, Reiter „Vergleich“ (Ziele, Konsistenz, Gewicht, Kraft, Dranbleiben), Saison-Archiv kompakt |
 | **Ich** | Wie entwickle ich mich? Reiter **Training · Habits · Einstellungen** (später Körper). Training: Ziele oben, dann Kraftentwicklung (meine Übungen → Übungsverlauf), später Laufentwicklung. Habits: Auswertung, Supplements. Einstellungen: Benachrichtigungen, Farbe, Trainingsarten, Heimstudio, Sichtbarkeit pro Datenart, später Studios/Geräte |
 
@@ -348,6 +349,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 | 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Planen und Nachtragen gehören an den Tag (Sheet mit „+“), nicht an das „+“ der Navigation; ein Knopf mit wechselnder Bedeutung ist nicht vorhersagbar. Gruppenansicht gleich in der endgültigen Form (iOS-Kalender mit Zukunft), keine Zwischenlösung |
 | 21.11.2026 | Kalender als Trainings-Log statt Punkte-Kalender: Was wann trainiert wurde, steht direkt in der Zelle (Icon + Kürzel), kein Monat/Woche-Umschalter und keine Liste daneben; mit Gruppe eine Zeile pro Person. Grund: Punkte zeigen nur „dass“, nicht „was“; nur ein Umschalter pro Bildschirm |
 | 21.11.2026 | Navigation nach Fragen: Training-Tab „was wann“ (Kalender, Vorlagen), Ich „wie entwickle ich mich“ (Training · Habits · Einstellungen), Gruppe „wie stehen wir zueinander“ (Feed, Vergleich). Vergleichbar ist alles, was jemand pro Datenart (Training, Habits, Körper) freigibt; Vergleich in den eigenen Ansichten („Vergleichen mit“) und als Übersicht in Gruppe → Vergleich |
 | 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Lombardi: kg × Wdh.^0,1, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen, das Gewicht aber mehr (72,5 × 6 vor 70 × 8; beim Gewichtssprung der Double Progression höchstens eine kleine Delle; Epley verworfen, weil die Linie dort bei jedem Sprung deutlich fällt); angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |

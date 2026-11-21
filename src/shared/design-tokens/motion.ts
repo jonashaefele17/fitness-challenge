@@ -9,6 +9,8 @@ export const spring = {
   sheet: { type: 'spring', stiffness: 380, damping: 38, mass: 0.9 },
   /** Small UI elements (tab indicator, chips). */
   snappy: { type: 'spring', stiffness: 520, damping: 40 },
+  /** Small elements popping in, with a little overshoot (avatars, badges). */
+  pop: { type: 'spring', stiffness: 600, damping: 22 },
   /** Press feedback on buttons. */
   press: { type: 'spring', stiffness: 700, damping: 35 },
 } as const satisfies Record<string, Transition>;

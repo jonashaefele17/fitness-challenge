@@ -68,3 +68,5 @@ export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailShe
 export { MyExercises } from './components/me/MyExercises';
 export { TrainingSettings } from './components/me/TrainingSettings';
 export { TemplatesView } from './components/templates/TemplatesView';
+export { useWorkoutSummaries } from './api/useWorkoutSummaries';
+export { WorkoutSummaryRow } from './components/WorkoutSummaryRow';

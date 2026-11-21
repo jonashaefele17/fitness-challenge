@@ -6,7 +6,7 @@ export function useReactionsRealtime(groupId: string) {
   useRealtimeInvalidation({
     channel: `reactions:${groupId}`,
     table: 'reactions',
-    events: ['INSERT', 'DELETE'],
+    events: ['INSERT', 'UPDATE', 'DELETE'],
     filter: `group_id=eq.${groupId}`,
     queryKey: [...groupKeys.scope(groupId), 'reactions'],
   });

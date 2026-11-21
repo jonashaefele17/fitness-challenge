@@ -1,4 +1,4 @@
-export { reactionKeys, useReactions, useToggleReaction } from './api/useReactions';
+export { reactionKeys, useReactionKinds, useReactions, useSetReaction } from './api/useReactions';
 export { useReactionsRealtime } from './api/useReactionsRealtime';
-export { ReactionButton, type ReactionButtonProps } from './components/ReactionButton';
-export type { ReactionSummary } from './types';
+export { ReactionBar, type ReactionBarProps } from './components/ReactionBar';
+export type { ReactionKind, ReactionSummary } from './types';

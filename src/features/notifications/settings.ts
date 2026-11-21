@@ -31,14 +31,18 @@ export function isCategoryEnabled(
 }
 
 /** German sentence for the bell, e.g. "hat deinen Beitrag kommentiert". */
-export function describeNotification(notification: Pick<AppNotification, 'event' | 'category'>) {
+export function describeNotification(
+  notification: Pick<AppNotification, 'event' | 'category'> & { emoji?: string | null },
+) {
   switch (notification.event) {
     case 'mention':
       return 'hat dich erwähnt';
     case 'reply':
       return 'hat geantwortet';
     case 'reaction':
-      return 'hat mit 🔥 reagiert';
+      return `hat mit ${notification.emoji ?? '🔥'} reagiert`;
+    case 'workout_finished':
+      return 'hat trainiert';
     case 'member_joined':
       return 'ist der Gruppe beigetreten';
     case 'comment':

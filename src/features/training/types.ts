@@ -248,3 +248,29 @@ export interface TemplateDraft {
   note: string;
   items: TemplateItem[];
 }
+
+/** A finished workout in a few numbers, for cards elsewhere (e.g. the feed). */
+export interface WorkoutCardSummary {
+  id: string;
+  userId: string;
+  trainingType: {
+    id: string;
+    name: string;
+    icon: string;
+    kind: 'exercises' | 'duration';
+    guided: boolean;
+  };
+  focusName: string | null;
+  variant: string | null;
+  locationName: string | null;
+  startedAt: string;
+  durationSeconds: number | null;
+  distanceM: number | null;
+  exerciseCount: number;
+  workingSets: number;
+  volumeKg: number;
+  /** Exercise names in order. */
+  exerciseNames: string[];
+  /** Exercises with a new best set. */
+  recordCount: number;
+}

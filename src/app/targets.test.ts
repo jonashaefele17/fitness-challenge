@@ -18,6 +18,12 @@ describe('targetPath', () => {
     );
   });
 
+  it('links a day card and opens its thread', () => {
+    expect(
+      targetPath({ groupId: 'g', type: 'feed_day', id: 'd1' }, { thread: true, commentId: 'c1' }),
+    ).toBe('/gruppe?karte=d1&thread=1&kommentar=c1');
+  });
+
   it('falls back to the group tab for unknown types', () => {
     expect(targetPath({ ...event, type: 'unknown' }, { thread: true })).toBe('/gruppe');
   });

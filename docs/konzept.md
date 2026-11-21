@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.24 | Feed (4a): Tageskarte pro Person, Gruppe und Tag (Trainings per Server-Trigger), Sortierung Neueste/Zuletzt aktiv, Pille „↑ Neue Beiträge“, Leiste „Heute“; nachgetragene Trainings am echten Tag mit „nachgetragen“ und ohne Benachrichtigung; Reaktionen 🔥 💪 👏 😂 😮 ❤️ (Tippen = 🔥, lange drücken = Auswahl, eine pro Person) |
 | 21.11.2026 | 1.23 | Trainings der Gruppe lassen sich als eigene Vorlage speichern; „Als Vorlage speichern“ ist eine einklappbare Zeile; Routinen behalten dabei ihre Einstellungen |
 | 21.11.2026 | 1.22 | Mobility-Routinen wie ein Mitmach-Video: Ablauf (Übungszeit, Pause, Runden) einmal pro Routine, Übungen per Mehrfachauswahl zusammenklicken und am Griff sortieren; Runden laufen die ganze Liste durch; pro Übung „beidseitig“ mit optionaler Pause zum Seitenwechsel; Übungen bearbeitbar (Name, Ausführung, Muskelgruppen; Animation folgt mit dem Bild-Upload) |
 | 21.11.2026 | 1.21 | Eigener Übungskatalog für Mobility; erlaubte Fokusse pro Trainingsart (Mobility: OK, UK, GK); Standard-Trainingsarten als Katalog, jeder blendet aus, was er nicht nutzt; eigene Arten bearbeiten/archivieren |
@@ -408,6 +409,9 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Navigation nach Fragen: Training-Tab „was wann“ (Kalender, Vorlagen), Ich „wie entwickle ich mich“ (Training · Habits · Einstellungen), Gruppe „wie stehen wir zueinander“ (Feed, Vergleich). Vergleichbar ist alles, was jemand pro Datenart (Training, Habits, Körper) freigibt; Vergleich in den eigenen Ansichten („Vergleichen mit“) und als Übersicht in Gruppe → Vergleich |
 | 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Lombardi: kg × Wdh.^0,1, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen, das Gewicht aber mehr (72,5 × 6 vor 70 × 8; beim Gewichtssprung der Double Progression höchstens eine kleine Delle; Epley verworfen, weil die Linie dort bei jedem Sprung deutlich fällt); angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |
 | 21.11.2026 | Trainingsfokus als Daten (Muskelgruppen-Menge), optional am Training; Übungen passen über ihre primären Muskelgruppen. Schulter aufgeteilt in vordere, seitliche, hintere |
+| 21.11.2026 | Nachgetragen = mehr als 3 Stunden nach Trainingsende eingetragen: die Karte steht am echten Tag mit „nachgetragen“, es gibt keinen Push und keinen Glocken-Eintrag; Kommentare und Reaktionen darauf benachrichtigen normal |
+| 21.11.2026 | Jedes abgeschlossene Training erscheint automatisch im Feed (kein Ausblenden pro Training) |
+| 21.11.2026 | Reaktionen als feste Auswahl wie bei iMessage (Daten in reaction_kinds), eine Reaktion pro Person und Stelle |
 
 **Offen (zu zweit klären)**
 

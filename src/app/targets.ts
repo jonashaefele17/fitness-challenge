@@ -4,7 +4,9 @@ import type { TargetRef } from '@/shared/types/target';
 import { paths } from './paths';
 
 export const targetParams = {
-  /** Feed card to scroll to. */
+  /** Day card in the feed to scroll to. */
+  card: 'karte',
+  /** Feed event to scroll to (its day card). */
   feedEvent: 'beitrag',
   /** "1" opens the comment thread of that card. */
   thread: 'thread',
@@ -23,8 +25,10 @@ export interface OpenTargetOptions {
  */
 export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetOptions): string {
   switch (target.type) {
+    case 'feed_day':
     case 'feed_event': {
-      const params = new URLSearchParams({ [targetParams.feedEvent]: target.id });
+      const key = target.type === 'feed_day' ? targetParams.card : targetParams.feedEvent;
+      const params = new URLSearchParams({ [key]: target.id });
       if (thread) params.set(targetParams.thread, '1');
       if (thread && commentId) params.set(targetParams.comment, commentId);
       return `${paths.group}?${params.toString()}`;

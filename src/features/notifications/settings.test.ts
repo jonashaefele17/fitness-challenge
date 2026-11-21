@@ -37,5 +37,11 @@ describe('describeNotification', () => {
     expect(describeNotification({ event: 'reaction', category: 'reactions' })).toBe(
       'hat mit 🔥 reagiert',
     );
+    expect(describeNotification({ event: 'reaction', category: 'reactions', emoji: '💪' })).toBe(
+      'hat mit 💪 reagiert',
+    );
+    expect(describeNotification({ event: 'workout_finished', category: 'all_activity' })).toBe(
+      'hat trainiert',
+    );
   });
 });

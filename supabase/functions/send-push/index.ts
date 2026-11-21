@@ -9,6 +9,8 @@ interface PushItem {
   category: string;
   actorName: string | null;
   preview: string | null;
+  /** Reactions: the emoji given. */
+  emoji?: string | null;
   target: { groupId: string; type: string; id: string; index: number | null };
   thread: boolean;
   commentId: string | null;
@@ -31,7 +33,9 @@ function describe(item: PushItem): string {
     case 'reply':
       return 'hat geantwortet';
     case 'reaction':
-      return 'hat mit 🔥 reagiert';
+      return `hat mit ${item.emoji ?? '🔥'} reagiert`;
+    case 'workout_finished':
+      return 'hat trainiert';
     case 'member_joined':
       return 'ist der Gruppe beigetreten';
     case 'comment':

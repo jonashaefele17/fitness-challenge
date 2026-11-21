@@ -167,7 +167,7 @@ select is(
 reset role;
 
 -- … and goes out once the window has passed.
-update public.push_state set last_push_at = now() - interval '6 minutes'
+update public.push_state set last_push_at = now() - interval '4 minutes'
  where user_id = '22222222-2222-4222-8222-222222222222';
 set local role service_role;
 select is(

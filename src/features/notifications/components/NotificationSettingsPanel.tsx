@@ -64,7 +64,7 @@ export function NotificationSettingsPanel() {
       <Card className="flex flex-col divide-y divide-border">
         <Switch
           label="Bündeln"
-          description="Mehrere Mitteilungen innerhalb von 5 Minuten als eine."
+          description="Mehrere Mitteilungen innerhalb von 3 Minuten als eine."
           checked={prefs.bundle}
           onCheckedChange={(bundle) => {
             update({ bundle });

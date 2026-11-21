@@ -15,7 +15,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.0 | Grundkonzept erstellt |
 | 20.11.2026 | 1.1 | Datenmodell mehrgruppenfähig (siehe Entscheidungen) |
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
-| 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar), Pushes werden sofort ausgelöst |
+| 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 
 ## Vision und Kernschleife
 
@@ -136,7 +136,7 @@ Der Feed ist das, was die Gruppe antreibt: Man kann überall kommentieren, ohne 
 
 - **Glocke:** listet alles, was dich betrifft; ein Tap springt genau an die Stelle (Übung aufgeklappt, Satz markiert, Thread offen).
 - **Push** standardmäßig an: Besitzer des kommentierten Objekts, Thread-Teilnehmer, @Erwähnte.
-- **Einstellungen pro Person:** Voreinstellungen Nur Wichtiges / Standard / Alles, darunter 8 Kategorien einzeln (Kommentare auf meine Einträge, Antworten, Erwähnungen, Reaktionen, alle Aktivitäten, Termine, Check-in-Erinnerung, Supplements), dazu Bündeln (5 Min., standardmäßig aus) und Ruhezeit 22–7 Uhr.
+- **Einstellungen pro Person:** Voreinstellungen Nur Wichtiges / Standard / Alles, darunter 8 Kategorien einzeln (Kommentare auf meine Einträge, Antworten, Erwähnungen, Reaktionen, alle Aktivitäten, Termine, Check-in-Erinnerung, Supplements), dazu Bündeln (3 Min., standardmäßig aus) und Ruhezeit 22–7 Uhr.
 - **Technik:** Web Push über Supabase Edge Function; iPhone nur bei installierter App. Der Sprung an die Stelle läuft über ein lokal gemerktes Sprungziel, weil iOS Adressen aus Push-Klicks nicht zuverlässig öffnet. Badge-Zahl am App-Symbol.
 
 ## Habits

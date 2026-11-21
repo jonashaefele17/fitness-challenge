@@ -34,6 +34,9 @@ function useBeeper(enabled: boolean) {
   return {
     /** Must run inside a tap (iOS only allows audio after a user gesture). */
     unlock() {
+      // iOS 17+: play like media, so beeps sound even with the ring/silent switch on.
+      const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+      if (session) session.type = 'playback';
       context.current ??= new AudioContext();
       void context.current.resume();
     },
@@ -167,9 +170,9 @@ export function RoutinePlayer({
       : (clock.pausedRemaining ?? Math.max(0, clock.endsAt - now));
   const remaining = Math.ceil(remainingMs / 1000);
 
-  // 3–2–1 beeps.
+  // Count down the last five seconds.
   useEffect(() => {
-    if (!running || remaining > 3 || remaining < 1 || lastBeep.current === remaining) return;
+    if (!running || remaining > 5 || remaining < 1 || lastBeep.current === remaining) return;
     lastBeep.current = remaining;
     beeper.beep(660, 0.12);
   }, [running, remaining, beeper]);
@@ -312,6 +315,8 @@ export function RoutinePlayer({
                 strokeLinecap="round"
                 fill="none"
                 strokeDasharray={RING_C}
+                // Glide between the 200 ms updates instead of jumping.
+                style={{ transition: `stroke-dashoffset ${String(TICK_MS)}ms linear` }}
                 strokeDashoffset={RING_C * Math.min(1, Math.max(0, progress))}
               />
             </svg>

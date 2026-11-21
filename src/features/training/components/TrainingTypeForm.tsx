@@ -43,7 +43,7 @@ export function TrainingTypeForm({ onDone }: { onDone: () => void }) {
       {kind === 'duration' && (
         <Switch label="Mit Distanz" checked={withDistance} onCheckedChange={setWithDistance} />
       )}
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-subhead text-text-muted">Symbol im Kalender</legend>
         <div className="grid grid-cols-4 gap-2">
           {trainingIconKeys.map((key) => (

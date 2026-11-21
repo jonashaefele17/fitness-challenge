@@ -92,7 +92,7 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
           setShortName(event.target.value);
         }}
       />
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-subhead text-text-muted">Muskelgruppen</legend>
         <div className="flex flex-wrap gap-2">
           {muscles.map((muscle) => {

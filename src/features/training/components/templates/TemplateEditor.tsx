@@ -88,7 +88,7 @@ export function TemplateEditor({
         }}
       />
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-subhead text-text-muted">Trainingsart</legend>
         <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
           {types.map((type) => (
@@ -113,7 +113,7 @@ export function TemplateEditor({
         </div>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-2">
+      <fieldset className="flex min-w-0 flex-col gap-2">
         <legend className="mb-2 text-subhead text-text-muted">Fokus</legend>
         <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
           {focuses.map((focus) => {

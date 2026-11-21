@@ -32,6 +32,9 @@ export function WorkoutLog() {
   const usePeople = useContext(CalendarPeopleContext);
   const group = usePeople({ from: today, to: today }, false);
   const shown = group.people.filter((person) => shownIds.includes(person.id));
+  // Decide from the remembered choice right away (no flash of my month while the group
+  // loads); once the group is known, drop people who are no longer in it.
+  const groupView = shownIds.length > 0 && (group.people.length === 0 || shown.length > 0);
 
   function toggle(personId: string) {
     setShownIds((current) => {
@@ -55,13 +58,8 @@ export function WorkoutLog() {
 
   return (
     <>
-      {shown.length > 0 ? (
-        <GroupWeeks
-          today={today}
-          shownIds={shown.map((person) => person.id)}
-          headerEnd={groupButton}
-          onOpen={setOpenId}
-        />
+      {groupView ? (
+        <GroupWeeks today={today} shownIds={shownIds} headerEnd={groupButton} onOpen={setOpenId} />
       ) : (
         <MonthView
           today={today}

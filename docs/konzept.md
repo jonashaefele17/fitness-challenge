@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.20 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.21 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.21 | Eigener Übungskatalog für Mobility; erlaubte Fokusse pro Trainingsart (Mobility: OK, UK, GK); Standard-Trainingsarten als Katalog, jeder blendet aus, was er nicht nutzt; eigene Arten bearbeiten/archivieren |
 | 21.11.2026 | 1.20 | Mobility-Player (3f) umgesetzt: geführte Trainingsart, Routinen als Vorlagen mit Pause und beidseitig |
 | 21.11.2026 | 1.19 | „Gerät merken?“ in der Zusammenfassung umgesetzt |
 | 21.11.2026 | 1.18 | Progression umgesetzt (↑-Vorschlag im Zahlenrad, Zielbereich auf der Karte), neue Bestwerte in der Zusammenfassung; Feed-Karte zum Training bewusst in Baustein 4 (Tageskarten) |
@@ -398,6 +399,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 | 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Übungen gehören zu einem Katalog (Kraft oder Mobility), jede Trainingsart nutzt einen davon; Fokusse sind pro Trainingsart einschränkbar (als Daten). Standard-Trainingsarten sind ein Katalog: jeder schaltet unter Ich → Einstellungen aus, was er nicht nutzt |
 | 21.11.2026 | Ruhetage muss man nicht eintragen: Sport wird pro Woche bewertet; wer feste Ruhetage hat, stellt einmal einen Rhythmus ein; Krankheit/Urlaub als Zeitraum. Besondere Tage markieren nur die Tageszahl (höchstens ein Marker), Details im Tages-Sheet |
 | 21.11.2026 | Planen und Nachtragen gehören an den Tag (Sheet mit „+“), nicht an das „+“ der Navigation; ein Knopf mit wechselnder Bedeutung ist nicht vorhersagbar. Gruppenansicht gleich in der endgültigen Form (iOS-Kalender mit Zukunft), keine Zwischenlösung |
 | 21.11.2026 | Kalender als Trainings-Log statt Punkte-Kalender: Was wann trainiert wurde, steht direkt in der Zelle (Icon + Kürzel), kein Monat/Woche-Umschalter und keine Liste daneben; mit Gruppe eine Zeile pro Person. Grund: Punkte zeigen nur „dass“, nicht „was“; nur ein Umschalter pro Bildschirm |

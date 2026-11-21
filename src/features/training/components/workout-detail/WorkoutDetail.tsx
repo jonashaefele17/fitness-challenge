@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { useSetFinishedWorkoutFocus } from '../../api/useCalendar';
-import { useTrainingFocuses } from '../../api/useCatalog';
+import { useAllTrainingTypes, useTrainingFocuses } from '../../api/useCatalog';
 import { formatKg, formatSet, summarize } from '../../format';
 import type { WorkoutDetailData, WorkoutItem } from '../../types';
 import { formatDistance, formatMinutes } from '../calendar/workoutText';
@@ -173,7 +173,10 @@ function FocusText({ workout }: { workout: WorkoutDetailData }) {
 
 /** Tap a focus to set or change it (tap the selected one again to clear). */
 function FocusPicker({ workout }: { workout: WorkoutDetailData }) {
-  const focuses = useTrainingFocuses().data ?? [];
+  const type = (useAllTrainingTypes().data ?? []).find((t) => t.id === workout.trainingType.id);
+  const focuses = (useTrainingFocuses().data ?? []).filter(
+    (focus) => !type?.focusIds || type.focusIds.includes(focus.id),
+  );
   const setFocus = useSetFinishedWorkoutFocus(workout.id);
   const current = setFocus.isPending ? setFocus.variables : (workout.focus?.id ?? null);
   return (

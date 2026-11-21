@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatRelativeTime } from '@/shared/lib';
 import { Button, ChevronRightIcon, Sheet } from '@/shared/ui';
-import { useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
+import { useAllTrainingTypes, useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
 import {
   useArchiveTemplate,
   useCopyTemplate,
@@ -149,7 +149,7 @@ function TemplateCard({
   template: TemplateSummary;
   onOpen: (id: string) => void;
 }) {
-  const type = (useTrainingTypes().data ?? []).find((t) => t.id === template.trainingTypeId);
+  const type = (useAllTrainingTypes().data ?? []).find((t) => t.id === template.trainingTypeId);
   const focus = (useTrainingFocuses().data ?? []).find((f) => f.id === template.focusId);
   const parts = [
     focus?.name,

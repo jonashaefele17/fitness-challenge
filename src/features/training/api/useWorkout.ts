@@ -17,7 +17,7 @@ import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
   id, user_id, started_at, paused_at, paused_seconds, focus_id, template_id,
-  training_types!inner(id, name, kind, guided),
+  training_types!inner(id, name, kind, guided, catalog, focus_ids),
   locations(id, name, owner_id),
   workout_items(
     id, position, note, rep_min, rep_max, target_seconds, rest_seconds, per_side,
@@ -70,6 +70,8 @@ export function useActiveWorkout() {
           name: data.training_types.name,
           kind: data.training_types.kind === 'duration' ? 'duration' : 'exercises',
           guided: data.training_types.guided,
+          catalog: data.training_types.catalog === 'mobility' ? 'mobility' : 'strength',
+          focusIds: data.training_types.focus_ids,
         },
         items: data.workout_items
           .map((item): WorkoutItem => ({

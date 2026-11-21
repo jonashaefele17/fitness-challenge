@@ -41,7 +41,11 @@ export function TemplateEditor({
   const [draft, setDraft] = useState(initial);
   const [picking, setPicking] = useState(false);
   const types = (useTrainingTypes().data ?? []).filter((type) => type.kind === 'exercises');
-  const focuses = useTrainingFocuses().data ?? [];
+  const type = types.find((t) => t.id === draft.trainingTypeId);
+  // Only the focuses that make sense for the type (Mobility: OK, UK, GK).
+  const focuses = (useTrainingFocuses().data ?? []).filter(
+    (focus) => !type?.focusIds || type.focusIds.includes(focus.id),
+  );
   const homeId = useHomeStudio().data ?? null;
   const home = (usePlaces().data ?? []).find((place) => place.id === homeId) ?? null;
   const save = useSaveTemplate();
@@ -97,7 +101,15 @@ export function TemplateEditor({
               type="button"
               aria-pressed={draft.trainingTypeId === type.id}
               onClick={() => {
-                setDraft({ ...draft, trainingTypeId: type.id });
+                setDraft({
+                  ...draft,
+                  trainingTypeId: type.id,
+                  // A focus the new type does not offer is dropped.
+                  focusId:
+                    !type.focusIds || (draft.focusId && type.focusIds.includes(draft.focusId))
+                      ? draft.focusId
+                      : null,
+                });
               }}
               className={cn(
                 chip,
@@ -196,6 +208,8 @@ export function TemplateEditor({
         onOpenChange={setPicking}
         title="Übung zur Vorlage"
         place={home}
+        catalog={type?.catalog ?? 'strength'}
+        allowedFocusIds={type?.focusIds ?? null}
         focusId={draft.focusId}
         onFocusChange={(focusId) => {
           setDraft({ ...draft, focusId });

@@ -16,7 +16,13 @@ export interface TrainingType {
   icon: string;
   /** Guided: the phone leads through a routine (Mobility player). */
   guided: boolean;
+  /** Exercise catalogue the type's exercises come from. */
+  catalog: ExerciseCatalog;
+  /** Focuses that make sense for the type; null: all. */
+  focusIds: string[] | null;
 }
+
+export type ExerciseCatalog = 'strength' | 'mobility';
 
 export interface Place {
   id: string;
@@ -112,7 +118,7 @@ export interface ActiveWorkout {
   startedAt: string;
   pausedAt: string | null;
   pausedSeconds: number;
-  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided'>;
+  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided' | 'catalog' | 'focusIds'>;
   location: Place | null;
   focusId: string | null;
   /** Template the workout was started with. */

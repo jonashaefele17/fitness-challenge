@@ -9,7 +9,14 @@ import {
   useTrainingFocuses,
 } from '../api/useCatalog';
 import { useAddDevices, useDevicesAt, useLinkExercise } from '../api/usePlaces';
-import type { Device, DeviceWithExercises, ExerciseSummary, Place, TrainingFocus } from '../types';
+import type {
+  Device,
+  ExerciseCatalog,
+  DeviceWithExercises,
+  ExerciseSummary,
+  Place,
+  TrainingFocus,
+} from '../types';
 import { measureLabel } from '../measures';
 import { CreateExerciseForm } from './CreateExerciseForm';
 import { DeviceTypeGrid, NewDeviceTypeForm, type NewTypeValues } from './picker/AddDevices';
@@ -29,6 +36,10 @@ export interface ExercisePickerSheetProps {
   /** Training focus of the workout (filters by primary muscles); null: everything. */
   focusId: string | null;
   onFocusChange: (focusId: string | null) => void;
+  /** Exercise catalogue (mobility: own exercises, no devices). */
+  catalog?: ExerciseCatalog | undefined;
+  /** Focuses that make sense here (from the training type); null: all. */
+  allowedFocusIds?: string[] | null | undefined;
   onPick: (exercise: ExerciseSummary, device: Device | null) => void;
 }
 
@@ -52,11 +63,15 @@ export function ExercisePickerSheet({
   open,
   onOpenChange,
   title = 'Übung hinzufügen',
-  place,
+  place: placeProp,
   focusId,
   onFocusChange,
+  catalog = 'strength',
+  allowedFocusIds = null,
   onPick,
 }: ExercisePickerSheetProps) {
+  // Mobility has no devices: the picker is only the mobility catalogue.
+  const place = catalog === 'strength' ? placeProp : null;
   const devices = useDevicesAt(place?.id ?? null);
   const focus = useTrainingFocuses().data?.find((f) => f.id === focusId) ?? null;
   const addDevices = useAddDevices(place?.id ?? '');
@@ -190,6 +205,7 @@ export function ExercisePickerSheet({
           />
           <FocusChips
             focusId={focusId}
+            allowedIds={allowedFocusIds}
             onChange={onFocusChange}
             onCreate={() => {
               setView({ kind: 'new-focus' });
@@ -224,6 +240,7 @@ export function ExercisePickerSheet({
           ) : (
             <ExercisesGrid
               query={query}
+              catalog={catalog}
               focus={focus}
               onPick={(exercise) => {
                 pick(exercise, null);
@@ -308,6 +325,7 @@ export function ExercisePickerSheet({
 
       {view.kind === 'new-exercise' && (
         <NewExerciseForDevice
+          catalog={catalog}
           device={deviceList.find((d) => d.id === view.forDeviceId) ?? null}
           initialName={query}
           onCancel={() => {
@@ -491,11 +509,13 @@ function LinkExercise({
 }
 
 function NewExerciseForDevice({
+  catalog,
   device,
   initialName,
   onCancel,
   onCreated,
 }: {
+  catalog: ExerciseCatalog;
   device: Device | null;
   initialName: string;
   onCancel: () => void;
@@ -506,6 +526,7 @@ function NewExerciseForDevice({
   return (
     <CreateExerciseForm
       initialName={initialName}
+      catalog={catalog}
       onCancel={onCancel}
       onCreated={(exercise) => {
         if (device) {
@@ -533,18 +554,20 @@ function NewExerciseForDevice({
 // ---------------------------------------------------------------------------
 function ExercisesGrid({
   query,
+  catalog,
   focus,
   onPick,
   onCreate,
   onHistory,
 }: {
   query: string;
+  catalog: ExerciseCatalog;
   focus: TrainingFocus | null;
   onPick: (exercise: ExerciseSummary) => void;
   onCreate: () => void;
   onHistory: (exercise: ExerciseSummary) => void;
 }) {
-  const search = useExerciseSearch(query);
+  const search = useExerciseSearch(query, catalog);
   const overview = useExerciseOverview().data;
   const muscles = usePrimaryMuscleIndex();
   const results = search.data ?? [];

@@ -3,6 +3,7 @@ import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type {
   Device,
+  ExerciseCatalog,
   ExerciseMeasure,
   ExerciseSummary,
   TrainingFocus,
@@ -11,7 +12,8 @@ import type {
 } from '../types';
 import { trainingKeys } from './keys';
 
-export function useTrainingTypes() {
+/** All training types I can use (defaults and mine), including ones I hid. */
+export function useAllTrainingTypes() {
   const userId = useUserId();
   return useQuery({
     queryKey: trainingKeys.types(userId),
@@ -19,7 +21,9 @@ export function useTrainingTypes() {
     queryFn: async (): Promise<TrainingType[]> => {
       const { data, error } = await supabase
         .from('training_types')
-        .select('id, name, kind, with_distance, owner_id, location_mode, variants, icon, guided')
+        .select(
+          'id, name, kind, with_distance, owner_id, location_mode, variants, icon, guided, catalog, focus_ids',
+        )
         .is('archived_at', null)
         .or(`owner_id.is.null,owner_id.eq.${userId}`)
         .order('sort')
@@ -38,9 +42,55 @@ export function useTrainingTypes() {
         variants: row.variants,
         icon: row.icon,
         guided: row.guided,
+        catalog: row.catalog === 'mobility' ? 'mobility' : 'strength',
+        focusIds: row.focus_ids,
       }));
     },
   });
+}
+
+/** Training types I hid (the defaults are a catalogue to pick from). */
+export function useHiddenTrainingTypes() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.types(userId), 'hidden'],
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('training_prefs')
+        .select('hidden_training_type_ids')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.hidden_training_type_ids ?? [];
+    },
+  });
+}
+
+/** Show or hide a training type in my selection (start, templates, …). */
+export function useSetTrainingTypeHidden() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  const key = [...trainingKeys.types(userId), 'hidden'];
+  return useMutation({
+    mutationFn: async ({ id, hidden }: { id: string; hidden: boolean }) => {
+      const current = queryClient.getQueryData<string[]>(key) ?? [];
+      const next = hidden ? [...new Set([...current, id])] : current.filter((t) => t !== id);
+      queryClient.setQueryData(key, next);
+      const { error } = await supabase
+        .from('training_prefs')
+        .upsert({ user_id: userId, hidden_training_type_ids: next }, { onConflict: 'user_id' });
+      if (error) throw error;
+    },
+    onError: () => queryClient.invalidateQueries({ queryKey: key }),
+  });
+}
+
+/** The training types I use: all minus the ones I hid. */
+export function useTrainingTypes() {
+  const all = useAllTrainingTypes();
+  const hidden = useHiddenTrainingTypes().data ?? [];
+  return { ...all, data: all.data?.filter((type) => !hidden.includes(type.id)) };
 }
 
 export function useCreateTrainingType() {
@@ -66,17 +116,48 @@ export function useCreateTrainingType() {
   });
 }
 
+/** Edit or archive one of my own training types (kind stays as created). */
+export function useUpdateTrainingType() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      name?: string;
+      withDistance?: boolean;
+      icon?: string;
+      archived?: boolean;
+    }) => {
+      const { error } = await supabase
+        .from('training_types')
+        .update({
+          ...(input.name !== undefined && { name: input.name.trim() }),
+          ...(input.withDistance !== undefined && { with_distance: input.withDistance }),
+          ...(input.icon !== undefined && { icon: input.icon }),
+          ...(input.archived !== undefined && {
+            archived_at: input.archived ? new Date().toISOString() : null,
+          }),
+        })
+        .eq('id', input.id)
+        .eq('owner_id', userId);
+      if (error) throw error;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.types(userId) }),
+  });
+}
+
 /** Search the shared catalogue by name or alias (empty query lists everything). */
-export function useExerciseSearch(query: string) {
+export function useExerciseSearch(query: string, catalog: ExerciseCatalog = 'strength') {
   const userId = useUserId();
   const term = query.trim();
   return useQuery({
-    queryKey: trainingKeys.search(userId, term.toLowerCase()),
+    queryKey: [...trainingKeys.search(userId, term.toLowerCase()), catalog],
     placeholderData: (previous) => previous,
     queryFn: async (): Promise<ExerciseSummary[]> => {
       const { data, error } = await supabase.rpc('search_exercises', {
         p_query: term,
         p_limit: 30,
+        p_catalog: catalog,
       });
       if (error) throw error;
       return data.map((row) => ({
@@ -109,6 +190,8 @@ export interface CreateExerciseInput {
   measure: ExerciseMeasure;
   primaryMuscles: string[];
   secondaryMuscles: string[];
+  /** Mobility exercises live in their own catalogue. */
+  catalog?: ExerciseCatalog | undefined;
 }
 
 /** Adds an exercise to the shared catalogue (name must be unique). */
@@ -119,9 +202,13 @@ export function useCreateExercise() {
     mutationFn: async (input: CreateExerciseInput): Promise<ExerciseSummary> => {
       const id = crypto.randomUUID();
       const name = input.name.trim();
-      const { error } = await supabase
-        .from('exercises')
-        .insert({ id, name, measure: input.measure, created_by: userId });
+      const { error } = await supabase.from('exercises').insert({
+        id,
+        name,
+        measure: input.measure,
+        created_by: userId,
+        catalog: input.catalog ?? 'strength',
+      });
       if (error) throw error;
       const muscles = [
         ...input.primaryMuscles.map((key) => ({

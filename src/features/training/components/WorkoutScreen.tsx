@@ -280,6 +280,8 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         open={addOpen}
         onOpenChange={setAddOpen}
         place={workout.location}
+        catalog={workout.trainingType.catalog}
+        allowedFocusIds={workout.trainingType.focusIds}
         focusId={workout.focusId}
         onFocusChange={(focusId) => {
           setFocus.mutate(focusId);
@@ -304,6 +306,8 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         }}
         title="Übung tauschen"
         place={workout.location}
+        catalog={workout.trainingType.catalog}
+        allowedFocusIds={workout.trainingType.focusIds}
         focusId={workout.focusId}
         onFocusChange={(focusId) => {
           setFocus.mutate(focusId);

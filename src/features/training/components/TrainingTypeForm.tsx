@@ -1,45 +1,62 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, SegmentedControl, Switch, TextField } from '@/shared/ui';
-import { useCreateTrainingType } from '../api/useCatalog';
+import { useCreateTrainingType, useUpdateTrainingType } from '../api/useCatalog';
 import { trainingIconKeys } from '../trainingIcons';
 import type { TrainingType } from '../types';
 import { TrainingTypeIcon } from './TrainingTypeIcon';
 
-/** A personal training type: name, how it is logged, and its calendar icon. */
-export function TrainingTypeForm({ onDone }: { onDone: () => void }) {
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<TrainingType['kind']>('duration');
-  const [withDistance, setWithDistance] = useState(false);
-  const [icon, setIcon] = useState<string>('generic');
+/**
+ * A personal training type: name, how it is logged, and its calendar icon. With `initial`
+ * it edits one of mine (how it is logged stays as created: past workouts depend on it).
+ */
+export function TrainingTypeForm({
+  initial,
+  onDone,
+}: {
+  initial?: TrainingType | undefined;
+  onDone: () => void;
+}) {
+  const [name, setName] = useState(initial?.name ?? '');
+  const [kind, setKind] = useState<TrainingType['kind']>(initial?.kind ?? 'duration');
+  const [withDistance, setWithDistance] = useState(initial?.withDistance ?? false);
+  const [icon, setIcon] = useState<string>(initial?.icon ?? 'generic');
   const create = useCreateTrainingType();
+  const update = useUpdateTrainingType();
+  const pending = create.isPending || update.isPending;
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
-        create.mutate({ name, kind, withDistance, icon }, { onSuccess: onDone });
+        if (initial) {
+          update.mutate({ id: initial.id, name, withDistance, icon }, { onSuccess: onDone });
+        } else {
+          create.mutate({ name, kind, withDistance, icon }, { onSuccess: onDone });
+        }
       }}
     >
       <TextField
         label="Name"
-        placeholder="z. B. Mobility, Klettern, Radfahren"
+        placeholder="z. B. Klettern, Schwimmen, Yoga"
         value={name}
         maxLength={40}
         onChange={(event) => {
           setName(event.target.value);
         }}
       />
-      <SegmentedControl
-        label="Erfassung"
-        value={kind}
-        onChange={setKind}
-        options={[
-          { value: 'duration', label: 'Nur Dauer' },
-          { value: 'exercises', label: 'Übungen & Sätze' },
-        ]}
-      />
+      {!initial && (
+        <SegmentedControl
+          label="Erfassung"
+          value={kind}
+          onChange={setKind}
+          options={[
+            { value: 'duration', label: 'Nur Dauer' },
+            { value: 'exercises', label: 'Übungen & Sätze' },
+          ]}
+        />
+      )}
       {kind === 'duration' && (
         <Switch label="Mit Distanz" checked={withDistance} onCheckedChange={setWithDistance} />
       )}
@@ -67,8 +84,8 @@ export function TrainingTypeForm({ onDone }: { onDone: () => void }) {
           ))}
         </div>
       </fieldset>
-      <Button type="submit" disabled={name.trim().length < 2} loading={create.isPending}>
-        Anlegen
+      <Button type="submit" disabled={name.trim().length < 2} loading={pending}>
+        {initial ? 'Speichern' : 'Anlegen'}
       </Button>
     </form>
   );

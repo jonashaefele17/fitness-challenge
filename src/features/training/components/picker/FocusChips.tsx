@@ -9,14 +9,19 @@ const chip =
 /** "Alle · Push · Pull · Beine … · + Eigener": filters the picker by primary muscles. */
 export function FocusChips({
   focusId,
+  allowedIds = null,
   onChange,
   onCreate,
 }: {
   focusId: string | null;
+  /** Only these focuses (from the training type); null: all, plus "+ Eigener". */
+  allowedIds?: string[] | null | undefined;
   onChange: (focusId: string | null) => void;
   onCreate: () => void;
 }) {
-  const focuses = useTrainingFocuses().data ?? [];
+  const focuses = (useTrainingFocuses().data ?? []).filter(
+    (focus) => !allowedIds || allowedIds.includes(focus.id),
+  );
   const options = [{ id: null, name: 'Alle' }, ...focuses];
   return (
     <div
@@ -46,13 +51,15 @@ export function FocusChips({
           </button>
         );
       })}
-      <button
-        type="button"
-        onClick={onCreate}
-        className={cn(chip, 'border-dashed border-border text-accent active:bg-surface-2')}
-      >
-        + Eigener
-      </button>
+      {!allowedIds && (
+        <button
+          type="button"
+          onClick={onCreate}
+          className={cn(chip, 'border-dashed border-border text-accent active:bg-surface-2')}
+        >
+          + Eigener
+        </button>
+      )}
     </div>
   );
 }

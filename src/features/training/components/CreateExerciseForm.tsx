@@ -3,20 +3,25 @@ import { cn } from '@/shared/lib';
 import { Button, Chip, SegmentedControl, TextField } from '@/shared/ui';
 import { useCreateExercise, useMuscleGroups } from '../api/useCatalog';
 import { measures } from '../measures';
-import type { ExerciseMeasure, ExerciseSummary } from '../types';
+import type { ExerciseCatalog, ExerciseMeasure, ExerciseSummary } from '../types';
 
 /** New exercise: name, measure and optional muscle groups. */
 export function CreateExerciseForm({
   initialName,
+  catalog = 'strength',
   onCancel,
   onCreated,
 }: {
   initialName: string;
+  /** Catalogue the exercise goes into (mobility: holds/flows, timed by default). */
+  catalog?: ExerciseCatalog;
   onCancel: () => void;
   onCreated: (exercise: ExerciseSummary) => void;
 }) {
   const [name, setName] = useState(initialName.trim());
-  const [measure, setMeasure] = useState<ExerciseMeasure>('weight_reps');
+  const [measure, setMeasure] = useState<ExerciseMeasure>(
+    catalog === 'mobility' ? 'duration' : 'weight_reps',
+  );
   const [primary, setPrimary] = useState<string[]>([]);
   const [secondary, setSecondary] = useState<string[]>([]);
   const muscles = useMuscleGroups();
@@ -44,7 +49,7 @@ export function CreateExerciseForm({
       onSubmit={(event) => {
         event.preventDefault();
         create.mutate(
-          { name, measure, primaryMuscles: primary, secondaryMuscles: secondary },
+          { name, measure, primaryMuscles: primary, secondaryMuscles: secondary, catalog },
           { onSuccess: onCreated },
         );
       }}

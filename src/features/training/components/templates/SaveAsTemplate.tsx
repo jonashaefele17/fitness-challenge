@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, TextField } from '@/shared/ui';
-import { useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
+import { useTrainingFocuses, useAllTrainingTypes } from '../../api/useCatalog';
 import {
   useTemplateExerciseLists,
   useTemplateFromWorkout,
@@ -30,7 +30,7 @@ export function SaveAsTemplate({
   exerciseIds: string[];
 }) {
   const templates = useTemplates().data ?? [];
-  const types = useTrainingTypes().data ?? [];
+  const types = useAllTrainingTypes().data ?? [];
   const focuses = useTrainingFocuses().data ?? [];
   const save = useTemplateFromWorkout();
   const mine = templates.filter(

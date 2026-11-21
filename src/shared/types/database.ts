@@ -914,6 +914,94 @@ export type Database = {
           },
         ];
       };
+      plan_skips: {
+        Row: {
+          created_at: string;
+          on_date: string;
+          plan_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          on_date: string;
+          plan_id: string;
+        };
+        Update: {
+          created_at?: string;
+          on_date?: string;
+          plan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_skips_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plans: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          note: string | null;
+          repeat_until: string | null;
+          repeat_weekdays: number[];
+          start_time: string | null;
+          starts_on: string;
+          template_id: string | null;
+          title: string | null;
+          training_type_id: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          note?: string | null;
+          repeat_until?: string | null;
+          repeat_weekdays?: number[];
+          start_time?: string | null;
+          starts_on: string;
+          template_id?: string | null;
+          title?: string | null;
+          training_type_id?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          note?: string | null;
+          repeat_until?: string | null;
+          repeat_weekdays?: number[];
+          start_time?: string | null;
+          starts_on?: string;
+          template_id?: string | null;
+          title?: string | null;
+          training_type_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plans_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_templates';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plans_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -1583,6 +1671,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;
@@ -1604,6 +1694,8 @@ export type Database = {
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
+          plan_id?: string | null;
+          plan_on?: string | null;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
           template_id?: string | null;
@@ -1624,6 +1716,8 @@ export type Database = {
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
+          plan_id?: string | null;
+          plan_on?: string | null;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
           template_id?: string | null;
@@ -1644,6 +1738,13 @@ export type Database = {
             columns: ['location_id'];
             isOneToOne: false;
             referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
             referencedColumns: ['id'];
           },
           {
@@ -1805,6 +1906,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;
@@ -1841,6 +1944,23 @@ export type Database = {
           p_target_type: string;
         };
         Returns: undefined;
+      };
+      plan_occurrences: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          kind: string;
+          note: string;
+          on_date: string;
+          plan_id: string;
+          recurring: boolean;
+          start_time: string;
+          status: string;
+          template_id: string;
+          title: string;
+          training_type_id: string;
+          user_id: string;
+          workout_id: string;
+        }[];
       };
       post_comment: {
         Args: {
@@ -1929,7 +2049,13 @@ export type Database = {
         Returns: undefined;
       };
       start_workout: {
-        Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
+        Args: {
+          p_location_id?: string;
+          p_plan_id?: string;
+          p_plan_on?: string;
+          p_template_id?: string;
+          p_training_type_id: string;
+        };
         Returns: {
           created_at: string;
           distance_m: number | null;
@@ -1943,6 +2069,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;

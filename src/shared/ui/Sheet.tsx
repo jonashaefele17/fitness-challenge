@@ -1,14 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { animate, AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { fade, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
@@ -60,41 +52,6 @@ export function Sheet({
     };
   }, [open, setParentCovered]);
 
-  // Behind another sheet it grows to full height (its top edge peeks out above the new
-  // sheet) and shrinks back afterwards, gliding in step with the new sheet instead of
-  // jumping. Done on the element: from its measured height to the maximum and back.
-  const baseHeight = useRef<number | null>(null);
-  useLayoutEffect(() => {
-    const element = contentRef.current;
-    if (!element) return;
-    if (covered) {
-      // Same spring as the sheet sliding up on top: both move as one.
-      const from = element.offsetHeight;
-      baseHeight.current = from;
-      const controls = animate(
-        element,
-        { minHeight: [`${String(from)}px`, getComputedStyle(element).maxHeight] },
-        spring.sheet,
-      );
-      return () => {
-        controls.stop();
-      };
-    }
-    if (baseHeight.current === null) return;
-    const controls = animate(
-      element,
-      { minHeight: [`${String(element.offsetHeight)}px`, `${String(baseHeight.current)}px`] },
-      spring.sheet,
-    );
-    baseHeight.current = null;
-    void controls.then(() => {
-      element.style.minHeight = '';
-    });
-    return () => {
-      controls.stop();
-    };
-  }, [covered]);
-
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (info.offset.y > sheetDismiss.offset || info.velocity.y > sheetDismiss.velocity) {
       onOpenChange(false);
@@ -137,6 +94,8 @@ export function Sheet({
                     className,
                   )}
                   initial={{ y: '100%' }}
+                  // Behind another sheet it stays where it is and only shrinks back a little
+                  // (dimmed by the new sheet's overlay): calm, no height change.
                   animate={{ y: 0, scale: covered ? sheetBehindScale : 1 }}
                   exit={{ y: '100%' }}
                   transition={spring.sheet}

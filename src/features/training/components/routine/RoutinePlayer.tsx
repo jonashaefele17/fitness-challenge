@@ -7,9 +7,11 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
   SpeakerIcon,
+  Sheet,
   SpeakerOffIcon,
 } from '@/shared/ui';
-import { useUpdateSet } from '../../api/useWorkout';
+import { useDiscardWorkout, useStartWorkout, useUpdateSet } from '../../api/useWorkout';
+import { TemplateEditor } from '../templates/TemplateEditor';
 import { firstOpenStep, routineSteps, type RoutineStep } from '../../routine';
 import type { WorkoutItem } from '../../types';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
@@ -103,10 +105,14 @@ interface Clock {
  * finished exercise round is saved as a set with its duration.
  */
 export function RoutinePlayer({
+  workoutId,
+  trainingTypeId,
   items,
   onFinish,
   finishing,
 }: {
+  workoutId: string;
+  trainingTypeId: string;
   items: WorkoutItem[];
   onFinish: () => void;
   finishing: boolean;
@@ -240,14 +246,12 @@ export function RoutinePlayer({
 
   if (steps.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-gutter text-center">
-        <p className="text-subhead text-text-muted">
-          Diese Routine hat noch keine Übungen mit Zeit. Lege sie unter Training → Vorlagen an.
-        </p>
-        <Button onClick={onFinish} loading={finishing}>
-          Beenden
-        </Button>
-      </div>
+      <EmptyRoutine
+        workoutId={workoutId}
+        trainingTypeId={trainingTypeId}
+        onFinish={onFinish}
+        finishing={finishing}
+      />
     );
   }
 
@@ -403,6 +407,64 @@ export function RoutinePlayer({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Nothing to play (no routine, or one without timed exercises): create a routine right
+ * here; the empty workout is replaced by one started with it.
+ */
+function EmptyRoutine({
+  workoutId,
+  trainingTypeId,
+  onFinish,
+  finishing,
+}: {
+  workoutId: string;
+  trainingTypeId: string;
+  onFinish: () => void;
+  finishing: boolean;
+}) {
+  const [creating, setCreating] = useState(false);
+  const discard = useDiscardWorkout();
+  const start = useStartWorkout();
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-gutter text-center">
+      <p className="text-subhead text-text-muted">Diese Routine hat noch keine Übungen mit Zeit.</p>
+      <Button
+        size="lg"
+        loading={discard.isPending || start.isPending}
+        onClick={() => {
+          setCreating(true);
+        }}
+      >
+        Routine anlegen
+      </Button>
+      <Button variant="ghost" onClick={onFinish} loading={finishing}>
+        Beenden
+      </Button>
+      <Sheet
+        open={creating}
+        onOpenChange={setCreating}
+        title="Neue Routine"
+        className="min-h-sheet-min"
+      >
+        {creating && (
+          <TemplateEditor
+            initial={{ id: null, name: '', trainingTypeId, focusId: null, note: '', items: [] }}
+            onSaved={(templateId) => {
+              setCreating(false);
+              discard.mutate(workoutId, {
+                onSuccess: () => {
+                  start.mutate({ trainingTypeId, templateId });
+                },
+              });
+            }}
+          />
+        )}
+      </Sheet>
     </div>
   );
 }

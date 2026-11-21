@@ -18,6 +18,7 @@ export function LiveWorkoutRoute() {
 
   return (
     <WorkoutScreen
+      key={workout.id}
       workout={workout}
       onMinimize={() => void navigate(paths.training)}
       onClose={() => void navigate(paths.training, { replace: true })}

@@ -181,7 +181,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
 
       {/* Guided routines (Mobility): the phone leads instead of a set list. */}
       {workout.trainingType.guided ? (
-        <RoutinePlayer items={items} onFinish={finishWorkout} finishing={finish.isPending} />
+        <RoutinePlayer
+          workoutId={workout.id}
+          trainingTypeId={workout.trainingType.id}
+          items={items}
+          onFinish={finishWorkout}
+          finishing={finish.isPending}
+        />
       ) : (
         <>
           {items.length > 0 && (

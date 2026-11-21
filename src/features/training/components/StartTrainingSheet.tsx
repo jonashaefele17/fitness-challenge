@@ -8,6 +8,7 @@ import { TrainingTypeIcon } from './TrainingTypeIcon';
 import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
 import { useActiveWorkout, useLogDurationEntry, useStartWorkout } from '../api/useWorkout';
 import { PlacePicker } from './PlacePicker';
+import { TemplateEditor } from './templates/TemplateEditor';
 import type { TrainingType } from '../types';
 
 export interface StartTrainingSheetProps {
@@ -22,7 +23,8 @@ type Step =
   | { kind: 'duration'; type: TrainingType }
   | { kind: 'new-type' }
   | { kind: 'home'; type: TrainingType }
-  | { kind: 'template'; type: TrainingType };
+  | { kind: 'template'; type: TrainingType }
+  | { kind: 'new-routine'; type: TrainingType };
 
 const variantKey = (typeId: string) => `training-variant:${typeId}`;
 
@@ -53,9 +55,13 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
     return [...sections.active, ...sections.group];
   }
 
-  /** Ask "Vorlage oder frei" when there are templates for the type, else start free. */
+  /**
+   * Ask "Vorlage oder frei" when there are templates for the type, else start free. A guided
+   * type (Mobility) always needs a routine: pick one or create the first.
+   */
   function next(type: TrainingType) {
-    if (templatesFor(type).length > 0) setStep({ kind: 'template', type });
+    if (type.guided && templatesFor(type).length === 0) setStep({ kind: 'new-routine', type });
+    else if (type.guided || templatesFor(type).length > 0) setStep({ kind: 'template', type });
     else startWorkout(type);
   }
 
@@ -85,7 +91,9 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
           ? 'Neue Trainingsart'
           : step.kind === 'template'
             ? step.type.name
-            : 'Training starten';
+            : step.kind === 'new-routine'
+              ? 'Neue Routine'
+              : 'Training starten';
 
   return (
     <Sheet
@@ -95,18 +103,45 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
       }}
       title={title}
     >
-      {step.kind === 'template' ? (
+      {step.kind === 'new-routine' ? (
+        <TemplateEditor
+          initial={{
+            id: null,
+            name: '',
+            trainingTypeId: step.type.id,
+            focusId: null,
+            note: '',
+            items: [],
+          }}
+          onSaved={(templateId) => {
+            startWorkout(step.type, templateId);
+          }}
+        />
+      ) : step.kind === 'template' ? (
         <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            loading={start.isPending && !start.variables.templateId}
-            onClick={() => {
-              startWorkout(step.type);
-            }}
-          >
-            Frei starten
-          </Button>
-          <span className="pt-2 text-footnote font-semibold text-text-muted">Mit Vorlage</span>
+          {step.type.guided ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setStep({ kind: 'new-routine', type: step.type });
+              }}
+            >
+              + Neue Routine
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              loading={start.isPending && !start.variables.templateId}
+              onClick={() => {
+                startWorkout(step.type);
+              }}
+            >
+              Frei starten
+            </Button>
+          )}
+          <span className="pt-2 text-footnote font-semibold text-text-muted">
+            {step.type.guided ? 'Routinen' : 'Mit Vorlage'}
+          </span>
           <ul className="flex flex-col gap-2">
             {templatesFor(step.type).map((template) => (
               <li key={template.id}>
@@ -201,7 +236,9 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
                     ? type.withDistance
                       ? 'Dauer & Distanz'
                       : 'Dauer'
-                    : 'Übungen & Sätze'}
+                    : type.guided
+                      ? 'Geführte Routine'
+                      : 'Übungen & Sätze'}
                 </span>
               </button>
             ))}

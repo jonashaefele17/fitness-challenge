@@ -28,6 +28,9 @@ function readSound(): boolean {
   }
 }
 
+/** Square-wave level: clearly audible over gym noise without clipping. */
+const BEEP_LEVEL = 0.5;
+
 /** Short beeps from Web Audio (no files); only while the app is in the foreground. */
 function useBeeper(enabled: boolean) {
   const context = useRef<AudioContext | null>(null);
@@ -45,9 +48,15 @@ function useBeeper(enabled: boolean) {
       if (!enabled || !ctx) return;
       const oscillator = ctx.createOscillator();
       const gain = ctx.createGain();
+      // Square wave around 1-2 kHz: where a phone speaker is loudest. Short attack (no click),
+      // full level for most of the beep, then a quick fade.
+      const now = ctx.currentTime;
+      oscillator.type = 'square';
       oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + seconds);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(BEEP_LEVEL, now + 0.005);
+      gain.gain.setValueAtTime(BEEP_LEVEL, now + seconds * 0.7);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + seconds);
       oscillator.connect(gain).connect(ctx.destination);
       oscillator.start();
       oscillator.stop(ctx.currentTime + seconds);
@@ -151,7 +160,7 @@ export function RoutinePlayer({
         index += 1;
         const next = list[index];
         if (next) endsAt += next.seconds * 1000;
-        beeper.beep(index < list.length ? 880 : 1320, 0.35);
+        beeper.beep(index < list.length ? 1500 : 2000, 0.4);
       }
       if (index !== current.index) setClock({ index, endsAt, pausedRemaining: null });
     }, TICK_MS);
@@ -174,7 +183,7 @@ export function RoutinePlayer({
   useEffect(() => {
     if (!running || remaining > 5 || remaining < 1 || lastBeep.current === remaining) return;
     lastBeep.current = remaining;
-    beeper.beep(660, 0.12);
+    beeper.beep(1000, 0.15);
   }, [running, remaining, beeper]);
 
   function start() {

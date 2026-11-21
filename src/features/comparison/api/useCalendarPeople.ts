@@ -15,7 +15,8 @@ export function useCalendarPeople(
 ): CalendarPeople {
   const userId = useUserId();
   const { group } = useActiveGroup();
-  const members = useGroupMembers(group.id).data ?? [];
+  const membersQuery = useGroupMembers(group.id);
+  const members = membersQuery.data ?? [];
   const others = members.filter((member) => member.userId !== userId);
   const results = useQueries({
     queries: others.map((member) => ({
@@ -27,6 +28,7 @@ export function useCalendarPeople(
 
   return {
     available: others.length > 0,
+    ready: !membersQuery.isPending,
     myColor: me ? personColorVar(me.color) : null,
     myName: me?.displayName ?? null,
     people: others.map((member, index) => ({

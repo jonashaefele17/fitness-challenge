@@ -19,6 +19,8 @@ const GRID = 'grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] gap-x-0.5';
  * past and down into the future (both load more on the way), one row per person (avatar, type icon, focus). Fills the
  * rest of the screen, scrolls behind the navigation without a visible scroll bar.
  */
+const PLACEHOLDER = 'var(--color-surface-3)';
+
 export function GroupWeeks({
   today,
   shownIds,
@@ -55,18 +57,28 @@ export function GroupWeeks({
       id: 'me',
       initial: (others.myName ?? 'Du').charAt(0).toUpperCase(),
       name: 'Du',
-      color: others.myColor ?? ACCENT,
+      color: others.ready ? (others.myColor ?? ACCENT) : PLACEHOLDER,
       workouts: mine,
     },
-    ...others.people
-      .filter((person) => shownIds.includes(person.id))
-      .map((person) => ({
-        id: person.id,
-        initial: person.name.charAt(0).toUpperCase(),
-        name: person.name,
-        color: person.color,
-        workouts: person.workouts,
-      })),
+    // Until the group is known, hold the remembered rows' place so the weeks keep their
+    // height (otherwise the list jumps when the others arrive after a cold start).
+    ...(others.ready
+      ? others.people
+          .filter((person) => shownIds.includes(person.id))
+          .map((person) => ({
+            id: person.id,
+            initial: person.name.charAt(0).toUpperCase(),
+            name: person.name,
+            color: person.color,
+            workouts: person.workouts,
+          }))
+      : shownIds.map((id) => ({
+          id,
+          initial: '',
+          name: '',
+          color: PLACEHOLDER,
+          workouts: [],
+        }))),
   ];
   const rowDays = rows.map((row) => byDay(row.workouts));
 

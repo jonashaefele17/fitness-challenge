@@ -13,6 +13,8 @@ export interface CalendarPerson {
 export interface CalendarPeople {
   /** Whether there is anyone to show ("Alle" is offered only then). */
   available: boolean;
+  /** False while the group is still loading (who is in it is not known yet). */
+  ready: boolean;
   /** My person colour, used while others are shown. */
   myColor: string | null;
   /** My display name (for my avatar while others are shown). */
@@ -31,6 +33,7 @@ export type UseCalendarPeople = (
 
 const nobody: UseCalendarPeople = () => ({
   available: false,
+  ready: true,
   myColor: null,
   myName: null,
   people: [],

@@ -34,7 +34,7 @@ export function WorkoutLog() {
   const shown = group.people.filter((person) => shownIds.includes(person.id));
   // Decide from the remembered choice right away (no flash of my month while the group
   // loads); once the group is known, drop people who are no longer in it.
-  const groupView = shownIds.length > 0 && (group.people.length === 0 || shown.length > 0);
+  const groupView = shownIds.length > 0 && (!group.ready || shown.length > 0);
 
   function toggle(personId: string) {
     setShownIds((current) => {

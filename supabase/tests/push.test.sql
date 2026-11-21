@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(26);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -180,6 +180,16 @@ select ok(not private.wants_bundling('44444444-4444-4444-8444-444444444444'),
   'without saved settings bundling is off');
 select has_trigger('public', 'notifications', 'notifications_kick_push',
   'new notifications kick off push delivery right away');
+
+-- Fewer calls: nothing pending outside quiet hours → the schedule stays silent.
+update public.notifications set pushed_at = now() where pushed_at is null
+  and recipient_id <> '11111111-1111-4111-8111-111111111111';
+select ok(not private.push_work_pending(),
+  'notifications held only by quiet hours do not wake the schedule');
+insert into public.notifications (recipient_id, group_id, category, event, actor_id, target_type, target_id)
+values ('33333333-3333-4333-8333-333333333333', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        'replies', 'reply', '44444444-4444-4444-8444-444444444444', 'feed_event', gen_random_uuid());
+select ok(private.push_work_pending(), 'a deliverable notification wakes the schedule');
 
 select * from finish();
 rollback;

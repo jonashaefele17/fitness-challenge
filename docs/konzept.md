@@ -418,9 +418,12 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Jedes abgeschlossene Training erscheint automatisch im Feed (kein Ausblenden pro Training) |
 | 21.11.2026 | Reaktionen als feste Auswahl wie bei iMessage (Daten in reaction_kinds), eine Reaktion pro Person und Stelle |
 | 21.11.2026 | Bearbeiten speichert sofort (wie live); „Änderungen verwerfen“ ist die erlaubte Ausnahme mit Rückfrage. Kommentare und Reaktionen werden mit ihrem Objekt gelöscht, nichts zeigt ins Leere |
+| 22.11.2026 | Termine (Baustein 5): wiederkehrende Termine gehören zu Version 1; auch allein geplante Termine sieht die Gruppe (Grundlage für „Ich komm mit“) |
+| 22.11.2026 | Gemeinsames Live-Training: kein Push „beitreten?“ beim Trainingsstart (man ist dann schon im Studio). Beitreten über den Termin bzw. selbst aktiv |
 
 **Offen (zu zweit klären)**
 
+- [ ] Gemeinsames Live-Training (5d): gemeinsame Übungsliste, aber auch eigene Übungen nur für sich hinzufügen können – Mechanismus vor 5d festlegen.
 - [ ] Ruhetage und Habit-Bewertung nochmal durchdenken: Eine Woche ganz ohne Sport darf nicht über Ruhetage positiv zählen (z. B. Ruhetage nur als Ausnahme, wenn das Wochenziel trotzdem erreicht ist, oder höchstens n pro Woche). Spätestens mit Baustein 6 (Habits) entscheiden.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?

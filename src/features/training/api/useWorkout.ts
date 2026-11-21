@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
+import { showToast } from '@/shared/lib';
 import { supabase } from '@/shared/lib/supabase';
 import type {
   ActiveWorkout,
@@ -24,6 +25,13 @@ const ACTIVE_SELECT = `
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
   )
 `;
+
+/**
+ * All writes to the running workout share one queue, so they reach the server in order
+ * (e.g. a new set never races ahead of the exercise it belongs to). The UI still updates
+ * immediately (optimistic).
+ */
+const WORKOUT_SCOPE = { id: 'active-workout' } as const;
 
 const num = (value: number | string | null): number | null =>
   value === null ? null : Number(value);
@@ -106,14 +114,19 @@ function useActiveMutation<TInput>(
   const key = trainingKeys.active(useUserId());
   return useMutation({
     mutationFn,
+    scope: WORKOUT_SCOPE,
     onMutate: async (input: TInput) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<ActiveWorkout | null>(key);
       if (previous) queryClient.setQueryData(key, apply(previous, input));
       return { previous };
     },
-    onError: (_error, _input, context) => {
+    onError: (error, _input, context) => {
       queryClient.setQueryData(key, context?.previous);
+      // Never fail silently: tell the user and resync with the server.
+      console.error('Saving the workout failed', error);
+      showToast('Konnte nicht gespeichert werden – bitte nochmal.');
+      void queryClient.invalidateQueries({ queryKey: key });
     },
     onSettled: () => (refetch ? queryClient.invalidateQueries({ queryKey: key }) : undefined),
   });
@@ -184,6 +197,7 @@ export function useFinishWorkout() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
+    scope: WORKOUT_SCOPE,
     mutationFn: async (workoutId: string): Promise<FinishedWorkout> => {
       const { data, error } = await supabase.rpc('finish_workout', { p_workout_id: workoutId });
       if (error) throw error;
@@ -205,6 +219,7 @@ export function useDiscardWorkout() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
+    scope: WORKOUT_SCOPE,
     mutationFn: async (workoutId: string) => {
       const { error } = await supabase.from('workouts').delete().eq('id', workoutId);
       if (error) throw error;

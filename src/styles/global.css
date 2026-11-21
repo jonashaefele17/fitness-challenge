@@ -3,6 +3,8 @@
 
 @layer base {
   html {
+    overflow-x: clip;
+    overscroll-behavior: none;
     color-scheme: dark;
     background-color: var(--color-bg);
     -webkit-text-size-adjust: 100%;
@@ -17,7 +19,9 @@
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
+    /* The page never moves sideways (rows and wheels handle horizontal gestures). */
+    overflow-x: clip;
   }
 
   button,

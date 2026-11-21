@@ -19,8 +19,6 @@ import { Sparkline } from './Sparkline';
 const STEP = { weight: 2.5, reps: 1, duration: 5 } as const;
 /** Width of the revealed delete button. */
 const DELETE_ACTION_PX = 88;
-/** A swipe past this share of the row width deletes immediately. */
-const FULL_SWIPE_SHARE = 0.5;
 
 export interface ExerciseCardProps {
   item: WorkoutItem;
@@ -187,16 +185,10 @@ function SetRow({
     });
   }
 
-  // iOS Mail style: the row follows the finger; a short swipe snaps open to reveal the
-  // delete button, a long swipe (or a fast flick) deletes right away.
-  function handleDragEnd(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) {
-    const rowWidth = (event.target as Element | null)?.closest('li')?.clientWidth ?? 360;
-    const offset = x.get();
-    if (offset < -rowWidth * FULL_SWIPE_SHARE || info.velocity.x < -1200) {
-      deleteSet();
-      return;
-    }
-    const open = offset < -DELETE_ACTION_PX / 3 || info.velocity.x < -300;
+  // The row follows the finger and snaps open to reveal the delete button (no full-swipe
+  // delete: deleting always needs the explicit tap on the button).
+  function handleDragEnd(_: unknown, info: PanInfo) {
+    const open = x.get() < -DELETE_ACTION_PX / 3 || info.velocity.x < -300;
     void animate(x, open ? -DELETE_ACTION_PX : 0, spring.snappy);
   }
 
@@ -231,10 +223,11 @@ function SetRow({
         dragDirectionLock
         dragMomentum={false}
         dragElastic={false}
-        dragConstraints={{ left: -10_000, right: 0 }}
+        dragConstraints={{ left: -DELETE_ACTION_PX, right: 0 }}
         onDragEnd={handleDragEnd}
         className={cn(
-          'relative grid min-h-tap grid-cols-[2.25rem_minmax(0,1fr)_auto_2.75rem] items-center gap-x-2 bg-surface px-4 py-1',
+          // pan-y: the browser may only scroll vertically here; sideways moves belong to the row.
+          'relative grid min-h-tap touch-pan-y grid-cols-[2.25rem_minmax(0,1fr)_auto_2.75rem] items-center gap-x-2 bg-surface px-4 py-1',
           active && 'bg-surface-2',
         )}
       >

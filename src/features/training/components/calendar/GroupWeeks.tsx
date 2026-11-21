@@ -304,7 +304,7 @@ function PersonWeek({
             className="flex min-h-tap min-w-0 items-center justify-center rounded-sm active:bg-surface-3"
             style={{ color: row.color }}
           >
-            <DayMarks workouts={workouts} plans={plans} />
+            <DayMarks workouts={workouts} plans={plans} tinted />
           </button>
         );
       })}

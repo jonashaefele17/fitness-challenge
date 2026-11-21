@@ -93,14 +93,15 @@ export function DaySheet({
                   onClick={() => {
                     setOpenPlan(plan);
                   }}
-                  className={cn(
-                    'flex min-h-tap w-full items-center gap-3 rounded-card border border-dashed border-border px-4 py-3 text-left active:bg-surface-2',
-                    plan.status === 'cancelled' && 'opacity-50',
-                  )}
+                  className="flex min-h-tap w-full items-center gap-3 rounded-card border border-dashed border-border px-4 py-3 text-left active:bg-surface-2"
                 >
+                  {/* Planned: outline icon in the person's colour, faded; cancelled: grey. */}
                   <span
-                    className="flex size-9 shrink-0 items-center justify-center rounded-pill border border-current"
-                    style={{ color: row.color }}
+                    className={cn(
+                      'flex size-9 shrink-0 items-center justify-center rounded-pill bg-surface-3',
+                      plan.status === 'cancelled' ? 'text-text-subtle' : 'opacity-55',
+                    )}
+                    style={plan.status === 'cancelled' ? undefined : { color: row.color }}
                   >
                     {plan.kind === 'event' ? (
                       <span aria-hidden className="text-subhead">

@@ -5,6 +5,7 @@ import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
 import { CalendarPeopleContext, HistoryCompareContext } from '@/features/training';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
+import { WorkoutSocialProvider } from './feed/WorkoutSocial';
 import { router } from './router';
 
 /**
@@ -46,7 +47,10 @@ export function AppGate() {
       {/* Social comparison plugs into training's history slot (composed only here). */}
       <HistoryCompareContext.Provider value={useHistoryCompare}>
         <CalendarPeopleContext.Provider value={useCalendarPeople}>
-          <RouterProvider router={router} />
+          {/* Comments and reactions plug into every workout detail. */}
+          <WorkoutSocialProvider>
+            <RouterProvider router={router} />
+          </WorkoutSocialProvider>
         </CalendarPeopleContext.Provider>
       </HistoryCompareContext.Provider>
     </ActiveGroupProvider>

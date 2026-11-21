@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useUserId } from '@/features/auth';
 import { useGroupMembers, type GroupMember } from '@/features/groups';
 import { Avatar } from '@/features/profile';
@@ -18,6 +18,8 @@ export interface CommentThreadSheetProps {
   onRead?: () => void;
   /** Comment to scroll to and highlight (e.g. after tapping a notification). */
   focusCommentId?: string | null | undefined;
+  /** Above the comments, e.g. reactions on the same object. */
+  header?: ReactNode;
 }
 
 /** Let the sheet finish sliding in before scrolling inside it. */
@@ -31,6 +33,7 @@ export function CommentThreadSheet({
   title = 'Kommentare',
   onRead,
   focusCommentId,
+  header,
 }: CommentThreadSheetProps) {
   const thread = useThread(target, { live: open });
   const members = useGroupMembers(target.groupId);
@@ -96,6 +99,7 @@ export function CommentThreadSheet({
         />
       }
     >
+      {header && <div className="mb-4">{header}</div>}
       {thread.isPending ? (
         <p className="py-6 text-center text-subhead text-text-subtle">Lädt …</p>
       ) : roots.length === 0 ? (

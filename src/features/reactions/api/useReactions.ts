@@ -9,6 +9,15 @@ export const reactionKeys = {
   kinds: () => ['reaction-kinds'] as const,
   target: (target: TargetRef) =>
     [...groupKeys.scope(target.groupId), 'reactions', ...targetKey(target)] as const,
+  /** All reactions of one object, whatever the index (prefix of the keys above). */
+  of: (target: Omit<TargetRef, 'index'>) =>
+    [
+      ...groupKeys.scope(target.groupId),
+      'reactions',
+      target.groupId,
+      target.type,
+      target.id,
+    ] as const,
 };
 
 /** The reactions to choose from, in order (🔥 first: the quick one). */
@@ -86,6 +95,34 @@ export function useSetReaction(target: TargetRef) {
     onError: (_error, _kind, context) => {
       if (context?.previous) queryClient.setQueryData(key, context.previous);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: reactionKeys.of(target) }),
   });
+}
+
+/**
+ * Reactions on one object for every index at once (e.g. an exercise and its sets): the
+ * emojis per index ("" for the object itself).
+ */
+export function useReactionsByIndex(target: Omit<TargetRef, 'index'>) {
+  const kinds = useReactionKinds().data ?? [];
+  const query = useQuery({
+    queryKey: [...reactionKeys.of(target), 'by-index'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reactions')
+        .select('target_index, kind')
+        .eq('group_id', target.groupId)
+        .eq('target_type', target.type)
+        .eq('target_id', target.id);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const byIndex = new Map<string, string[]>();
+  for (const row of query.data ?? []) {
+    const key = String(row.target_index ?? '');
+    const emoji = kinds.find((kind) => kind.key === row.kind)?.emoji;
+    if (emoji) byIndex.set(key, [...(byIndex.get(key) ?? []), emoji]);
+  }
+  return byIndex;
 }

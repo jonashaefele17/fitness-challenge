@@ -340,6 +340,7 @@ export type Database = {
       };
       exercises: {
         Row: {
+          catalog: string;
           created_at: string;
           created_by: string | null;
           id: string;
@@ -350,6 +351,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          catalog?: string;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -359,6 +361,7 @@ export type Database = {
           name: string;
         };
         Update: {
+          catalog?: string;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -1142,17 +1145,20 @@ export type Database = {
       };
       training_prefs: {
         Row: {
+          hidden_training_type_ids: string[];
           home_location_id: string | null;
           updated_at: string;
           user_id: string;
         };
         ComputedFields: never;
         Insert: {
+          hidden_training_type_ids?: string[];
           home_location_id?: string | null;
           updated_at?: string;
           user_id?: string;
         };
         Update: {
+          hidden_training_type_ids?: string[];
           home_location_id?: string | null;
           updated_at?: string;
           user_id?: string;
@@ -1170,7 +1176,9 @@ export type Database = {
       training_types: {
         Row: {
           archived_at: string | null;
+          catalog: string;
           created_at: string;
+          focus_ids: string[] | null;
           guided: boolean;
           icon: string;
           id: string;
@@ -1185,7 +1193,9 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           archived_at?: string | null;
+          catalog?: string;
           created_at?: string;
+          focus_ids?: string[] | null;
           guided?: boolean;
           icon?: string;
           id?: string;
@@ -1199,7 +1209,9 @@ export type Database = {
         };
         Update: {
           archived_at?: string | null;
+          catalog?: string;
           created_at?: string;
+          focus_ids?: string[] | null;
           guided?: boolean;
           icon?: string;
           id?: string;
@@ -1792,7 +1804,7 @@ export type Database = {
         Returns: string;
       };
       search_exercises: {
-        Args: { p_limit?: number; p_query: string };
+        Args: { p_catalog?: string; p_limit?: number; p_query: string };
         Returns: {
           id: string;
           matched_alias: string;

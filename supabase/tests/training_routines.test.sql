@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(4);
+select plan(8);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -39,7 +39,28 @@ select results_eq(
       join public.workout_sets s on s.item_id = i.id group by i.position order by i.position$$,
   $$values (4), (1)$$,
   'a both-sides round is two sets (left, right)');
+select is(
+  (select catalog from public.exercises where id = 'e0000000-0000-4000-8000-000000000001'),
+  'strength', 'new exercises start in the strength catalogue');
 reset role;
+
+-- Mobility: own catalogue and only the body-region focuses
+update public.exercises set catalog = 'mobility' where id = 'e0000000-0000-4000-8000-000000000001';
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select is(
+  (select count(*) from public.search_exercises('Test-Dehnung')), 0::bigint,
+  'mobility exercises do not show up in the strength search');
+select is(
+  (select count(*) from public.search_exercises('Test-Dehnung', 20, 'mobility')), 1::bigint,
+  'but in the mobility catalogue');
+reset role;
+select results_eq(
+  $$select f.name from public.training_types t, unnest(t.focus_ids) with ordinality as x(id, n)
+      join public.training_focuses f on f.id = x.id
+     where t.name = 'Mobility' and t.owner_id is null order by x.n$$,
+  $$values ('Oberkörper'::text), ('Unterkörper'::text), ('Ganzkörper'::text)$$,
+  'Mobility only offers the body-region focuses');
 
 select * from finish();
 rollback;

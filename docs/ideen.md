@@ -17,6 +17,10 @@ Das Datenmodell ist seit 20.11.2026 mehrgruppenfähig; die Oberfläche fehlt noc
 - [ ] E-Mail-Code als zweite Anmeldemethode für Leute ohne Google-Konto (braucht eigenen Mailversand/SMTP mit Domain)
 - [ ] Datenschutzseite in der App + Google-OAuth-App veröffentlichen (dann ohne Testnutzer-Liste)
 
+## Profil
+
+- [ ] Eigenes Profilbild hochladen statt des Google-Bilds (Ich → Einstellungen; Zuschneiden auf Kreis, klein gespeichert in Supabase Storage, Zugriff nur für die eigenen Gruppen); zusammen mit dem Bild-Upload für Geräte bauen.
+
 ## Kalender (Baustein 5 – Planung)
 
 - [ ] Kalender-Abo (ICS-Feed) für alle: geheimer, erneuerbarer Link pro Person (Schlüssel nur als Hash gespeichert), Edge Function ohne Login, Schutz über den Schlüssel. Enthält geplante Termine; optional erledigte Trainings und Ruhetage (pro Person einstellbar). Stabile UIDs pro Termin. Hinweis: Google Kalender aktualisiert Abos nur alle paar Stunden (bis ~24 h), Apple schneller.

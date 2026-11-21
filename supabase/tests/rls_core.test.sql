@@ -12,7 +12,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(49);
+select plan(53);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres, bypassing RLS)
@@ -109,6 +109,15 @@ select throws_ok(
 select throws_ok(
   $$update public.profiles set color = 'person-8' where id = '22222222-2222-4222-8222-222222222222'$$,
   '42501', null, 'user cannot change their colour directly');
+select throws_ok(
+  $$select public.set_my_color('person-1')$$,
+  'P0001', 'color_taken', 'a colour a group mate has cannot be chosen');
+select lives_ok($$select public.set_my_color('person-6')$$, 'a free colour can be chosen');
+select is(
+  (select color from public.profiles where id = '22222222-2222-4222-8222-222222222222'),
+  'person-6', 'the chosen colour is stored');
+select throws_ok(
+  $$select public.set_my_color('red')$$, '22023', 'invalid_color', 'only person colour keys');
 
 -- Other people's data: silently filtered.
 update public.profiles set display_name = 'hacked' where id = '11111111-1111-4111-8111-111111111111';

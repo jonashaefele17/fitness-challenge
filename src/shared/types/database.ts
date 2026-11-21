@@ -126,6 +126,263 @@ export type Database = {
           },
         ];
       };
+      device_hidden_exercises: {
+        Row: {
+          created_at: string;
+          device_id: string;
+          exercise_id: string;
+          hidden_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          device_id: string;
+          exercise_id: string;
+          hidden_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          device_id?: string;
+          exercise_id?: string;
+          hidden_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_hidden_exercises_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'device_hidden_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      device_type_exercises: {
+        Row: {
+          added_by: string | null;
+          created_at: string;
+          device_type_id: string;
+          exercise_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          added_by?: string | null;
+          created_at?: string;
+          device_type_id: string;
+          exercise_id: string;
+        };
+        Update: {
+          added_by?: string | null;
+          created_at?: string;
+          device_type_id?: string;
+          exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_type_exercises_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'device_type_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      device_types: {
+        Row: {
+          comparable: boolean;
+          created_at: string;
+          created_by: string | null;
+          default_weight_step: number | null;
+          id: string;
+          image_path: string | null;
+          name: string;
+          setting_fields: string[];
+        };
+        ComputedFields: never;
+        Insert: {
+          comparable?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          default_weight_step?: number | null;
+          id?: string;
+          image_path?: string | null;
+          name: string;
+          setting_fields?: string[];
+        };
+        Update: {
+          comparable?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          default_weight_step?: number | null;
+          id?: string;
+          image_path?: string | null;
+          name?: string;
+          setting_fields?: string[];
+        };
+        Relationships: [];
+      };
+      devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          device_type_id: string;
+          id: string;
+          image_path: string | null;
+          location_id: string;
+          weight_step: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          device_type_id: string;
+          id?: string;
+          image_path?: string | null;
+          location_id: string;
+          weight_step?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          device_type_id?: string;
+          id?: string;
+          image_path?: string | null;
+          location_id?: string;
+          weight_step?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'devices_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'devices_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      exercise_aliases: {
+        Row: {
+          alias: string;
+          exercise_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          alias: string;
+          exercise_id: string;
+        };
+        Update: {
+          alias?: string;
+          exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_aliases_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      exercise_muscles: {
+        Row: {
+          exercise_id: string;
+          muscle_group: string;
+          role: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          exercise_id: string;
+          muscle_group: string;
+          role: string;
+        };
+        Update: {
+          exercise_id?: string;
+          muscle_group?: string;
+          role?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercise_muscles_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'exercise_muscles_muscle_group_fkey';
+            columns: ['muscle_group'];
+            isOneToOne: false;
+            referencedRelation: 'muscle_groups';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      exercises: {
+        Row: {
+          catalog: string;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          image_path: string | null;
+          instructions: string | null;
+          measure: Database['public']['Enums']['exercise_measure'];
+          merged_into: string | null;
+          name: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          catalog?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          instructions?: string | null;
+          measure: Database['public']['Enums']['exercise_measure'];
+          merged_into?: string | null;
+          name: string;
+        };
+        Update: {
+          catalog?: string;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          image_path?: string | null;
+          instructions?: string | null;
+          measure?: Database['public']['Enums']['exercise_measure'];
+          merged_into?: string | null;
+          name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'exercises_merged_into_fkey';
+            columns: ['merged_into'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       feed_event_types: {
         Row: {
           description: string;
@@ -348,6 +605,50 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      locations: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          name: string;
+          owner_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name: string;
+          owner_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name?: string;
+          owner_id?: string | null;
+        };
+        Relationships: [];
+      };
+      muscle_groups: {
+        Row: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          sort?: number;
+        };
+        Relationships: [];
       };
       notification_categories: {
         Row: {
@@ -811,6 +1112,494 @@ export type Database = {
         };
         Relationships: [];
       };
+      training_focuses: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          muscle_groups: string[];
+          name: string;
+          owner_id: string | null;
+          short_name: string | null;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          muscle_groups: string[];
+          name: string;
+          owner_id?: string | null;
+          short_name?: string | null;
+          sort?: number;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          muscle_groups?: string[];
+          name?: string;
+          owner_id?: string | null;
+          short_name?: string | null;
+          sort?: number;
+        };
+        Relationships: [];
+      };
+      training_prefs: {
+        Row: {
+          hidden_training_type_ids: string[];
+          home_location_id: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          hidden_training_type_ids?: string[];
+          home_location_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          hidden_training_type_ids?: string[];
+          home_location_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'training_prefs_home_location_id_fkey';
+            columns: ['home_location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      training_types: {
+        Row: {
+          archived_at: string | null;
+          catalog: string;
+          created_at: string;
+          focus_ids: string[] | null;
+          guided: boolean;
+          icon: string;
+          id: string;
+          kind: string;
+          location_mode: string;
+          name: string;
+          owner_id: string | null;
+          sort: number;
+          variants: string[];
+          with_distance: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          catalog?: string;
+          created_at?: string;
+          focus_ids?: string[] | null;
+          guided?: boolean;
+          icon?: string;
+          id?: string;
+          kind: string;
+          location_mode?: string;
+          name: string;
+          owner_id?: string | null;
+          sort?: number;
+          variants?: string[];
+          with_distance?: boolean;
+        };
+        Update: {
+          archived_at?: string | null;
+          catalog?: string;
+          created_at?: string;
+          focus_ids?: string[] | null;
+          guided?: boolean;
+          icon?: string;
+          id?: string;
+          kind?: string;
+          location_mode?: string;
+          name?: string;
+          owner_id?: string | null;
+          sort?: number;
+          variants?: string[];
+          with_distance?: boolean;
+        };
+        Relationships: [];
+      };
+      user_device_settings: {
+        Row: {
+          device_id: string;
+          exercise_id: string;
+          updated_at: string;
+          user_id: string;
+          values: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_id: string;
+          exercise_id: string;
+          updated_at?: string;
+          user_id?: string;
+          values?: NonNullable<Json>;
+        };
+        Update: {
+          device_id?: string;
+          exercise_id?: string;
+          updated_at?: string;
+          user_id?: string;
+          values?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_device_settings_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_device_settings_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_items: {
+        Row: {
+          created_at: string;
+          device_id: string | null;
+          exercise_id: string;
+          id: string;
+          note: string | null;
+          per_side: boolean;
+          position: number;
+          rep_max: number | null;
+          rep_min: number | null;
+          rest_seconds: number;
+          side_rest_seconds: number;
+          target_seconds: number | null;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          device_id?: string | null;
+          exercise_id: string;
+          id?: string;
+          note?: string | null;
+          per_side?: boolean;
+          position: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          rest_seconds?: number;
+          side_rest_seconds?: number;
+          target_seconds?: number | null;
+          workout_id: string;
+        };
+        Update: {
+          created_at?: string;
+          device_id?: string | null;
+          exercise_id?: string;
+          id?: string;
+          note?: string | null;
+          per_side?: boolean;
+          position?: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          rest_seconds?: number;
+          side_rest_seconds?: number;
+          target_seconds?: number | null;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_items_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_items_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_items_workout_id_fkey';
+            columns: ['workout_id'];
+            isOneToOne: false;
+            referencedRelation: 'workouts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_sets: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          duration_seconds: number | null;
+          id: string;
+          is_warmup: boolean;
+          item_id: string;
+          position: number;
+          reps: number | null;
+          weight_kg: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          is_warmup?: boolean;
+          item_id: string;
+          position: number;
+          reps?: number | null;
+          weight_kg?: number | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          is_warmup?: boolean;
+          item_id?: string;
+          position?: number;
+          reps?: number | null;
+          weight_kg?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_sets_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_template_items: {
+        Row: {
+          device_type_id: string | null;
+          duration_seconds: number | null;
+          exercise_id: string;
+          id: string;
+          note: string | null;
+          per_side: boolean;
+          position: number;
+          rep_max: number | null;
+          rep_min: number | null;
+          rest_seconds: number;
+          sets: number;
+          side_rest_seconds: number;
+          template_id: string;
+          warmup_sets: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_type_id?: string | null;
+          duration_seconds?: number | null;
+          exercise_id: string;
+          id?: string;
+          note?: string | null;
+          per_side?: boolean;
+          position: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          rest_seconds?: number;
+          sets?: number;
+          side_rest_seconds?: number;
+          template_id: string;
+          warmup_sets?: number;
+        };
+        Update: {
+          device_type_id?: string | null;
+          duration_seconds?: number | null;
+          exercise_id?: string;
+          id?: string;
+          note?: string | null;
+          per_side?: boolean;
+          position?: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          rest_seconds?: number;
+          sets?: number;
+          side_rest_seconds?: number;
+          template_id?: string;
+          warmup_sets?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_template_items_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_template_items_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_template_items_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_templates';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_templates: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          focus_id: string | null;
+          id: string;
+          name: string;
+          note: string | null;
+          training_type_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          name: string;
+          note?: string | null;
+          training_type_id: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          name?: string;
+          note?: string | null;
+          training_type_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_templates_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_templates_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workouts: {
+        Row: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          focus_id: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
+          training_type_id: string;
+          user_id: string;
+          variant: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          distance_m?: number | null;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          focus_id?: string | null;
+          id?: string;
+          intensity?: number | null;
+          location_id?: string | null;
+          note?: string | null;
+          paused_at?: string | null;
+          paused_seconds?: number;
+          started_at?: string;
+          status?: Database['public']['Enums']['workout_status'];
+          template_id?: string | null;
+          training_type_id: string;
+          user_id?: string;
+          variant?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          distance_m?: number | null;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          focus_id?: string | null;
+          id?: string;
+          intensity?: number | null;
+          location_id?: string | null;
+          note?: string | null;
+          paused_at?: string | null;
+          paused_seconds?: number;
+          started_at?: string;
+          status?: Database['public']['Enums']['workout_status'];
+          template_id?: string | null;
+          training_type_id?: string;
+          user_id?: string;
+          variant?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workouts_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_templates';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -844,6 +1633,109 @@ export type Database = {
           total: number;
           unread: number;
         }[];
+      };
+      copy_template: { Args: { p_template_id: string }; Returns: string };
+      exercise_overview: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          exercise_id: string;
+          last_done_at: string;
+          last_duration_seconds: number;
+          last_reps: number;
+          last_weight_kg: number;
+          scope_device_id: string;
+          trend: number[];
+        }[];
+      };
+      exercise_popularity: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          exercise_id: string;
+          uses: number;
+        }[];
+      };
+      exercise_progression: {
+        Args: {
+          p_device_id?: string;
+          p_exercise_id: string;
+          p_rep_max?: number;
+          p_rep_min?: number;
+        };
+        Returns: {
+          go_up: boolean;
+          last_reps: number;
+          last_weight_kg: number;
+          rep_max: number;
+          rep_min: number;
+          step_kg: number;
+          suggested_weight_kg: number;
+        }[];
+      };
+      exercise_records: {
+        Args: { p_all_devices?: boolean; p_device_id?: string; p_exercise_id: string };
+        Returns: {
+          achieved_at: string;
+          duration_seconds: number;
+          kind: string;
+          reps: number;
+          value: number;
+          weight_kg: number;
+        }[];
+      };
+      exercise_sessions: {
+        Args: {
+          p_all_devices?: boolean;
+          p_device_id?: string;
+          p_exercise_id: string;
+          p_user_id?: string;
+        };
+        Returns: {
+          best_duration_seconds: number;
+          best_reps: number;
+          best_score: number;
+          best_weight_kg: number;
+          device_name: string;
+          location_name: string;
+          sets: Json;
+          started_at: string;
+          volume_kg: number;
+          workout_id: string;
+        }[];
+      };
+      exercise_trend: {
+        Args: { p_device_id?: string; p_exercise_id: string; p_limit?: number };
+        Returns: {
+          value: number;
+          workout_started_at: string;
+        }[];
+      };
+      finish_workout: {
+        Args: { p_workout_id: string };
+        Returns: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          focus_id: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
+          training_type_id: string;
+          user_id: string;
+          variant: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'workouts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       mark_thread_read: {
@@ -885,6 +1777,18 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      previous_sets: {
+        Args: { p_device_id?: string; p_exercise_id: string };
+        Returns: {
+          duration_seconds: number;
+          is_warmup: boolean;
+          reps: number;
+          same_device: boolean;
+          set_position: number;
+          weight_kg: number;
+          workout_started_at: string;
+        }[];
+      };
       redeem_invite: {
         Args: { p_code: string; p_display_name?: string; p_home_gym?: string };
         Returns: string;
@@ -897,10 +1801,93 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      save_template: {
+        Args: {
+          p_focus_id: string;
+          p_items: Json;
+          p_name: string;
+          p_note: string;
+          p_template_id: string;
+          p_training_type_id: string;
+        };
+        Returns: string;
+      };
+      search_exercises: {
+        Args: { p_catalog?: string; p_limit?: number; p_query: string };
+        Returns: {
+          id: string;
+          matched_alias: string;
+          measure: Database['public']['Enums']['exercise_measure'];
+          name: string;
+        }[];
+      };
+      set_my_color: { Args: { p_color: string }; Returns: undefined };
+      start_workout: {
+        Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
+        Returns: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          focus_id: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
+          training_type_id: string;
+          user_id: string;
+          variant: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'workouts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      template_from_workout: {
+        Args: { p_name: string; p_template_id?: string; p_workout_id: string };
+        Returns: string;
+      };
+      template_overview: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          archived_at: string;
+          exercise_count: number;
+          focus_id: string;
+          id: string;
+          my_last_used_at: string;
+          name: string;
+          note: string;
+          owner_last_used_at: string;
+          owner_name: string;
+          training_type_id: string;
+          user_id: string;
+        }[];
+      };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      workout_records: {
+        Args: { p_workout_id: string };
+        Returns: {
+          duration_seconds: number;
+          exercise_id: string;
+          previous_duration_seconds: number;
+          previous_reps: number;
+          previous_weight_kg: number;
+          reps: number;
+          weight_kg: number;
+        }[];
+      };
     };
     Enums: {
+      exercise_measure: 'weight_reps' | 'reps' | 'duration';
       group_role: 'admin' | 'member';
+      workout_status: 'active' | 'finished';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1015,7 +2002,9 @@ export const Constants = {
   },
   public: {
     Enums: {
+      exercise_measure: ['weight_reps', 'reps', 'duration'],
       group_role: ['admin', 'member'],
+      workout_status: ['active', 'finished'],
     },
   },
 } as const;

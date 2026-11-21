@@ -1,0 +1,402 @@
+import { useState } from 'react';
+import { Button, Card, SegmentedControl, Sheet, TextField } from '@/shared/ui';
+import { useTrainingTypes } from '../api/useCatalog';
+import { useTemplates } from '../api/useTemplates';
+import { templateSections } from '../templateRules';
+import { TrainingTypeForm } from './TrainingTypeForm';
+import { TrainingTypeIcon } from './TrainingTypeIcon';
+import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
+import { useActiveWorkout, useLogDurationEntry, useStartWorkout } from '../api/useWorkout';
+import { PlacePicker } from './PlacePicker';
+import { FocusPill } from './templates/FocusPill';
+import { TemplateEditor } from './templates/TemplateEditor';
+import type { TemplateSummary } from '../types';
+import type { TrainingType } from '../types';
+
+export interface StartTrainingSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** A workout with exercises is running (new or resumed) – show it. */
+  onOpenWorkout: () => void;
+}
+
+type Step =
+  | { kind: 'types' }
+  | { kind: 'duration'; type: TrainingType }
+  | { kind: 'new-type' }
+  | { kind: 'home'; type: TrainingType }
+  | { kind: 'template'; type: TrainingType }
+  | { kind: 'new-routine'; type: TrainingType };
+
+const variantKey = (typeId: string) => `training-variant:${typeId}`;
+
+function readVariant(type: TrainingType): string | undefined {
+  try {
+    const saved = localStorage.getItem(variantKey(type.id));
+    if (saved && type.variants.includes(saved)) return saved;
+  } catch {
+    // Storage unavailable (private mode): fall back to the first variant.
+  }
+  return type.variants[0];
+}
+
+/** "+" → training type → exercises workout starts, or a quick duration entry. */
+export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartTrainingSheetProps) {
+  const [step, setStep] = useState<Step>({ kind: 'types' });
+  const types = useTrainingTypes();
+  const active = useActiveWorkout();
+  const start = useStartWorkout();
+  const home = useHomeStudio();
+  const setHome = useSetHomeStudio();
+  const templates = useTemplates().data ?? [];
+  const [now] = useState(() => Date.now());
+
+  /** Templates to offer for a type: mine/used ones, and group mates' active ones. */
+  function templatesFor(type: TrainingType) {
+    const sections = templateSections(templates, now, type.id);
+    return { mine: sections.active, group: sections.group };
+  }
+  const count = (type: TrainingType) => {
+    const offered = templatesFor(type);
+    return offered.mine.length + offered.group.length;
+  };
+
+  /**
+   * Ask "Vorlage oder frei" when there are templates for the type, else start free. A guided
+   * type (Mobility) always needs a routine: pick one or create the first.
+   */
+  function next(type: TrainingType) {
+    if (type.guided && count(type) === 0) setStep({ kind: 'new-routine', type });
+    else if (type.guided || count(type) > 0) setStep({ kind: 'template', type });
+    else startWorkout(type);
+  }
+
+  function startWorkout(type: TrainingType, templateId?: string) {
+    start.mutate(
+      { trainingTypeId: type.id, templateId },
+      {
+        onSuccess: () => {
+          close();
+          onOpenWorkout();
+        },
+      },
+    );
+  }
+
+  function close() {
+    setStep({ kind: 'types' });
+    onOpenChange(false);
+  }
+
+  const title =
+    step.kind === 'duration'
+      ? step.type.name
+      : step.kind === 'home'
+        ? 'Wo ist dein Heimstudio?'
+        : step.kind === 'new-type'
+          ? 'Neue Trainingsart'
+          : step.kind === 'template'
+            ? step.type.name
+            : step.kind === 'new-routine'
+              ? 'Neue Routine'
+              : 'Training starten';
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) close();
+      }}
+      title={title}
+    >
+      {step.kind === 'new-routine' ? (
+        <TemplateEditor
+          initial={{
+            id: null,
+            name: '',
+            trainingTypeId: step.type.id,
+            focusId: null,
+            note: '',
+            items: [],
+          }}
+          onSaved={(templateId) => {
+            startWorkout(step.type, templateId);
+          }}
+        />
+      ) : step.kind === 'template' ? (
+        <div className="flex flex-col gap-2">
+          {step.type.guided ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setStep({ kind: 'new-routine', type: step.type });
+              }}
+            >
+              + Neue Routine
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              loading={start.isPending && !start.variables.templateId}
+              onClick={() => {
+                startWorkout(step.type);
+              }}
+            >
+              Frei starten
+            </Button>
+          )}
+          {(['mine', 'group'] as const).map((section) => {
+            const list = templatesFor(step.type)[section];
+            if (list.length === 0) return null;
+            return (
+              <section key={section} className="flex flex-col gap-2">
+                <span className="pt-2 text-footnote font-semibold text-text-muted">
+                  {section === 'group'
+                    ? 'Von der Gruppe'
+                    : step.type.guided
+                      ? 'Meine Routinen'
+                      : 'Mit Vorlage'}
+                </span>
+                <ul className="flex flex-col gap-2">
+                  {list.map((template) => (
+                    <TemplateChoice
+                      key={template.id}
+                      template={template}
+                      disabled={start.isPending}
+                      onPick={() => {
+                        startWorkout(step.type, template.id);
+                      }}
+                    />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      ) : step.kind === 'duration' ? (
+        <DurationEntryForm type={step.type} onDone={close} />
+      ) : step.kind === 'home' ? (
+        <PlacePicker
+          onPick={(place) => {
+            if (!place) return;
+            const type = step.type;
+            setHome.mutate(place.id, {
+              onSuccess: () => {
+                next(type);
+              },
+            });
+          }}
+        />
+      ) : step.kind === 'new-type' ? (
+        <TrainingTypeForm
+          onDone={() => {
+            setStep({ kind: 'types' });
+          }}
+        />
+      ) : active.data ? (
+        <Card elevated className="flex flex-col gap-3">
+          <p className="text-subhead text-text-muted">
+            Dein Training{' '}
+            <span className="font-semibold text-text">{active.data.trainingType.name}</span> läuft
+            noch.
+          </p>
+          <Button
+            size="lg"
+            fullWidth
+            onClick={() => {
+              close();
+              onOpenWorkout();
+            }}
+          >
+            Fortsetzen
+          </Button>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            {(types.data ?? []).map((type) => (
+              <button
+                key={type.id}
+                type="button"
+                disabled={start.isPending}
+                onClick={() => {
+                  if (type.kind === 'duration') {
+                    setStep({ kind: 'duration', type });
+                    return;
+                  }
+                  // First studio workout: ask once for the home studio.
+                  if (type.locationMode === 'home_studio' && home.data === null) {
+                    setStep({ kind: 'home', type });
+                    return;
+                  }
+                  next(type);
+                }}
+                className="flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border border-border bg-surface-2 p-4 text-left active:bg-surface-3 disabled:opacity-50"
+              >
+                <TrainingTypeIcon icon={type.icon} className="mb-1 size-6 text-accent" />
+                <span className="text-body font-semibold">{type.name}</span>
+                <span className="text-caption text-text-muted">
+                  {type.kind === 'duration'
+                    ? type.withDistance
+                      ? 'Dauer & Distanz'
+                      : 'Dauer'
+                    : type.guided
+                      ? 'Geführte Routine'
+                      : 'Übungen & Sätze'}
+                </span>
+              </button>
+            ))}
+          </div>
+          {start.isError && (
+            <p role="alert" className="text-footnote text-danger">
+              Das Training konnte nicht gestartet werden.
+            </p>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setStep({ kind: 'new-type' });
+            }}
+          >
+            + Eigene Trainingsart
+          </Button>
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+function DurationEntryForm({ type, onDone }: { type: TrainingType; onDone: () => void }) {
+  const [minutes, setMinutes] = useState('');
+  const [km, setKm] = useState('');
+  const [intensity, setIntensity] = useState<string>('3');
+  const [note, setNote] = useState('');
+  const [variant, setVariant] = useState(() => readVariant(type));
+  const log = useLogDurationEntry();
+  const duration = Number(minutes.replace(',', '.'));
+  const distance = Number(km.replace(',', '.'));
+  const valid = Number.isFinite(duration) && duration > 0;
+
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        log.mutate(
+          {
+            trainingTypeId: type.id,
+            durationMinutes: duration,
+            distanceKm: type.withDistance && distance > 0 ? distance : undefined,
+            intensity: Number(intensity),
+            note,
+            variant,
+          },
+          {
+            onSuccess: () => {
+              try {
+                if (variant) localStorage.setItem(variantKey(type.id), variant);
+              } catch {
+                // Remembering the variant is only a convenience.
+              }
+              onDone();
+            },
+          },
+        );
+      }}
+    >
+      {type.variants.length > 0 && variant && (
+        <SegmentedControl
+          label="Variante"
+          value={variant}
+          onChange={setVariant}
+          options={type.variants.map((value) => ({ value, label: value }))}
+        />
+      )}
+      <div className="flex gap-3">
+        <TextField
+          label="Dauer (Min.)"
+          inputMode="decimal"
+          value={minutes}
+          onChange={(event) => {
+            setMinutes(event.target.value);
+          }}
+        />
+        {type.withDistance && (
+          <TextField
+            label="Distanz (km)"
+            inputMode="decimal"
+            value={km}
+            onChange={(event) => {
+              setKm(event.target.value);
+            }}
+          />
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-footnote font-medium text-text-muted">Intensität</span>
+        <SegmentedControl
+          label="Intensität"
+          value={intensity}
+          onChange={setIntensity}
+          options={['1', '2', '3', '4', '5'].map((value) => ({ value, label: value }))}
+        />
+      </div>
+      <TextField
+        label="Notiz (optional)"
+        value={note}
+        maxLength={1000}
+        onChange={(event) => {
+          setNote(event.target.value);
+        }}
+      />
+      {log.isError && (
+        <p role="alert" className="text-footnote text-danger">
+          Speichern hat nicht geklappt. Läuft vielleicht noch ein Training?
+        </p>
+      )}
+      <Button
+        type="submit"
+        size="lg"
+        fullWidth
+        missing={valid ? null : 'Trag ein, wie viele Minuten du trainiert hast.'}
+        loading={log.isPending}
+      >
+        Training erledigt ✓
+      </Button>
+    </form>
+  );
+}
+
+function TemplateChoice({
+  template,
+  disabled,
+  onPick,
+}: {
+  template: TemplateSummary;
+  disabled: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onPick}
+        className="flex min-h-tap w-full flex-col gap-0.5 rounded-card bg-surface-2 px-4 py-3 text-left active:bg-surface-3 disabled:opacity-50"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-subhead font-semibold">{template.name}</span>
+          <FocusPill focusId={template.focusId} />
+        </span>
+        <span className="text-footnote text-text-muted">
+          {[
+            template.exerciseCount === 1 ? '1 Übung' : `${String(template.exerciseCount)} Übungen`,
+            template.mine ? null : `von ${template.ownerName ?? '…'}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
+      </button>
+    </li>
+  );
+}

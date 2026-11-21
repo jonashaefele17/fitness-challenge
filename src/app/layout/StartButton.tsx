@@ -1,11 +1,15 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import { StartTrainingSheet } from '@/features/training';
 import { pressScale, spring } from '@/shared/design-tokens';
-import { Card, PlusIcon, Sheet } from '@/shared/ui';
+import { PlusIcon } from '@/shared/ui';
+import { paths } from '../paths';
 
-/** Round "+" next to the pill nav; opens the start flow (built in the training module). */
+/** Round "+" next to the pill nav: start (or resume) a training. */
 export function StartButton() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -21,11 +25,11 @@ export function StartButton() {
       >
         <PlusIcon />
       </motion.button>
-      <Sheet open={open} onOpenChange={setOpen} title="Training starten">
-        <Card elevated className="text-subhead text-text-muted">
-          Hier wählst du bald Trainingsart, Vorlage und mit wem du trainierst.
-        </Card>
-      </Sheet>
+      <StartTrainingSheet
+        open={open}
+        onOpenChange={setOpen}
+        onOpenWorkout={() => void navigate(paths.liveWorkout)}
+      />
     </>
   );
 }

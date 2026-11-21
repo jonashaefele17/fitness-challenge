@@ -1,6 +1,4 @@
-import { motion } from 'motion/react';
 import { useId } from 'react';
-import { spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
 export interface SwitchProps {
@@ -31,10 +29,17 @@ export function Switch({ checked, onCheckedChange, label, description, disabled 
         }}
         className={cn(
           'relative flex h-8 w-13 shrink-0 items-center rounded-pill p-0.5 transition-colors duration-(--duration-base) disabled:opacity-40',
-          checked ? 'justify-end bg-accent' : 'justify-start bg-surface-3',
+          checked ? 'bg-accent' : 'bg-surface-3',
         )}
       >
-        <motion.span layout transition={spring.snappy} className="size-7 rounded-pill bg-text" />
+        {/* The knob only slides inside the track (no layout animation), so it never flies in
+            when the surrounding content changes height. */}
+        <span
+          className={cn(
+            'size-7 rounded-pill bg-text transition-transform duration-(--duration-base) ease-out motion-reduce:transition-none',
+            checked ? 'translate-x-5' : 'translate-x-0',
+          )}
+        />
       </button>
     </div>
   );

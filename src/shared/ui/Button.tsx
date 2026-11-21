@@ -1,7 +1,7 @@
 import { motion, type HTMLMotionProps } from 'motion/react';
 import { forwardRef, type ReactNode } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
-import { cn } from '@/shared/lib';
+import { cn, showToast } from '@/shared/lib';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'md' | 'lg';
@@ -12,6 +12,11 @@ export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'>
   fullWidth?: boolean;
   loading?: boolean;
   leadingIcon?: ReactNode;
+  /**
+   * What is still missing before this can be used (e.g. "Gib der Vorlage einen Namen.").
+   * The button looks disabled but a tap says what is missing instead of doing nothing.
+   */
+  missing?: string | null | undefined;
   children?: ReactNode;
 }
 
@@ -34,15 +39,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     fullWidth = false,
     loading = false,
     leadingIcon,
+    missing,
     disabled,
     className,
     children,
     type = 'button',
+    onClick,
     ...rest
   },
   ref,
 ) {
   const isDisabled = disabled === true || loading;
+  const blocked = Boolean(missing);
 
   return (
     <motion.button
@@ -50,11 +58,20 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={isDisabled}
       aria-busy={loading || undefined}
-      {...(!isDisabled && { whileTap: { scale: pressScale } })}
+      aria-disabled={blocked || undefined}
+      onClick={(event) => {
+        if (missing) {
+          event.preventDefault();
+          showToast(missing);
+          return;
+        }
+        onClick?.(event);
+      }}
+      {...(!isDisabled && !blocked && { whileTap: { scale: pressScale } })}
       transition={spring.press}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-pill font-semibold transition-colors duration-(--duration-fast) select-none',
-        'disabled:opacity-40',
+        'disabled:opacity-40 aria-disabled:opacity-40',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',

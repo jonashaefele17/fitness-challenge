@@ -63,3 +63,7 @@ Groups are tenants (`groups`, `group_members` n:m with role `admin | member`). I
 - `ci.yml`: format, lint, typecheck, unit tests, build; migrations + RLS tests + generated-types check on a fresh database.
 - `deploy-staging.yml`: on push to `main` (or manual run): `supabase db push` to staging, build with base path `/fitness-challenge/`, publish to GitHub Pages.
 - `db-export.yml`: weekly encrypted dump of staging and live as workflow artifacts.
+
+## Credits
+
+- Training type icons (barbell, run, bike, football, table tennis, yoga) from [Tabler Icons](https://tabler.io/icons), MIT License, © Paweł Kuna.

@@ -3,6 +3,8 @@
 
 @layer base {
   html {
+    overflow-x: clip;
+    overscroll-behavior: none;
     color-scheme: dark;
     background-color: var(--color-bg);
     -webkit-text-size-adjust: 100%;
@@ -17,7 +19,9 @@
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior-y: none;
+    overscroll-behavior: none;
+    /* The page never moves sideways (rows and wheels handle horizontal gestures). */
+    overflow-x: clip;
   }
 
   button,
@@ -94,7 +98,36 @@
   }
 }
 
+/* Soft spotlight behind exercise/device images (transparent PNG/WebP) and placeholders. */
+@utility image-backdrop {
+  background-image: radial-gradient(
+    circle at 50% 40%,
+    var(--color-surface-3),
+    var(--color-surface-2) 70%
+  );
+}
+/* Number wheel: neighbours fade out above and below the centre value. */
+@utility wheel-mask {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
+}
+/* Scrollable without a visible scrollbar (chips rows, sheets, lists) – like native iOS. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+/* Toasts sit at the top, below the status bar. */
+@utility top-toast {
+  top: calc(env(safe-area-inset-top) + --spacing(3));
+}
 /* Bottom padding so content can scroll clear of the floating nav. */
 @utility pb-nav-clearance {
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8));
+}
+/* For a list that reaches the screen edge and scrolls behind the navigation itself:
+   cancels the page's nav clearance so the page does not scroll as well. */
+@utility pull-nav-clearance {
+  margin-bottom: calc(-1 * (env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8)));
 }

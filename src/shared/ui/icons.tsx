@@ -89,3 +89,68 @@ export const SendIcon = (p: IconProps) => (
     <path d="M12 19V5M5 12l7-7 7 7" />
   </Icon>
 );
+
+export const ChevronDownIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m6 9 6 6 6-6" />
+  </Icon>
+);
+
+export const ChevronLeftIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m15 6-6 6 6 6" />
+  </Icon>
+);
+
+export const ChevronRightIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m9 6 6 6-6 6" />
+  </Icon>
+);
+
+export const PlayIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 4.5v15l12-7.5z" fill="currentColor" />
+  </Icon>
+);
+
+export const PauseIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M8 5v14M16 5v14" strokeWidth={3} />
+  </Icon>
+);
+
+export const SkipForwardIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 5v14l10-7z" fill="currentColor" />
+    <path d="M19 5v14" />
+  </Icon>
+);
+
+export const SkipBackIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M19 5v14L9 12z" fill="currentColor" />
+    <path d="M5 5v14" />
+  </Icon>
+);
+
+export const SpeakerIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+    <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+  </Icon>
+);
+
+export const SpeakerOffIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+    <path d="M16 9.5l5 5M21 9.5l-5 5" />
+  </Icon>
+);
+
+/** Reorder handle (Tabler "menu-2", MIT). */
+export const DragHandleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </Icon>
+);

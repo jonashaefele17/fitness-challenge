@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.3 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.21 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -16,6 +16,26 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.1 | Datenmodell mehrgruppenfähig (siehe Entscheidungen) |
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
+| 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.23 | Trainings der Gruppe lassen sich als eigene Vorlage speichern; „Als Vorlage speichern“ ist eine einklappbare Zeile; Routinen behalten dabei ihre Einstellungen |
+| 21.11.2026 | 1.22 | Mobility-Routinen wie ein Mitmach-Video: Ablauf (Übungszeit, Pause, Runden) einmal pro Routine, Übungen per Mehrfachauswahl zusammenklicken und am Griff sortieren; Runden laufen die ganze Liste durch; pro Übung „beidseitig“ mit optionaler Pause zum Seitenwechsel; Übungen bearbeitbar (Name, Ausführung, Muskelgruppen; Animation folgt mit dem Bild-Upload) |
+| 21.11.2026 | 1.21 | Eigener Übungskatalog für Mobility; erlaubte Fokusse pro Trainingsart (Mobility: OK, UK, GK); Standard-Trainingsarten als Katalog, jeder blendet aus, was er nicht nutzt; eigene Arten bearbeiten/archivieren |
+| 21.11.2026 | 1.20 | Mobility-Player (3f) umgesetzt: geführte Trainingsart, Routinen als Vorlagen mit Pause und beidseitig |
+| 21.11.2026 | 1.19 | „Gerät merken?“ in der Zusammenfassung umgesetzt |
+| 21.11.2026 | 1.18 | Progression umgesetzt (↑-Vorschlag im Zahlenrad, Zielbereich auf der Karte), neue Bestwerte in der Zusammenfassung; Feed-Karte zum Training bewusst in Baustein 4 (Tageskarten) |
+| 21.11.2026 | 1.17 | Vorlagen umgesetzt: Gerätetyp statt Gerät, Wiederholungsbereich pro Übung, Aufwärmsätze, ein Besitzer (andere benutzen/kopieren), Ordnung gegen Chaos, Archiv mit endgültigem Löschen |
+| 21.11.2026 | 1.16 | Besondere Tage im Kalender (Saison, Wiegetag, Pause, Ruhetag, eigene Events) als Marker an der Tageszahl; eigene Events als Termin-Art; Ruhetage ohne Einzelklicks (Wochenbewertung, Rhythmus, Zeiträume) |
+| 21.11.2026 | 1.15 | Darstellung geplanter Termine und Teilnehmer im Kalender festgelegt (Umriss-Icon, Avatar-Punkt mit Status); Ich-Ansicht in eigener Personenfarbe |
+| 21.11.2026 | 1.14 | Kalender: Ich = Monat auf einem Bildschirm, Gruppe = Wochenliste wie iOS-Kalender mit Personenauswahl in einer aufklappenden Pille; Tag als Sheet mit Platz für Planen/Nachtragen; „+“ der Navigation bleibt Starten |
+| 21.11.2026 | 1.13 | Trainings-Log als Monatskarte (‹ › und Wischen), Tag antippen zeigt ihn unter der Karte; bei mehreren Trainings am Tag gewinnt das Krafttraining (Icon vorn, Kürzel); Beschriftung leise grau |
+| 21.11.2026 | 1.12 | Trainings-Kalender als Trainings-Log: Wochen als Zeilen (neueste oben), jede Zelle zeigt Icon der Trainingsart und Fokus-Kürzel bzw. Distanz; „Gruppe“ macht jede Woche zur Tabelle mit einer Zeile pro Person; Icons als Daten an der Trainingsart, Kürzel am Fokus; Tischtennis als Standardart |
+| 21.11.2026 | 1.11 | Navigation nach Fragen getrennt: Training-Tab = Kalender · Vorlagen (was wann), Ich = Training · Habits · Einstellungen (wie entwickle ich mich), Gruppe = Feed · Vergleich; Vergleichbarkeit per Freigabe pro Datenart; „mit jemandem“ markieren schon vor den Einladungen |
+| 21.11.2026 | 1.10 | Personenfarbe unter „Ich“ selbst wählbar (nur Farben, die in den eigenen Gruppen frei sind); Farbe 7 und 8 neu (Terrakotta, Senf), weil 7 fast gleich 1 war |
+| 21.11.2026 | 1.9 | Übungsverlauf: Freunde zum Vergleich einblendbar (soziales Modul Vergleich) |
+| 21.11.2026 | 1.8 | Training: bester Satz nach Lombardi statt Epley (passt zu Double Progression) |
+| 21.11.2026 | 1.7 | Training: Übungsverlauf (Kraft- und Volumen-Graph, Rekorde, Trainingsliste); bester Satz wird nach geschätztem 1RM gewertet; eigene Übungszuordnungen entfernbar |
+| 21.11.2026 | 1.6 | Training: Gerätetypen (Klassen) mit Übungen, Geräte als Instanzen pro Studio, Übungen pro Gerät ausblendbar, Trainingsfokus (Push, Pull …) als Filter, Schulter in vorne/seitlich/hinten aufgeteilt |
+| 21.11.2026 | 1.4 | Training: kein Satzpause-Timer; Messart pro Übung (Gewicht × Wdh., nur Wdh., Dauer); eigene Trainingsarten; Übungskatalog startet leer; Muskelgruppen pro Übung; Mobility-Player als eigene Etappe |
 
 ## Vision und Kernschleife
 
@@ -60,9 +80,9 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 | Tab | Inhalt |
 | --- | --- |
 | **Heute** | Heute geplant (Termin, mit wem), Tages-Check-in als 5 Kacheln, „Neu für dich“, Glocke mit Mitteilungen, Streak |
-| **Training** | Kalender Monat/Woche, beliebig blätterbar, Filter „Nur ich / Alle“, Tagesdetail mit „An diesem Tag planen“, eigene Vorlagen |
+| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. **Ich:** mein Monat auf einem Bildschirm (‹ › und Wischen, „Heute“), 7 volle Spalten, jede Zelle zeigt Datum, Icon der Trainingsart und leises Kürzel (Push, Pull, Beine, OK, UK, GK, Arme bzw. Distanz/Dauer); bei mehreren Trainings gewinnt das Krafttraining. **Gruppe:** die Pille „Gruppe“ klappt auf, Avatare an-/abwählen (gemerkt); sobald jemand gewählt ist, Wochenliste wie im iOS-Kalender (aktuelle Woche oben, nach oben Vergangenheit, nach unten Zukunft), eine Zeile pro Person, läuft hinter der Navigation weiter. **Tag antippen** öffnet ihn als Sheet; dort oben rechts das „+“ zum Planen (Zukunft) bzw. Nachtragen (Vergangenheit), heute beides. Geplante Termine erscheinen als Umriss-Icons in denselben Zellen. Das „+“ der Navigation bleibt immer „Training starten“. |
 | **Gruppe** | Avatar-Leiste „Heute“, Feed aus Tageskarten, Reiter „Vergleich“ (Ziele, Konsistenz, Gewicht, Kraft, Dranbleiben), Saison-Archiv kompakt |
-| **Ich** | Training (Kraftverlauf, Ziele), Habits (Auswertung, Supplements), Einstellungen (Benachrichtigungen, Trainingsarten, Geräte, Sichtbarkeit) |
+| **Ich** | Wie entwickle ich mich? Reiter **Training · Habits · Einstellungen** (später Körper). Training: Ziele oben, dann Kraftentwicklung (meine Übungen → Übungsverlauf), später Laufentwicklung. Habits: Auswertung, Supplements. Einstellungen: Benachrichtigungen, Farbe, Trainingsarten, Heimstudio, Sichtbarkeit pro Datenart, später Studios/Geräte |
 
 - **Start-Button (+):** Trainingsart → Vorlage oder frei → mit wem. Bei Light-Arten (Laufen, Fußball) entfällt Schritt 2.
 - **Laufendes Training:** minimierbar als Mini-Leiste über der Navigation, läuft im Hintergrund weiter.
@@ -73,14 +93,19 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 
 Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, und jedes Training lässt sich unterwegs verändern.
 
-**Trainingsarten** (als Daten, pro Person wählbar): Studio (z. B. FitX), Home Gym, Mobility, Fußball, Laufen … Studio und Home Gym werden mit Übungen und Sätzen erfasst, die anderen mit Dauer, optional Distanz, Intensität 1–5 und Notiz. Mobility-Routinen laufen mit Timer ab.
+**Trainingsarten** (als Daten, pro Person wählbar): Studio (z. B. FitX), Home Gym, Mobility, Fußball, Laufen … Studio und Home Gym werden mit Übungen und Sätzen erfasst, die anderen mit Dauer, optional Distanz, Intensität 1–5 und Notiz. Mobility-Routinen laufen geführt ab wie ein Mitmach-Video (umgesetzt): Mobility ist eine Standard-Trainingsart, die als Player läuft; eine Routine ist eine Vorlage dieser Art. Der Ablauf gilt für die ganze Routine (Übungszeit, Pause, Runden; bei mehreren Runden läuft die ganze Liste mehrfach durch), die Übungen werden per Mehrfachauswahl zusammengeklickt und am Griff sortiert; pro Übung nur „beidseitig“ (links, dann rechts) mit optionaler Pause zum Seitenwechsel. Der Player zeigt Übung, Seite, Ausführungs-Hinweis, Countdown-Ring, „Als Nächstes“, schaltet automatisch weiter (Töne in den letzten 5 Sekunden, abschaltbar), hält den Bildschirm an und rechnet mit Uhrzeiten (nach Rückkehr in die App steht er richtig); jede Runde wird als Satz mit Dauer gespeichert. Übungen sind bearbeitbar (Name, Ausführung, Muskelgruppen; wer sie angelegt hat oder der Super-Admin). Animationen/Bilder pro Übung folgen mit dem Bild-Upload auf derselben Übungsseite.
 
 **Geräte und Übungen**
 
-- Übungen sind allgemein (Bankdrücken, Latzug); Geräte gehören zu einem Studio und haben Foto, Gewichtsstufen (z. B. 5 kg, 2,5 kg) und eine oder mehrere Übungen.
+- Übungen sind allgemein (Bankdrücken, Latzug). **Gerätetypen** sind die allgemeine Klasse (Kabelturm, Beinbeuger, Kurzhanteln) mit Bild, Einstellungsfeldern, Standard-Gewichtsstufe, „überall vergleichbar“ und den Übungen, die man daran macht. Ein Startkatalog mit gut 20 Typen ist dabei; neue Typen und Übungen kann jeder ergänzen.
+- Ein **Gerät** ist ein Typ in einem Studio (der Kabelturm im FitX Neuperlach Süd): eigener Verlauf, optional eigene Gewichtsstufe. Übungen, die es dort nicht gibt, werden nur an diesem Gerät ausgeblendet („Hier nicht verfügbar“).
+- Studio einrichten: einmal die vorhandenen Gerätetypen auswählen (Mehrfachauswahl); danach zeigt das Raster nur diese Geräte.
+- Gerätedetails: „Deine Übungen“ (letzte 3 Monate), „Früher gemacht“ (mit „zuletzt vor …“), „Weitere Übungen“ (in der Gruppe häufige zuerst). Hat ein Gerät genau eine Übung, reicht ein Tipp.
+- **Trainingsfokus** (als Daten): Push, Pull, Beine, Oberkörper, Unterkörper, Arme, Ganzkörper; eigene aus Muskelgruppen zusammenstellbar. Ein Training kann einen Fokus haben; er filtert die Übungsauswahl nach primären Muskelgruppen („Alle“ zeigt alles). Später auch für Termine und Vorlagen.
 - Einstellungen werden pro Person, Gerät und Übung gespeichert (Kabelzug: Trizepsdrücken Höhe 12, Face Pulls Höhe 9).
 - Hinzufügen über ein Geräte-Raster mit Bildern; Geräte mit mehreren Übungen öffnen eine Auswahl.
 - FitX-Katalog legt Jonas mit eigenen Fotos an (einheitlicher Bildstil); andere Studios entstehen nebenbei („Gerät merken?“ nach dem Training).
+- „Gerät merken?“ (umgesetzt): Die Zusammenfassung listet Übungen, die in einem Studio ohne Gerät gemacht wurden, mit den Gerätetypen, die diese Übung anbieten; ein Tipp legt das Gerät im Studio an (falls es fehlt) und verknüpft das Training damit.
 - Duplikatschutz: Suche vor dem Anlegen, Aliase, Zusammenführen durch den Admin.
 
 **Ablauf im Training**
@@ -88,14 +113,16 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 1. Start aus Termin, Vorlage oder leer.
 2. Oben: Übungs-Chips zum Springen; lange drücken und ziehen zum Umsortieren.
 3. Pro Übung: Name, Geräteeinstellung, kleine Verlaufskurve der letzten 6 Trainings mit Trend.
-4. Sätze: Spalte „vorher“ pro Satz; nur die aktive Zeile hat Stepper (‹ ›, Wischen auf dem Wert, in Gerätestufen); der Haken bestätigt und startet die Satzpause.
+4. Sätze: Spalte „vorher“ pro Satz; nur die aktive Zeile hat Stepper (‹ ›, Wischen auf dem Wert, in Gerätestufen); der Haken bestätigt den Satz (kein Satzpause-Timer).
 5. Aufwärmsätze („W“) zählen nicht für Volumen, Bestwerte und Vorschläge.
 6. Satz nach links wischen = löschen; Übung über „…“ tauschen, Notiz, entfernen – jeweils mit Rückgängig.
 7. Unten: ‹ · + Übung (wird hinter der aktiven eingefügt) · Nächste Übung.
 8. Menü „…“: Pausieren, Minimieren, Beenden & speichern, Abbrechen & verwerfen (mit Bestätigung).
 9. Ende: Zusammenfassung (Dauer, Arbeitssätze, Volumen, Bestwerte), Frage „Vorlage aktualisieren?“, Tageskarte im Feed, Habit „Sport“ hakt sich ab.
 
-**Progression:** Double Progression. Erreicht ein Satz beim letzten Mal das obere Ende des Wiederholungsbereichs, schlägt die App die nächste Gerätestufe vor (↑). Kein RIR, keine aktive Stagnationswarnung – Stagnation zeigt sich ruhig im Verlauf.
+**Übungsverlauf:** Pro Übung eine Detailansicht (Antippen der Mini-Kurve, „…“ → Verlauf, ⓘ in der Übungsauswahl): Kraft-Graph (bester Satz pro Training), Volumen-Graph (kg × Wdh. der Arbeitssätze), Rekorde (bester und schwerster Satz, meistes Volumen, meiste Wiederholungen pro Gewicht) und alle Trainings mit Datum, Ort und Sätzen; Zeitraum 3 Monate / 1 Jahr / Alles; bei Maschinen standardmäßig nur dieses Gerät, umschaltbar auf alle. Die Mini-Kurve auf der Karte bleibt ohne Beschriftung. Freunde aus der Gruppe lassen sich in ihrer Personenfarbe dazuschalten (Kraft als Linie, Volumen als Linie über den eigenen Balken), am selben Gerät bzw. bei vergleichbaren Geräten oder „Alle Geräte“; sichtbar ist nur, was die Freigabe erlaubt (soziales Modul Vergleich über einen Steckplatz).
+
+**Progression:** Double Progression (umgesetzt: Wiederholungsbereich aus der Vorlage, bei freien Trainings aus der eigenen letzten Vorlage mit der Übung; ↑ = Gerätestufe des Geräts, sonst 2,5 kg; der Vorschlag steht als Startwert im Zahlenrad, Wiederholungen = unteres Ende des Bereichs; Arbeitssätze übernehmen nie Werte von Aufwärmsätzen). Neue Bestwerte erscheinen in der Zusammenfassung am Trainingsende. Double Progression. Erreicht ein Satz beim letzten Mal das obere Ende des Wiederholungsbereichs, schlägt die App die nächste Gerätestufe vor (↑). Kein RIR, keine aktive Stagnationswarnung – Stagnation zeigt sich ruhig im Verlauf.
 
 **Gemeinsames Training:** Einer startet und lädt ein (Push „beitreten?“), beide haben dieselbe Übungsliste, jeder trägt nur seine eigenen Sätze ein und sieht die des anderen live. Jeder darf Übungen ergänzen. Am Ende hat jeder sein Training, verknüpft als „mit …“.
 
@@ -104,14 +131,56 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfall verschiebt nichts und bestraft niemanden.
 
 - **Vorlagen:** eigene Trainings mit Übungen, Ziel-Sätzen und Wiederholungsbereichen; aus einem vergangenen Training speicherbar; Vorlagen anderer lassen sich kopieren.
+  - Pro Übung: Gerätetyp (nicht das konkrete Gerät – funktioniert in jedem Studio; fehlt der Typ vor Ort, startet die Übung ohne Gerät mit „Gerät wählen“), Sätze, optionale Aufwärmsätze (vorausgewählt), Wiederholungsbereich (z. B. 8–12) bzw. Zielzeit. Kein Gewicht – das kommt aus dem eigenen Verlauf bzw. der Progression.
+  - Eine Vorlage hat genau einen Besitzer, nur er bearbeitet sie. Gruppenmitglieder starten direkt damit (mit eigenen Gewichten) oder „Als eigene kopieren“; „Vorlage aktualisieren?“ fragt am Trainingsende nur den Besitzer, andere bekommen „Als eigene Vorlage speichern?“.
+  - Gegen Chaos: zuletzt benutzte zuerst (6 sichtbar, Rest unter „Alle“); beim Start nur Vorlagen der gewählten Trainingsart; beim Speichern Hinweis auf eine Vorlage mit denselben Übungen („diese aktualisieren?“) und Namensvorschlag aus Fokus + Art; 60 Tage unbenutzt → „Lange nicht genutzt“ (eingeklappt); Gruppen-Vorlagen in eigenem, eingeklapptem Bereich und nur, solange ihr Besitzer sie nutzt – einmal benutzt, wandern sie in die eigene Liste.
+  - Archivieren statt löschen; im Archiv „Endgültig löschen“ (Trainings bleiben, nur der Verweis fällt weg).
 - **Kalender:** Monats- und Wochenansicht, vor und zurück blätterbar; Punkte für erledigt, geplant und „mit jemandem“; „Alle“ blendet die Trainings der anderen ein.
 - **Termin:** Datum (beliebig weit voraus), Uhrzeit, Trainingsart, optional Vorlage, Teilnehmer; optional wiederkehrend.
 - **Einladung:** Push an die Eingeladenen; Antworten: Zusage, Absage, andere Zeit vorschlagen (Gegenvorschlag mit einem Tap annehmen), vielleicht.
 - **Bearbeiten:** Datum, Zeit, Vorlage, Teilnehmer; jede Änderung geht als Push raus, Eingeladene bestätigen neu. Absagen mit Bestätigung.
 - **„Ich komm mit“:** auf einen geplanten Termin eines anderen anfragen.
-- **Ausfall:** Termin wird grau, „Nachholen“ legt ihn neu an. Geplante Ruhetage kommen ebenfalls in den Kalender.
+- **Ausfall:** Termin wird grau, „Nachholen“ legt ihn neu an.
+- **Eigene Events:** Termin-Art „Event“ ohne Training (z. B. Stadtlauf, Wettkampf, Gruppen-Grillen), für sich oder die Gruppe; gleiche Einladung/Zusage wie Trainings-Termine.
 - **Export:** Termin als .ics in den Handykalender.
 - Aus einem heutigen Termin startet man direkt das gemeinsame Training.
+
+**Darstellung im Kalender (vorläufig festgelegt):** jede Person in ihrer Personenfarbe, auch man selbst in der Ich-Ansicht. Ein Avatar-Punkt liegt über dem Icon (oben rechts) und braucht keinen eigenen Platz; Raster und Zellengröße ändern sich nicht.
+
+| Zustand | Monatszelle (Ich) |
+| --- | --- |
+| Erledigt | gefülltes Icon |
+| Geplant, allein | Umriss-Icon (leicht transparent) |
+| Geplant mit Person, zugesagt | Umriss-Icon + gefüllter Avatar-Punkt der Person |
+| Geplant mit Person, offen | Umriss-Icon + Avatar-Punkt als Ring |
+| Person hat abgesagt | Punkt verschwindet, Termin bleibt „allein“ |
+| Erledigt mit Person | gefülltes Icon + gefüllter Avatar-Punkt |
+| Mehrere Personen | ein Punkt + „+1“ |
+
+- **Tages-Sheet:** Zeile mit Uhrzeit, Art, Fokus; rechts die Teilnehmer-Avatare mit Status (✓ zugesagt, ? offen, Uhr = anderer Zeitvorschlag, ✗ abgesagt); antippen öffnet den Termin.
+- **Gruppenansicht:** gemeinsamer Termin in beiden Personenzeilen als Umriss-Icon in der jeweiligen Farbe; wer noch nicht zugesagt hat, blasser.
+
+**Besondere Tage im Kalender:** markieren das Datum, nicht die Zelle – der Platz für Trainings (Icon, Kürzel) bleibt frei.
+
+| Art | Quelle | Marker an der Tageszahl | Gilt für |
+| --- | --- | --- | --- |
+| Saisonende | Saison | Fahne als Ziellinie (hervorgehoben, Ziele fällig) | Gruppe |
+| Saisonstart | Saison | Fahne | Gruppe |
+| Eigenes Event | Termin-Art „Event“ | kleiner Stern | Gruppe oder Person |
+| Wiegetag | Saisonregel | Waage | Person |
+| Pause (krank, Urlaub) | Saison, als Zeitraum | dünner Strich unter den Tagen | Person |
+| Ruhetag | Rhythmus oder einzeln | nur gedämpfte Zahl, kein Symbol | Person |
+
+- Pro Tag höchstens ein Marker, Rangfolge wie in der Tabelle; alles Weitere steht im Tages-Sheet oben unter „Besonderes“ (z. B. „Wiegetag · morgens nüchtern“, „Saisonende · noch 3 Ziele offen“).
+- Gruppenansicht: Gruppen-Marker an der Datumszeile der Woche (einmal für alle), persönliche Marker in der Personenzeile.
+- „Heute“ zeigt anstehende besondere Tage („Morgen Wiegetag“, „Noch 5 Tage bis Saisonende“).
+- Technik: Steckplatz „Tages-Marker“ im Kalender; Saisons, Körper und Planung liefern ihre Marker, wenn sie gebaut werden. Marker werden berechnet, nicht gespeichert (außer eigenen Events).
+
+**Ruhetage – nie einzeln anklicken müssen:**
+1. Standard: nichts eintragen. Ein Tag ohne Training ist einfach frei; Sport wird pro Woche bewertet („4× pro Woche“), Streaks und Konsistenz zählen Wochen.
+2. Fester Rhythmus einmal einstellen (z. B. „Sonntag immer frei“); diese Tage zählen bei täglich gewerteten Habits automatisch als erfüllt.
+3. Längere Pausen (Krankheit, Urlaub) einmal als Zeitraum „von – bis“; zählen weder für noch gegen die Konsistenz.
+4. Einzelner bewusster Ruhetag nur bei Bedarf über das „+“ im Tages-Sheet.
 
 ## Feed, Kommentare und Benachrichtigungen
 
@@ -151,7 +220,7 @@ Habits sind ein Baukasten: Jeder definiert seine eigenen, Jonas' 5 Säulen (Spor
 | Häufigkeit | täglich · bestimmte Wochentage · x-mal pro Woche |
 | Zeitpunkt | morgens / abends (Reihenfolge im Check-in, Erinnerung) |
 | Automatisch | optional aus der App, z. B. Sport aus Trainings |
-| Ausnahmen | z. B. geplanter Ruhetag zählt als erfüllt |
+| Ausnahmen | Ruhetage aus dem eingestellten Rhythmus oder einzeln geplant zählen als erfüllt; Pausen-Zeiträume zählen nicht |
 | Fortschritt teilen | privat · nur „erledigt“ · mit Werten |
 | Als Vorlage veröffentlichen | ja/nein (landet in der Habit-Bibliothek der Gruppe) |
 
@@ -259,7 +328,7 @@ Die Tabellen sind nach Modulen gruppiert; die generischen Bausteine (Kommentare,
 | Modul | Tabellen (Auswahl) | Hinweis |
 | --- | --- | --- |
 | Kern | profiles, groups, group\_members, invites | Rollen (Admin), Heimstudio, Sichtbarkeit |
-| Orte & Katalog | locations, devices, exercises, device\_exercises, exercise\_aliases | Gewichtsstufen am Gerät, Bild-URL |
+| Orte & Katalog | locations, device\_types, device\_type\_exercises, devices, device\_hidden\_exercises, exercises, exercise\_aliases, training\_focuses | Gerät = Typ im Studio; Stufe am Typ, am Gerät überschreibbar |
 | Einstellungen | user\_device\_settings | pro Person, Gerät, Übung |
 | Training | training\_types, templates, template\_items, workouts, workout\_participants, workout\_items, sets | Satz: kg, Wdh., Aufwärm-Flag, erledigt |
 | Planung | appointments, appointment\_invites, rest\_days | Status, Gegenvorschlag |
@@ -324,9 +393,25 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 20.11.2026 | Punktesystem zum Schluss |
 | 20.11.2026 | Datenmodell von Anfang an mehrgruppenfähig; Oberfläche für mehrere Gruppen in späterer Ausbaustufe |
 | 20.11.2026 | Persönliche Module (Training, Habits, Körper, Ziele) funktionieren ohne Gruppe und sind samt Datenbank in eine eigene Solo-/Life-App übernehmbar; die soziale Schicht hängt sich nur von außen an. Regeln mit Folgen (Feed, Push, Habit abhaken) laufen in der Datenbank, nicht nur in der Oberfläche |
+| 21.11.2026 | Kein Satzpause-Timer im Training |
+| 21.11.2026 | Messart hängt an der Übung (Gewicht × Wdh., nur Wdh., Dauer), nicht an der Trainingsart; Trainingsarten sind „mit Übungen“ oder „nur Dauer (± Distanz)“ und pro Person frei anlegbar. Vorgegeben: Studio, Home Gym, Laufen, Fußball |
+| 21.11.2026 | Übungskatalog startet leer und wächst nur aus tatsächlich gemachten Übungen (Suche vor Anlegen, Aliase); Übungen haben Muskelgruppen und ein Bild (PNG/WebP mit Transparenz) |
+| 21.11.2026 | Mobility-Routinen als geführter Player (Übung, Bild, Countdown, automatisches Weiterschalten) in eigener Etappe nach dem Trainingskern |
+| 21.11.2026 | Ort kommt aus der Trainingsart: Studio → Heimstudio, Home Gym → eigener privater Ort, Laufen/Fußball → kein Ort; ändern nur bei Bedarf über „…“ im Training |
+| 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
+| 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
+| 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Übungen gehören zu einem Katalog (Kraft oder Mobility), jede Trainingsart nutzt einen davon; Fokusse sind pro Trainingsart einschränkbar (als Daten). Standard-Trainingsarten sind ein Katalog: jeder schaltet unter Ich → Einstellungen aus, was er nicht nutzt |
+| 21.11.2026 | Ruhetage muss man nicht eintragen: Sport wird pro Woche bewertet; wer feste Ruhetage hat, stellt einmal einen Rhythmus ein; Krankheit/Urlaub als Zeitraum. Besondere Tage markieren nur die Tageszahl (höchstens ein Marker), Details im Tages-Sheet |
+| 21.11.2026 | Planen und Nachtragen gehören an den Tag (Sheet mit „+“), nicht an das „+“ der Navigation; ein Knopf mit wechselnder Bedeutung ist nicht vorhersagbar. Gruppenansicht gleich in der endgültigen Form (iOS-Kalender mit Zukunft), keine Zwischenlösung |
+| 21.11.2026 | Kalender als Trainings-Log statt Punkte-Kalender: Was wann trainiert wurde, steht direkt in der Zelle (Icon + Kürzel), kein Monat/Woche-Umschalter und keine Liste daneben; mit Gruppe eine Zeile pro Person. Grund: Punkte zeigen nur „dass“, nicht „was“; nur ein Umschalter pro Bildschirm |
+| 21.11.2026 | Navigation nach Fragen: Training-Tab „was wann“ (Kalender, Vorlagen), Ich „wie entwickle ich mich“ (Training · Habits · Einstellungen), Gruppe „wie stehen wir zueinander“ (Feed, Vergleich). Vergleichbar ist alles, was jemand pro Datenart (Training, Habits, Körper) freigibt; Vergleich in den eigenen Ansichten („Vergleichen mit“) und als Übersicht in Gruppe → Vergleich |
+| 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Lombardi: kg × Wdh.^0,1, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen, das Gewicht aber mehr (72,5 × 6 vor 70 × 8; beim Gewichtssprung der Double Progression höchstens eine kleine Delle; Epley verworfen, weil die Linie dort bei jedem Sprung deutlich fällt); angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |
+| 21.11.2026 | Trainingsfokus als Daten (Muskelgruppen-Menge), optional am Training; Übungen passen über ihre primären Muskelgruppen. Schulter aufgeteilt in vordere, seitliche, hintere |
 
 **Offen (zu zweit klären)**
 
+- [ ] Ruhetage und Habit-Bewertung nochmal durchdenken: Eine Woche ganz ohne Sport darf nicht über Ruhetage positiv zählen (z. B. Ruhetage nur als Ausnahme, wenn das Wochenziel trotzdem erreicht ist, oder höchstens n pro Woche). Spätestens mit Baustein 6 (Habits) entscheiden.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?
 - [ ] Wiegetag: welcher Wochentag, morgens nüchtern?

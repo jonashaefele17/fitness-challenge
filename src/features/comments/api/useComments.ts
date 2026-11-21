@@ -45,7 +45,10 @@ export function useCommentStats(target: TargetRef) {
 export function useThread(target: TargetRef, { live }: { live: boolean }) {
   return useQuery({
     queryKey: commentKeys.thread(target),
-    refetchInterval: live ? 10_000 : false,
+    // Always reload when a thread opens (cached data may be older than a notification);
+    // realtime keeps it current, polling is only a safety net.
+    refetchOnMount: 'always',
+    refetchInterval: live ? 30_000 : false,
     queryFn: async (): Promise<Comment[]> => {
       const query = supabase
         .from('comments')

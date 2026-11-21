@@ -5,7 +5,8 @@ import { supabase } from '@/shared/lib/supabase';
 import type { Json } from '@/shared/types/database';
 import type { AppNotification } from '../types';
 
-const POLL_MS = 30_000;
+// Safety net only; realtime delivers changes immediately.
+const POLL_MS = 60_000;
 
 export const notificationKeys = {
   all: (userId: string) => ['notifications', userId] as const,

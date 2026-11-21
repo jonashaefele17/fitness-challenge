@@ -11,6 +11,7 @@ export {
   useSaveNotificationPrefs,
   useSetCategoryEnabled,
 } from './api/useNotificationSettings';
+export { useNotificationsRealtime } from './api/useNotificationsRealtime';
 export { AppBadgeSync } from './components/AppBadgeSync';
 export {
   NotificationBell,

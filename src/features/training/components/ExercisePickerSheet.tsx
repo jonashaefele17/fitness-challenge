@@ -624,11 +624,12 @@ function ExercisesGrid({
           {results.length - fitting.length} weitere passen nicht zu {focus.name}. „Alle“ zeigt sie.
         </p>
       )}
-      {(query.trim().length >= 2 && !exactMatch) || results.length === 0 ? (
-        <Button variant="secondary" onClick={onCreate}>
-          {query.trim() ? `„${query.trim()}“ neu anlegen` : 'Neue Übung anlegen'}
-        </Button>
-      ) : null}
+      {/* Always reachable: a catalogue that already has exercises still needs new ones. */}
+      <Button variant="secondary" onClick={onCreate}>
+        {query.trim().length >= 2 && !exactMatch
+          ? `„${query.trim()}“ neu anlegen`
+          : 'Neue Übung anlegen'}
+      </Button>
     </div>
   );
 }

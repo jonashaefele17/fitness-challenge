@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.12 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.13 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.13 | Trainings-Log als Monatskarte (‹ › und Wischen), Tag antippen zeigt ihn unter der Karte; bei mehreren Trainings am Tag gewinnt das Krafttraining (Icon vorn, Kürzel); Beschriftung leise grau |
 | 21.11.2026 | 1.12 | Trainings-Kalender als Trainings-Log: Wochen als Zeilen (neueste oben), jede Zelle zeigt Icon der Trainingsart und Fokus-Kürzel bzw. Distanz; „Gruppe“ macht jede Woche zur Tabelle mit einer Zeile pro Person; Icons als Daten an der Trainingsart, Kürzel am Fokus; Tischtennis als Standardart |
 | 21.11.2026 | 1.11 | Navigation nach Fragen getrennt: Training-Tab = Kalender · Vorlagen (was wann), Ich = Training · Habits · Einstellungen (wie entwickle ich mich), Gruppe = Feed · Vergleich; Vergleichbarkeit per Freigabe pro Datenart; „mit jemandem“ markieren schon vor den Einladungen |
 | 21.11.2026 | 1.10 | Personenfarbe unter „Ich“ selbst wählbar (nur Farben, die in den eigenen Gruppen frei sind); Farbe 7 und 8 neu (Terrakotta, Senf), weil 7 fast gleich 1 war |
@@ -69,7 +70,7 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 | Tab | Inhalt |
 | --- | --- |
 | **Heute** | Heute geplant (Termin, mit wem), Tages-Check-in als 5 Kacheln, „Neu für dich“, Glocke mit Mitteilungen, Streak |
-| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. Kalender als **Trainings-Log**: Wochen als Zeilen (neueste oben, nach unten ältere), jede Zelle zeigt das Icon der Trainingsart und das Fokus-Kürzel (Push, Pull, Beine, OK, UK, GK, Arme) bzw. Distanz/Dauer, rechts die Anzahl pro Woche. Filter „Gruppe“: jede Woche wird eine kleine Tabelle mit einer Zeile pro Person (Personenfarbe, soweit geteilt), damit man Pläne angleichen kann. Tippen → Trainingsdetail. Später: geplante Termine als Umriss-Icons, „mit …“, „An diesem Tag planen“ |
+| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. Kalender als **Trainings-Log in Monatskarten** (‹ › und Wischen, „Heute“): Wochen als Zeilen, jede Zelle zeigt das Icon der Trainingsart und das Fokus-Kürzel (Push, Pull, Beine, OK, UK, GK, Arme) bzw. Distanz/Dauer, rechts die Anzahl pro Woche; bei mehreren Trainings am Tag steht das Krafttraining vorn (Icon und Kürzel), Ausdauer klein daneben. Datum antippen zeigt den Tag unter der Karte. Filter „Gruppe“: jede Woche wird eine kleine Tabelle mit einer Zeile pro Person (Personenfarbe, soweit geteilt), damit man Pläne angleichen kann. Tippen → Trainingsdetail. Später: geplante Termine als Umriss-Icons, „mit …“, „An diesem Tag planen“ |
 | **Gruppe** | Avatar-Leiste „Heute“, Feed aus Tageskarten, Reiter „Vergleich“ (Ziele, Konsistenz, Gewicht, Kraft, Dranbleiben), Saison-Archiv kompakt |
 | **Ich** | Wie entwickle ich mich? Reiter **Training · Habits · Einstellungen** (später Körper). Training: Ziele oben, dann Kraftentwicklung (meine Übungen → Übungsverlauf), später Laufentwicklung. Habits: Auswertung, Supplements. Einstellungen: Benachrichtigungen, Farbe, Trainingsarten, Heimstudio, Sichtbarkeit pro Datenart, später Studios/Geräte |
 

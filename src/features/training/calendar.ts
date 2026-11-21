@@ -34,3 +34,24 @@ export function isoWeek(date: Date): number {
   const firstThursday = addDays(startOfWeek(new Date(thursday.getFullYear(), 0, 4)), 3);
   return 1 + Math.round((thursday.getTime() - firstThursday.getTime()) / (7 * 86_400_000));
 }
+
+/** First day of the month containing the date. */
+export function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+/** First day of the month n months later (or earlier). */
+export function addMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+/** Mondays of all weeks (Monday–Sunday) that touch the month: 4–6 weeks. */
+export function monthWeeks(date: Date): Date[] {
+  const first = startOfMonth(date);
+  const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const mondays: Date[] = [];
+  for (let monday = startOfWeek(first); monday <= last; monday = addDays(monday, 7)) {
+    mondays.push(monday);
+  }
+  return mondays;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayKey, isoWeek, startOfWeek, weekDays } from './calendar';
+import { addMonths, dayKey, isoWeek, monthWeeks, startOfWeek, weekDays } from './calendar';
 
 describe('calendar helpers', () => {
   it('formats local day keys', () => {
@@ -23,5 +23,18 @@ describe('calendar helpers', () => {
   it('computes ISO week numbers', () => {
     expect(isoWeek(new Date(2026, 10, 21))).toBe(47);
     expect(isoWeek(new Date(2027, 0, 1))).toBe(53);
+  });
+
+  it('lists the weeks touching a month', () => {
+    // November 2026 starts on a Sunday: first week from Monday 26 Oct, last from 30 Nov.
+    const weeks = monthWeeks(new Date(2026, 10, 21)).map(dayKey);
+    expect(weeks[0]).toBe('2026-10-26');
+    expect(weeks.at(-1)).toBe('2026-11-30');
+    expect(weeks).toHaveLength(6);
+  });
+
+  it('moves between months', () => {
+    expect(dayKey(addMonths(new Date(2026, 0, 31), 1))).toBe('2026-02-01');
+    expect(dayKey(addMonths(new Date(2026, 0, 15), -1))).toBe('2025-12-01');
   });
 });

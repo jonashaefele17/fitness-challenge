@@ -95,3 +95,15 @@ export const ChevronDownIcon = (p: IconProps) => (
     <path d="m6 9 6 6 6-6" />
   </Icon>
 );
+
+export const ChevronLeftIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m15 6-6 6 6 6" />
+  </Icon>
+);
+
+export const ChevronRightIcon = (p: IconProps) => (
+  <Icon strokeWidth={2.5} {...p}>
+    <path d="m9 6 6 6-6 6" />
+  </Icon>
+);

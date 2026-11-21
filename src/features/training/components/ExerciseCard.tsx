@@ -175,7 +175,8 @@ export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCard
         ref={addButton}
         type="button"
         onClick={newSet}
-        className="min-h-tap w-full border-t border-border text-subhead font-semibold text-accent active:bg-surface-2"
+        // scroll-mb: when scrolled into view, leave a gap above the bottom bar.
+        className="min-h-tap w-full scroll-mb-6 border-t border-border text-subhead font-semibold text-accent active:bg-surface-2"
       >
         + Satz
       </button>

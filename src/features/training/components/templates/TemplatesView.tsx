@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatRelativeTime } from '@/shared/lib';
 import { Button, ChevronRightIcon, Sheet } from '@/shared/ui';
-import { useAllTrainingTypes, useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
+import { useAllTrainingTypes, useTrainingTypes } from '../../api/useCatalog';
 import {
   useArchiveTemplate,
   useCopyTemplate,
@@ -13,6 +13,7 @@ import { useStartWorkout } from '../../api/useWorkout';
 import { templateSections, TOP_COUNT } from '../../templateRules';
 import type { TemplateDraft, TemplateSummary } from '../../types';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
+import { FocusPill } from './FocusPill';
 import { TemplateEditor } from './TemplateEditor';
 import { itemPlan } from './templateText';
 
@@ -150,9 +151,7 @@ function TemplateCard({
   onOpen: (id: string) => void;
 }) {
   const type = (useAllTrainingTypes().data ?? []).find((t) => t.id === template.trainingTypeId);
-  const focus = (useTrainingFocuses().data ?? []).find((f) => f.id === template.focusId);
   const parts = [
-    focus?.name,
     template.exerciseCount === 1 ? '1 Übung' : `${String(template.exerciseCount)} Übungen`,
     template.mine ? null : `von ${template.ownerName ?? '…'}`,
     template.myLastUsedAt ? `zuletzt ${formatRelativeTime(template.myLastUsedAt)}` : null,
@@ -170,7 +169,10 @@ function TemplateCard({
           <TrainingTypeIcon icon={type?.icon ?? 'generic'} className="size-5" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-subhead font-semibold">{template.name}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-subhead font-semibold">{template.name}</span>
+            <FocusPill focusId={template.focusId} />
+          </span>
           <span className="truncate text-footnote text-text-muted">{parts.join(' · ')}</span>
         </span>
         <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />

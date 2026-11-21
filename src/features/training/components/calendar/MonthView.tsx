@@ -22,14 +22,12 @@ export function MonthView({
   today,
   color,
   headerEnd,
-  onOpen,
 }: {
   today: Date;
   /** My person colour (accent when there is none, e.g. without a group). */
   color: string;
   /** Right end of the header row (the "Gruppe" switch). */
   headerEnd: ReactNode;
-  onOpen: (workoutId: string) => void;
 }) {
   const [month, setMonth] = useState(() => startOfMonth(today));
   const [day, setDay] = useState<string | null>(null);
@@ -167,7 +165,6 @@ export function MonthView({
         day={day}
         entries={(days.get(day ?? '') ?? []).map((workout) => ({ row: me, workout }))}
         showNames={false}
-        onOpen={onOpen}
         onClose={() => {
           setDay(null);
         }}

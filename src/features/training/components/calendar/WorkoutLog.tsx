@@ -61,12 +61,7 @@ export function WorkoutLog() {
       {groupView ? (
         <GroupWeeks today={today} shownIds={shownIds} headerEnd={groupButton} onOpen={setOpenId} />
       ) : (
-        <MonthView
-          today={today}
-          color={group.myColor ?? ACCENT}
-          headerEnd={groupButton}
-          onOpen={setOpenId}
-        />
+        <MonthView today={today} color={group.myColor ?? ACCENT} headerEnd={groupButton} />
       )}
 
       <WorkoutDetailSheet

@@ -243,7 +243,6 @@ export function GroupWeeks({
         day={day}
         entries={dayEntries}
         showNames
-        onOpen={onOpen}
         onClose={() => {
           setDay(null);
         }}

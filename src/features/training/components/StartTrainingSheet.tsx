@@ -8,7 +8,9 @@ import { TrainingTypeIcon } from './TrainingTypeIcon';
 import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
 import { useActiveWorkout, useLogDurationEntry, useStartWorkout } from '../api/useWorkout';
 import { PlacePicker } from './PlacePicker';
+import { FocusPill } from './templates/FocusPill';
 import { TemplateEditor } from './templates/TemplateEditor';
+import type { TemplateSummary } from '../types';
 import type { TrainingType } from '../types';
 
 export interface StartTrainingSheetProps {
@@ -49,19 +51,23 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
   const templates = useTemplates().data ?? [];
   const [now] = useState(() => Date.now());
 
-  /** Templates to offer for a type: mine/used ones, then group mates' active ones. */
+  /** Templates to offer for a type: mine/used ones, and group mates' active ones. */
   function templatesFor(type: TrainingType) {
     const sections = templateSections(templates, now, type.id);
-    return [...sections.active, ...sections.group];
+    return { mine: sections.active, group: sections.group };
   }
+  const count = (type: TrainingType) => {
+    const offered = templatesFor(type);
+    return offered.mine.length + offered.group.length;
+  };
 
   /**
    * Ask "Vorlage oder frei" when there are templates for the type, else start free. A guided
    * type (Mobility) always needs a routine: pick one or create the first.
    */
   function next(type: TrainingType) {
-    if (type.guided && templatesFor(type).length === 0) setStep({ kind: 'new-routine', type });
-    else if (type.guided || templatesFor(type).length > 0) setStep({ kind: 'template', type });
+    if (type.guided && count(type) === 0) setStep({ kind: 'new-routine', type });
+    else if (type.guided || count(type) > 0) setStep({ kind: 'template', type });
     else startWorkout(type);
   }
 
@@ -139,35 +145,33 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
               Frei starten
             </Button>
           )}
-          <span className="pt-2 text-footnote font-semibold text-text-muted">
-            {step.type.guided ? 'Routinen' : 'Mit Vorlage'}
-          </span>
-          <ul className="flex flex-col gap-2">
-            {templatesFor(step.type).map((template) => (
-              <li key={template.id}>
-                <button
-                  type="button"
-                  disabled={start.isPending}
-                  onClick={() => {
-                    startWorkout(step.type, template.id);
-                  }}
-                  className="flex min-h-tap w-full flex-col rounded-card bg-surface-2 px-4 py-3 text-left active:bg-surface-3 disabled:opacity-50"
-                >
-                  <span className="text-subhead font-semibold">{template.name}</span>
-                  <span className="text-footnote text-text-muted">
-                    {[
-                      template.exerciseCount === 1
-                        ? '1 Übung'
-                        : `${String(template.exerciseCount)} Übungen`,
-                      template.mine ? null : `von ${template.ownerName ?? '…'}`,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {(['mine', 'group'] as const).map((section) => {
+            const list = templatesFor(step.type)[section];
+            if (list.length === 0) return null;
+            return (
+              <section key={section} className="flex flex-col gap-2">
+                <span className="pt-2 text-footnote font-semibold text-text-muted">
+                  {section === 'group'
+                    ? 'Von der Gruppe'
+                    : step.type.guided
+                      ? 'Meine Routinen'
+                      : 'Mit Vorlage'}
+                </span>
+                <ul className="flex flex-col gap-2">
+                  {list.map((template) => (
+                    <TemplateChoice
+                      key={template.id}
+                      template={template}
+                      disabled={start.isPending}
+                      onPick={() => {
+                        startWorkout(step.type, template.id);
+                      }}
+                    />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </div>
       ) : step.kind === 'duration' ? (
         <DurationEntryForm type={step.type} onDone={close} />
@@ -360,5 +364,39 @@ function DurationEntryForm({ type, onDone }: { type: TrainingType; onDone: () =>
         Training erledigt ✓
       </Button>
     </form>
+  );
+}
+
+function TemplateChoice({
+  template,
+  disabled,
+  onPick,
+}: {
+  template: TemplateSummary;
+  disabled: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onPick}
+        className="flex min-h-tap w-full flex-col gap-0.5 rounded-card bg-surface-2 px-4 py-3 text-left active:bg-surface-3 disabled:opacity-50"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-subhead font-semibold">{template.name}</span>
+          <FocusPill focusId={template.focusId} />
+        </span>
+        <span className="text-footnote text-text-muted">
+          {[
+            template.exerciseCount === 1 ? '1 Übung' : `${String(template.exerciseCount)} Übungen`,
+            template.mine ? null : `von ${template.ownerName ?? '…'}`,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
+      </button>
+    </li>
   );
 }

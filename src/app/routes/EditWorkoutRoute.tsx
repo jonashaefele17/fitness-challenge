@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import { SplashScreen, useUserId } from '@/features/auth';
 import {
@@ -7,6 +7,7 @@ import {
   useEditableWorkout,
   WorkoutCacheContext,
   WorkoutScreen,
+  type ActiveWorkout,
 } from '@/features/training';
 import { paths } from '../paths';
 
@@ -17,6 +18,9 @@ export function EditWorkoutRoute() {
   const workout = useEditableWorkout(workoutId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // The state when editing began, for "Änderungen verwerfen" (kept for this visit).
+  const [snapshot, setSnapshot] = useState<ActiveWorkout | null>(null);
+  if (workout.data && !snapshot) setSnapshot(workout.data);
 
   // Edits went to the edit cache: refresh everything that shows workouts when leaving
   // (calendar, detail, feed cards).
@@ -37,7 +41,13 @@ export function EditWorkoutRoute() {
 
   return (
     <WorkoutCacheContext.Provider value={editKey(userId, workoutId)}>
-      <WorkoutScreen workout={workout.data} mode="edit" onMinimize={close} onClose={close} />
+      <WorkoutScreen
+        workout={workout.data}
+        mode="edit"
+        snapshot={snapshot ?? undefined}
+        onMinimize={close}
+        onClose={close}
+      />
     </WorkoutCacheContext.Provider>
   );
 }

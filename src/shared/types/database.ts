@@ -1896,6 +1896,7 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
       save_template: {
         Args: {
           p_focus_id: string;

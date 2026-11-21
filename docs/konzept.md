@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.29 | Bearbeiten: „Fertig“ statt Minimieren-Pfeil; „Änderungen verwerfen“ (mit Rückfrage) setzt das Training auf den Stand vor dem Bearbeiten zurück, Übungen und Sätze behalten ihre Kommentare; wird ein Training, eine Übung, ein Satz oder eine Tageskarte gelöscht, verschwinden auch Kommentare, Reaktionen und Mitteilungen daran |
 | 21.11.2026 | 1.28 | Feed (4d): eigene Trainings bearbeiten (derselbe Trainingsbildschirm im Bearbeiten-Modus: Sätze, Übungen, Tag/Uhrzeit/Dauer, Ort, löschen mit Rückfrage) und nachtragen (Tag-Sheet „+“: Art, Uhrzeit, Dauer, optional Vorlage; Übungs-Arten öffnen danach den Bearbeiten-Modus); nachgetragen ist ausdrücklich markiert und benachrichtigt nie; verschobene Trainings wandern auf die Karte ihres neuen Tages |
 | 21.11.2026 | 1.27 | Feed: Beitritt als eigene kleine Karte (nicht Teil der Tageskarte); Sortierung als kompakter Umschalter „Neueste | Zuletzt aktiv“ |
 | 21.11.2026 | 1.26 | Feed (4c): Glocke und Push springen an die Stelle – Training öffnet sich, Übung im Blick, Satz markiert, Thread mit dem Kommentar offen; Texte nennen das Objekt („hat deinen Satz kommentiert“) |
@@ -416,6 +417,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Nachgetragen = mehr als 3 Stunden nach Trainingsende eingetragen: die Karte steht am echten Tag mit „nachgetragen“, es gibt keinen Push und keinen Glocken-Eintrag; Kommentare und Reaktionen darauf benachrichtigen normal |
 | 21.11.2026 | Jedes abgeschlossene Training erscheint automatisch im Feed (kein Ausblenden pro Training) |
 | 21.11.2026 | Reaktionen als feste Auswahl wie bei iMessage (Daten in reaction_kinds), eine Reaktion pro Person und Stelle |
+| 21.11.2026 | Bearbeiten speichert sofort (wie live); „Änderungen verwerfen“ ist die erlaubte Ausnahme mit Rückfrage. Kommentare und Reaktionen werden mit ihrem Objekt gelöscht, nichts zeigt ins Leere |
 
 **Offen (zu zweit klären)**
 

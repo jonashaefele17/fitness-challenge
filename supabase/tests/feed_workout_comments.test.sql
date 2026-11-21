@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(7);
+select plan(9);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -70,6 +70,15 @@ select throws_ok(
 select is(
   (select count(*) from public.comments), 0::bigint, 'nor read the comments');
 reset role;
+
+-- the exercise goes: its comments, reactions and notifications go too
+delete from public.workout_items where id = 'a0000000-0000-4000-8000-000000000001';
+select is(
+  (select count(*) from public.comments) + (select count(*) from public.reactions), 0::bigint,
+  'no comments or reactions are left pointing into the void');
+select is(
+  (select count(*) from public.notifications where target_type = 'workout_item'), 0::bigint,
+  'nor notifications');
 
 select * from finish();
 rollback;

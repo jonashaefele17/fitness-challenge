@@ -793,3 +793,59 @@ export function useDeleteWorkout() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
   });
 }
+
+/** The stored form of a workout for restore_workout (its state when editing began). */
+function toSnapshot(workout: ActiveWorkout) {
+  return {
+    startedAt: workout.startedAt,
+    endedAt: workout.endedAt,
+    durationSeconds: workout.durationSeconds,
+    pausedSeconds: workout.pausedSeconds,
+    locationId: workout.location?.id ?? null,
+    focusId: workout.focusId,
+    items: workout.items.map((item) => ({
+      id: item.id,
+      exerciseId: item.exercise.id,
+      deviceId: item.device?.id ?? null,
+      position: item.position,
+      note: item.note,
+      repMin: item.repMin,
+      repMax: item.repMax,
+      targetSeconds: item.targetSeconds,
+      restSeconds: item.restSeconds,
+      perSide: item.perSide,
+      sideRestSeconds: item.sideRestSeconds,
+      sets: item.sets.map((set) => ({
+        id: set.id,
+        position: set.position,
+        weightKg: set.weightKg,
+        reps: set.reps,
+        durationSeconds: set.durationSeconds,
+        isWarmup: set.isWarmup,
+        completedAt: set.completedAt,
+      })),
+    })),
+  };
+}
+
+/** Whether a workout differs from its snapshot (anything a restore would change). */
+export function workoutChanged(snapshot: ActiveWorkout, current: ActiveWorkout): boolean {
+  return JSON.stringify(toSnapshot(snapshot)) !== JSON.stringify(toSnapshot(current));
+}
+
+/** "Änderungen verwerfen": back to the state when editing began (ids kept). */
+export function useRestoreWorkout() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    scope: WORKOUT_SCOPE,
+    mutationFn: async (snapshot: ActiveWorkout) => {
+      const { error } = await supabase.rpc('restore_workout', {
+        p_workout_id: snapshot.id,
+        p_snapshot: toSnapshot(snapshot),
+      });
+      if (error) throw error;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
+  });
+}

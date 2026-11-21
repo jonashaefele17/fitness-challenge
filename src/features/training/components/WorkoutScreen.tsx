@@ -23,6 +23,8 @@ import {
   useAddExercise,
   PreviousBeforeContext,
   useDeleteWorkout,
+  useRestoreWorkout,
+  workoutChanged,
   useDiscardWorkout,
   useFinishWorkout,
   useRemoveItem,
@@ -63,6 +65,8 @@ export interface WorkoutScreenProps {
   workout: ActiveWorkout;
   /** live: the running workout. edit: one of my finished workouts (also when added afterwards). */
   mode?: 'live' | 'edit';
+  /** Edit mode: the workout as it was when editing began ("Änderungen verwerfen"). */
+  snapshot?: ActiveWorkout | undefined;
   /** Leave the screen; the workout keeps running (mini bar). */
   onMinimize: () => void;
   /** After finishing and closing the summary, or after discarding. */
@@ -71,10 +75,19 @@ export interface WorkoutScreenProps {
 
 type Menu = { kind: 'workout' } | { kind: 'item'; item: WorkoutItem } | null;
 
-export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: WorkoutScreenProps) {
+export function WorkoutScreen({
+  workout,
+  mode = 'live',
+  snapshot,
+  onMinimize,
+  onClose,
+}: WorkoutScreenProps) {
   const editing = mode === 'edit';
   const [timeOpen, setTimeOpen] = useState(false);
   const deleteWorkout = useDeleteWorkout();
+  const restore = useRestoreWorkout();
+  const [confirmRestore, setConfirmRestore] = useState(false);
+  const changed = editing && snapshot !== undefined && workoutChanged(snapshot, workout);
   const [activeId, setActiveId] = useState<string | null>(workout.items[0]?.id ?? null);
   const [menu, setMenu] = useState<Menu>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -473,6 +486,15 @@ export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: W
                     setPlaceOpen(true);
                   }}
                 />
+                {changed && (
+                  <MenuButton
+                    label="Änderungen verwerfen"
+                    onClick={() => {
+                      setMenu(null);
+                      setConfirmRestore(true);
+                    }}
+                  />
+                )}
                 <MenuButton
                   label="Training löschen"
                   danger
@@ -565,6 +587,42 @@ export function WorkoutScreen({ workout, mode = 'live', onMinimize, onClose }: W
             </Button>
           </div>
         </Sheet>
+
+        {editing && snapshot && (
+          <Sheet
+            open={confirmRestore}
+            onOpenChange={setConfirmRestore}
+            title="Änderungen verwerfen?"
+            description="Das Training kommt auf den Stand von vor dem Bearbeiten zurück. Kommentare an Übungen oder Sätzen, die du erst jetzt hinzugefügt hast, verschwinden mit ihnen."
+          >
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="danger"
+                fullWidth
+                loading={restore.isPending}
+                onClick={() => {
+                  restore.mutate(snapshot, {
+                    onSuccess: () => {
+                      setConfirmRestore(false);
+                      onClose();
+                    },
+                  });
+                }}
+              >
+                Verwerfen
+              </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={() => {
+                  setConfirmRestore(false);
+                }}
+              >
+                Weiter bearbeiten
+              </Button>
+            </div>
+          </Sheet>
+        )}
 
         {editing && (
           <Sheet open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">

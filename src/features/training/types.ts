@@ -8,6 +8,29 @@ export interface TrainingType {
   withDistance: boolean;
   /** Personal type of the signed-in user (null for defaults). */
   ownerId: string | null;
+  /** Default place: home studio, own private place, or none. */
+  locationMode: 'home_studio' | 'private' | 'none';
+  /** e.g. Outdoor / Laufband */
+  variants: string[];
+}
+
+export interface Place {
+  id: string;
+  name: string;
+  /** Private place of the signed-in user (e.g. Home Gym). */
+  private: boolean;
+}
+
+export interface Device {
+  id: string;
+  name: string;
+  weightStep: number | null;
+  /** Comparable everywhere (dumbbells, bench, bar) vs. machine. */
+  comparable: boolean;
+}
+
+export interface DeviceWithExercises extends Device {
+  exercises: ExerciseSummary[];
 }
 
 export interface ExerciseSummary {
@@ -32,7 +55,7 @@ export interface WorkoutItem {
   position: number;
   note: string | null;
   exercise: ExerciseSummary;
-  deviceId: string | null;
+  device: Device | null;
   sets: WorkoutSet[];
 }
 
@@ -42,6 +65,7 @@ export interface ActiveWorkout {
   pausedAt: string | null;
   pausedSeconds: number;
   trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
+  location: Place | null;
   items: WorkoutItem[];
 }
 
@@ -51,6 +75,8 @@ export interface PreviousSet {
   reps: number | null;
   durationSeconds: number | null;
   isWarmup: boolean;
+  /** False when the values come from another device (orientation only). */
+  sameDevice: boolean;
 }
 
 export interface TrendPoint {
@@ -64,4 +90,5 @@ export interface DurationEntryInput {
   distanceKm?: number | undefined;
   intensity?: number | undefined;
   note?: string | undefined;
+  variant?: string | undefined;
 }

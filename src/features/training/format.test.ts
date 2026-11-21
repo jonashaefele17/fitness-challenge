@@ -44,7 +44,7 @@ describe('summarize', () => {
         id: 'i1',
         position: 0,
         note: null,
-        deviceId: null,
+        device: null,
         exercise: { id: 'e1', name: 'Bankdrücken', measure: 'weight_reps' },
         sets: [
           {

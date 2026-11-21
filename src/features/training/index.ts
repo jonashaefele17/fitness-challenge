@@ -34,3 +34,11 @@ export { AddExerciseSheet, type AddExerciseSheetProps } from './components/AddEx
 export { StartTrainingSheet, type StartTrainingSheetProps } from './components/StartTrainingSheet';
 export { WorkoutMiniBar, type WorkoutMiniBarProps } from './components/WorkoutMiniBar';
 export { WorkoutScreen, type WorkoutScreenProps } from './components/WorkoutScreen';
+export {
+  useCreatePlace,
+  useDevicesAt,
+  useHomeStudio,
+  usePlaces,
+  useSetHomeStudio,
+} from './api/usePlaces';
+export { PlacePicker, type PlacePickerProps } from './components/PlacePicker';

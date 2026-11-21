@@ -12,7 +12,7 @@ export function useTrainingTypes() {
     queryFn: async (): Promise<TrainingType[]> => {
       const { data, error } = await supabase
         .from('training_types')
-        .select('id, name, kind, with_distance, owner_id')
+        .select('id, name, kind, with_distance, owner_id, location_mode, variants')
         .is('archived_at', null)
         .or(`owner_id.is.null,owner_id.eq.${userId}`)
         .order('sort')
@@ -24,6 +24,11 @@ export function useTrainingTypes() {
         kind: row.kind === 'duration' ? 'duration' : 'exercises',
         withDistance: row.with_distance,
         ownerId: row.owner_id,
+        locationMode:
+          row.location_mode === 'home_studio' || row.location_mode === 'private'
+            ? row.location_mode
+            : 'none',
+        variants: row.variants,
       }));
     },
   });

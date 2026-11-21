@@ -3,6 +3,7 @@ import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type {
   ActiveWorkout,
+  Device,
   DurationEntryInput,
   ExerciseSummary,
   PreviousSet,
@@ -13,11 +14,13 @@ import type {
 import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
-  id, started_at, paused_at, paused_seconds,
+  id, user_id, started_at, paused_at, paused_seconds,
   training_types!inner(id, name, kind),
+  locations(id, name, owner_id),
   workout_items(
-    id, position, note, device_id,
+    id, position, note,
     exercises!inner(id, name, measure),
+    devices(id, name, weight_step, comparable),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
   )
 `;
@@ -44,6 +47,13 @@ export function useActiveWorkout() {
         startedAt: data.started_at,
         pausedAt: data.paused_at,
         pausedSeconds: data.paused_seconds,
+        location: data.locations
+          ? {
+              id: data.locations.id,
+              name: data.locations.name,
+              private: data.locations.owner_id === data.user_id,
+            }
+          : null,
         trainingType: {
           id: data.training_types.id,
           name: data.training_types.name,
@@ -54,7 +64,14 @@ export function useActiveWorkout() {
             id: item.id,
             position: item.position,
             note: item.note,
-            deviceId: item.device_id,
+            device: item.devices
+              ? {
+                  id: item.devices.id,
+                  name: item.devices.name,
+                  weightStep: num(item.devices.weight_step),
+                  comparable: item.devices.comparable,
+                }
+              : null,
             exercise: {
               id: item.exercises.id,
               name: item.exercises.name,
@@ -142,6 +159,7 @@ export function useLogDurationEntry() {
           distance_m: input.distanceKm !== undefined ? Math.round(input.distanceKm * 1000) : null,
           intensity: input.intensity ?? null,
           note: input.note?.trim() ? input.note.trim() : null,
+          variant: input.variant ?? null,
         })
         .eq('id', data.id);
       if (updateError) throw updateError;
@@ -244,21 +262,27 @@ export function useAddExercise(workoutId: string) {
       itemId,
       setId,
       exercise,
+      device,
       afterItemId,
       items,
     }: {
       itemId: string;
       setId: string;
       exercise: ExerciseSummary;
+      device: Device | null;
       afterItemId: string | null;
       items: WorkoutItem[];
     }) => {
       const index = afterItemId
         ? items.findIndex((item) => item.id === afterItemId) + 1
         : items.length;
-      const { error } = await supabase
-        .from('workout_items')
-        .insert({ id: itemId, workout_id: workoutId, exercise_id: exercise.id, position: index });
+      const { error } = await supabase.from('workout_items').insert({
+        id: itemId,
+        workout_id: workoutId,
+        exercise_id: exercise.id,
+        device_id: device?.id ?? null,
+        position: index,
+      });
       if (error) throw error;
       const { error: setError } = await supabase
         .from('workout_sets')
@@ -268,7 +292,7 @@ export function useAddExercise(workoutId: string) {
       reordered.splice(index, 0, { id: itemId } as WorkoutItem);
       await savePositions(reordered);
     },
-    (workout, { itemId, setId, exercise, afterItemId }) => {
+    (workout, { itemId, setId, exercise, device, afterItemId }) => {
       const index = afterItemId
         ? workout.items.findIndex((item) => item.id === afterItemId) + 1
         : workout.items.length;
@@ -277,7 +301,7 @@ export function useAddExercise(workoutId: string) {
         id: itemId,
         position: index,
         note: null,
-        deviceId: null,
+        device,
         exercise,
         sets: [
           {
@@ -418,13 +442,16 @@ export function useDeleteSet() {
 // ---------------------------------------------------------------------------
 // History
 // ---------------------------------------------------------------------------
-export function usePreviousSets(exerciseId: string) {
+export function usePreviousSets(exerciseId: string, deviceId: string | null) {
   const userId = useUserId();
   return useQuery({
-    queryKey: trainingKeys.previous(userId, exerciseId),
+    queryKey: [...trainingKeys.previous(userId, exerciseId), deviceId],
     staleTime: 10 * 60_000,
     queryFn: async (): Promise<PreviousSet[]> => {
-      const { data, error } = await supabase.rpc('previous_sets', { p_exercise_id: exerciseId });
+      const { data, error } = await supabase.rpc('previous_sets', {
+        p_exercise_id: exerciseId,
+        ...(deviceId && { p_device_id: deviceId }),
+      });
       if (error) throw error;
       return data.map((row) => ({
         position: row.set_position,
@@ -432,20 +459,22 @@ export function usePreviousSets(exerciseId: string) {
         reps: row.reps,
         durationSeconds: row.duration_seconds,
         isWarmup: row.is_warmup,
+        sameDevice: row.same_device,
       }));
     },
   });
 }
 
-export function useExerciseTrend(exerciseId: string) {
+export function useExerciseTrend(exerciseId: string, deviceId: string | null) {
   const userId = useUserId();
   return useQuery({
-    queryKey: trainingKeys.trend(userId, exerciseId),
+    queryKey: [...trainingKeys.trend(userId, exerciseId), deviceId],
     staleTime: 10 * 60_000,
     queryFn: async (): Promise<TrendPoint[]> => {
       const { data, error } = await supabase.rpc('exercise_trend', {
         p_exercise_id: exerciseId,
         p_limit: 6,
+        ...(deviceId && { p_device_id: deviceId }),
       });
       if (error) throw error;
       return data.map((row) => ({ startedAt: row.workout_started_at, value: row.value }));
@@ -461,7 +490,7 @@ export function useRestoreItem(workoutId: string) {
         id: item.id,
         workout_id: workoutId,
         exercise_id: item.exercise.id,
-        device_id: item.deviceId,
+        device_id: item.device?.id ?? null,
         position: item.position,
         note: item.note,
       });
@@ -490,5 +519,19 @@ export function useRestoreItem(workoutId: string) {
       items.splice(item.position, 0, item);
       return { ...workout, items: items.map((other, position) => ({ ...other, position })) };
     },
+  );
+}
+
+/** Change where the running workout happens (null: on the road). */
+export function useSetWorkoutLocation(workoutId: string) {
+  return useActiveMutation(
+    async (place: ActiveWorkout['location']) => {
+      const { error } = await supabase
+        .from('workouts')
+        .update({ location_id: place?.id ?? null })
+        .eq('id', workoutId);
+      if (error) throw error;
+    },
+    (workout, place) => ({ ...workout, location: place }),
   );
 }

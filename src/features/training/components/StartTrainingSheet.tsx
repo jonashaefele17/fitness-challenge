@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button, Card, SegmentedControl, Sheet, Switch, TextField } from '@/shared/ui';
 import { useCreateTrainingType, useTrainingTypes } from '../api/useCatalog';
+import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
 import { useActiveWorkout, useLogDurationEntry, useStartWorkout } from '../api/useWorkout';
+import { PlacePicker } from './PlacePicker';
 import type { TrainingType } from '../types';
 
 export interface StartTrainingSheetProps {
@@ -11,7 +13,23 @@ export interface StartTrainingSheetProps {
   onOpenWorkout: () => void;
 }
 
-type Step = { kind: 'types' } | { kind: 'duration'; type: TrainingType } | { kind: 'new-type' };
+type Step =
+  | { kind: 'types' }
+  | { kind: 'duration'; type: TrainingType }
+  | { kind: 'new-type' }
+  | { kind: 'home'; type: TrainingType };
+
+const variantKey = (typeId: string) => `training-variant:${typeId}`;
+
+function readVariant(type: TrainingType): string | undefined {
+  try {
+    const saved = localStorage.getItem(variantKey(type.id));
+    if (saved && type.variants.includes(saved)) return saved;
+  } catch {
+    // Storage unavailable (private mode): fall back to the first variant.
+  }
+  return type.variants[0];
+}
 
 /** "+" → training type → exercises workout starts, or a quick duration entry. */
 export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartTrainingSheetProps) {
@@ -19,6 +37,20 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
   const types = useTrainingTypes();
   const active = useActiveWorkout();
   const start = useStartWorkout();
+  const home = useHomeStudio();
+  const setHome = useSetHomeStudio();
+
+  function startWorkout(type: TrainingType) {
+    start.mutate(
+      { trainingTypeId: type.id },
+      {
+        onSuccess: () => {
+          close();
+          onOpenWorkout();
+        },
+      },
+    );
+  }
 
   function close() {
     setStep({ kind: 'types' });
@@ -28,9 +60,11 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
   const title =
     step.kind === 'duration'
       ? step.type.name
-      : step.kind === 'new-type'
-        ? 'Neue Trainingsart'
-        : 'Training starten';
+      : step.kind === 'home'
+        ? 'Wo ist dein Heimstudio?'
+        : step.kind === 'new-type'
+          ? 'Neue Trainingsart'
+          : 'Training starten';
 
   return (
     <Sheet
@@ -42,6 +76,18 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
     >
       {step.kind === 'duration' ? (
         <DurationEntryForm type={step.type} onDone={close} />
+      ) : step.kind === 'home' ? (
+        <PlacePicker
+          onPick={(place) => {
+            if (!place) return;
+            const type = step.type;
+            setHome.mutate(place.id, {
+              onSuccess: () => {
+                startWorkout(type);
+              },
+            });
+          }}
+        />
       ) : step.kind === 'new-type' ? (
         <NewTypeForm
           onDone={() => {
@@ -79,15 +125,12 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
                     setStep({ kind: 'duration', type });
                     return;
                   }
-                  start.mutate(
-                    { trainingTypeId: type.id },
-                    {
-                      onSuccess: () => {
-                        close();
-                        onOpenWorkout();
-                      },
-                    },
-                  );
+                  // First studio workout: ask once for the home studio.
+                  if (type.locationMode === 'home_studio' && home.data === null) {
+                    setStep({ kind: 'home', type });
+                    return;
+                  }
+                  startWorkout(type);
                 }}
                 className="flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border border-border bg-surface-2 p-4 text-left active:bg-surface-3 disabled:opacity-50"
               >
@@ -126,6 +169,7 @@ function DurationEntryForm({ type, onDone }: { type: TrainingType; onDone: () =>
   const [km, setKm] = useState('');
   const [intensity, setIntensity] = useState<string>('3');
   const [note, setNote] = useState('');
+  const [variant, setVariant] = useState(() => readVariant(type));
   const log = useLogDurationEntry();
   const duration = Number(minutes.replace(',', '.'));
   const distance = Number(km.replace(',', '.'));
@@ -143,11 +187,29 @@ function DurationEntryForm({ type, onDone }: { type: TrainingType; onDone: () =>
             distanceKm: type.withDistance && distance > 0 ? distance : undefined,
             intensity: Number(intensity),
             note,
+            variant,
           },
-          { onSuccess: onDone },
+          {
+            onSuccess: () => {
+              try {
+                if (variant) localStorage.setItem(variantKey(type.id), variant);
+              } catch {
+                // Remembering the variant is only a convenience.
+              }
+              onDone();
+            },
+          },
         );
       }}
     >
+      {type.variants.length > 0 && variant && (
+        <SegmentedControl
+          label="Variante"
+          value={variant}
+          onChange={setVariant}
+          options={type.variants.map((value) => ({ value, label: value }))}
+        />
+      )}
       <div className="flex gap-3">
         <TextField
           label="Dauer (Min.)"

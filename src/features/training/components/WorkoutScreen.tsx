@@ -28,6 +28,7 @@ import {
   useRestoreItem,
   useSwapExercise,
   useTogglePause,
+  useSetWorkoutLocation,
   useUpdateItemNote,
   type FinishedWorkout,
 } from '../api/useWorkout';
@@ -38,8 +39,11 @@ import {
   summarize,
   type WorkoutSummary,
 } from '../format';
-import type { ActiveWorkout, WorkoutItem } from '../types';
+import type { ActiveWorkout, Device, ExerciseSummary, WorkoutItem } from '../types';
+import { useDevicesAt } from '../api/usePlaces';
 import { AddExerciseSheet } from './AddExerciseSheet';
+import { DeviceSheet } from './DeviceSheet';
+import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
 
 export interface WorkoutScreenProps {
@@ -59,6 +63,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   const [swapItem, setSwapItem] = useState<WorkoutItem | null>(null);
   const [noteItem, setNoteItem] = useState<WorkoutItem | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [placeOpen, setPlaceOpen] = useState(false);
+  const [deviceTarget, setDeviceTarget] = useState<{
+    device: Device;
+    exercise: ExerciseSummary;
+  } | null>(null);
+  const devices = useDevicesAt(workout.location?.id ?? null).data;
+  const setLocation = useSetWorkoutLocation(workout.id);
   const [summary, setSummary] = useState<(WorkoutSummary & FinishedWorkout) | null>(null);
 
   const addExercise = useAddExercise(workout.id);
@@ -109,7 +120,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           Minimieren
         </button>
         <div className="flex flex-col items-center">
-          <span className="text-footnote text-text-muted">{workout.trainingType.name}</span>
+          <span className="text-footnote text-text-muted">
+            {workout.trainingType.name}
+            {workout.location ? ` · ${workout.location.name}` : ''}
+          </span>
           <ElapsedTime workout={workout} />
         </div>
         <button
@@ -147,6 +161,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
             >
               <ExerciseCard
                 item={active}
+                onDevice={() => {
+                  if (active.device)
+                    setDeviceTarget({ device: active.device, exercise: active.exercise });
+                }}
                 onMenu={() => {
                   setMenu({ kind: 'item', item: active });
                 }}
@@ -204,12 +222,14 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
       <AddExerciseSheet
         open={addOpen}
         onOpenChange={setAddOpen}
-        onPick={(exercise) => {
+        devices={devices}
+        onPick={(exercise, device) => {
           const itemId = crypto.randomUUID();
           addExercise.mutate({
             itemId,
             setId: crypto.randomUUID(),
             exercise,
+            device,
             afterItemId: active?.id ?? null,
             items,
           });
@@ -226,6 +246,22 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           if (swapItem) swap.mutate({ itemId: swapItem.id, exercise });
         }}
       />
+      <DeviceSheet
+        target={deviceTarget}
+        onClose={() => {
+          setDeviceTarget(null);
+        }}
+      />
+      <Sheet open={placeOpen} onOpenChange={setPlaceOpen} title="Wo trainierst du?">
+        <PlacePicker
+          allowNone
+          currentId={workout.location?.id ?? null}
+          onPick={(place) => {
+            setLocation.mutate(place);
+            setPlaceOpen(false);
+          }}
+        />
+      </Sheet>
       <NoteSheet
         item={noteItem}
         onClose={() => {
@@ -273,6 +309,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
                 onClick={() => {
                   pause.mutate(workout);
                   setMenu(null);
+                }}
+              />
+              <MenuButton
+                label="Ort ändern"
+                onClick={() => {
+                  setMenu(null);
+                  setPlaceOpen(true);
                 }}
               />
               <MenuButton

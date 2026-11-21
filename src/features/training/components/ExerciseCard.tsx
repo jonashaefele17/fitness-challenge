@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
+import { useDeviceSetting } from '../api/usePlaces';
 import {
   useAddSet,
   useDeleteSet,
@@ -21,11 +22,17 @@ const SWIPE_DELETE_PX = 90;
 export interface ExerciseCardProps {
   item: WorkoutItem;
   onMenu: () => void;
+  /** Open device details (setting, weight steps). */
+  onDevice: () => void;
 }
 
-export function ExerciseCard({ item, onMenu }: ExerciseCardProps) {
-  const previous = usePreviousSets(item.exercise.id).data ?? [];
-  const trend = useExerciseTrend(item.exercise.id).data ?? [];
+export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
+  const deviceId = item.device?.id ?? null;
+  const previous = usePreviousSets(item.exercise.id, deviceId).data ?? [];
+  const trend = useExerciseTrend(item.exercise.id, deviceId).data ?? [];
+  const setting = useDeviceSetting(deviceId, item.exercise.id).data ?? null;
+  const otherDevice = previous.length > 0 && previous.every((set) => !set.sameDevice);
+  const weightStep = item.device?.weightStep ?? STEP.weight;
   const addSet = useAddSet();
   const measure = item.exercise.measure;
   const activeId = item.sets.find((set) => set.completedAt === null)?.id ?? null;
@@ -53,6 +60,16 @@ export function ExerciseCard({ item, onMenu }: ExerciseCardProps) {
       <div className="flex items-start justify-between gap-3 p-4 pb-2">
         <div className="flex min-w-0 flex-col gap-1">
           <h2 className="text-title-3 font-semibold">{item.exercise.name}</h2>
+          {item.device && (
+            <button
+              type="button"
+              onClick={onDevice}
+              className="-ml-1 self-start rounded-sm px-1 text-left text-footnote text-text-muted active:bg-surface-2"
+            >
+              {item.device.name}
+              {setting ? ` · ${setting}` : ' · Einstellung hinzufügen'}
+            </button>
+          )}
           <Sparkline points={trend} />
           {item.note && <p className="text-footnote text-text-muted">{item.note}</p>}
         </div>
@@ -68,7 +85,7 @@ export function ExerciseCard({ item, onMenu }: ExerciseCardProps) {
 
       <div className="grid grid-cols-[2.5rem_1fr_auto_2.75rem] items-center gap-x-2 px-4 pb-1 text-caption font-medium text-text-subtle">
         <span>Satz</span>
-        <span>Vorher</span>
+        <span>{otherDevice ? 'Vorher (anderes Gerät)' : 'Vorher'}</span>
         <span className="text-center">{measure === 'duration' ? 'Zeit' : 'Neu'}</span>
         <span />
       </div>
@@ -86,6 +103,7 @@ export function ExerciseCard({ item, onMenu }: ExerciseCardProps) {
               active={set.id === activeId}
               previous={previous[set.position] ?? previous[previous.length - 1]}
               fallback={item.sets.filter((other) => other.completedAt !== null).at(-1)}
+              weightStep={weightStep}
             />
           );
         })}
@@ -110,6 +128,7 @@ function SetRow({
   active,
   previous,
   fallback,
+  weightStep,
 }: {
   itemId: string;
   set: WorkoutSet;
@@ -118,6 +137,7 @@ function SetRow({
   active: boolean;
   previous: PreviousSet | undefined;
   fallback: WorkoutSet | undefined;
+  weightStep: number;
 }) {
   const update = useUpdateSet();
   const remove = useDeleteSet();
@@ -196,7 +216,13 @@ function SetRow({
         </span>
         <span className="justify-self-center">
           {active ? (
-            <ActiveInputs measure={measure} values={suggestion} filled={set} onChange={change} />
+            <ActiveInputs
+              measure={measure}
+              values={suggestion}
+              filled={set}
+              weightStep={weightStep}
+              onChange={change}
+            />
           ) : (
             <span className={cn('text-body tabular-nums', !done && 'text-text-subtle')}>
               {formatSet(measure, set)}
@@ -226,9 +252,11 @@ function ActiveInputs({
   measure,
   values,
   filled,
+  weightStep,
   onChange,
 }: {
   measure: ExerciseMeasure;
+  weightStep: number;
   values: Pick<WorkoutSet, 'weightKg' | 'reps' | 'durationSeconds'>;
   filled: Pick<WorkoutSet, 'weightKg' | 'reps' | 'durationSeconds'>;
   onChange: (changes: SetChanges) => void;
@@ -254,7 +282,7 @@ function ActiveInputs({
         <Stepper
           value={values.weightKg}
           suggested={filled.weightKg === null}
-          step={STEP.weight}
+          step={weightStep}
           format={(v) => formatKg(v)}
           parse={(text) => Number(text.replace(',', '.'))}
           label={measure === 'reps' ? 'Zusatzgewicht' : 'Gewicht'}

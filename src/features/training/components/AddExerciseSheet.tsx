@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, Chip, SegmentedControl, Sheet, TextField } from '@/shared/ui';
 import { useCreateExercise, useExerciseSearch, useMuscleGroups } from '../api/useCatalog';
-import type { ExerciseMeasure, ExerciseSummary } from '../types';
+import type { Device, DeviceWithExercises, ExerciseMeasure, ExerciseSummary } from '../types';
 
 export interface AddExerciseSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
-  onPick: (exercise: ExerciseSummary) => void;
+  /** Devices at the current place; shown first and attached when picking. */
+  devices?: DeviceWithExercises[] | undefined;
+  onPick: (exercise: ExerciseSummary, device: Device | null) => void;
 }
 
 const measures: { value: ExerciseMeasure; label: string }[] = [
@@ -31,12 +33,21 @@ export function AddExerciseSheet({
   open,
   onOpenChange,
   title = 'Übung hinzufügen',
+  devices = [],
   onPick,
 }: AddExerciseSheetProps) {
   const [query, setQuery] = useState('');
   const [creating, setCreating] = useState(false);
   const search = useExerciseSearch(query);
   const results = search.data ?? [];
+  // An exercise found by search uses this place's device if exactly one offers it.
+  const deviceFor = (exerciseId: string): Device | null => {
+    const offering = devices.filter((device) =>
+      device.exercises.some((exercise) => exercise.id === exerciseId),
+    );
+    return offering.length === 1 ? (offering[0] ?? null) : null;
+  };
+  const showDevices = query.trim().length === 0 && devices.length > 0;
   const exactMatch = results.some(
     (exercise) => exercise.name.toLowerCase() === query.trim().toLowerCase(),
   );
@@ -63,7 +74,7 @@ export function AddExerciseSheet({
             setCreating(false);
           }}
           onCreated={(exercise) => {
-            onPick(exercise);
+            onPick(exercise, null);
             close();
           }}
         />
@@ -78,6 +89,32 @@ export function AddExerciseSheet({
               setQuery(event.target.value);
             }}
           />
+          {showDevices && (
+            <div className="flex flex-col gap-3">
+              <span className="text-footnote font-medium text-text-muted">Geräte hier</span>
+              {devices
+                .filter((device) => device.exercises.length > 0)
+                .map((device) => (
+                  <div key={device.id} className="flex flex-col gap-1.5">
+                    <span className="text-caption text-text-subtle">{device.name}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {device.exercises.map((exercise) => (
+                        <Chip
+                          key={exercise.id}
+                          onClick={() => {
+                            onPick(exercise, device);
+                            close();
+                          }}
+                        >
+                          {exercise.name}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              <span className="pt-2 text-footnote font-medium text-text-muted">Alle Übungen</span>
+            </div>
+          )}
           <ul className="-mx-gutter flex flex-col">
             {results.map((exercise) => (
               <li key={exercise.id}>
@@ -85,7 +122,7 @@ export function AddExerciseSheet({
                   type="button"
                   className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
                   onClick={() => {
-                    onPick(exercise);
+                    onPick(exercise, deviceFor(exercise.id));
                     close();
                   }}
                 >

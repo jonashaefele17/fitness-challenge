@@ -190,6 +190,8 @@ export interface CreateExerciseInput {
   measure: ExerciseMeasure;
   primaryMuscles: string[];
   secondaryMuscles: string[];
+  /** Short how-to (optional). */
+  instructions?: string | undefined;
   /** Mobility exercises live in their own catalogue. */
   catalog?: ExerciseCatalog | undefined;
 }
@@ -208,6 +210,7 @@ export function useCreateExercise() {
         measure: input.measure,
         created_by: userId,
         catalog: input.catalog ?? 'strength',
+        instructions: input.instructions?.trim() || null,
       });
       if (error) throw error;
       const muscles = [
@@ -429,4 +432,94 @@ export function useMyExercises() {
   });
   list.sort((a, b) => b.history.lastDoneAt.localeCompare(a.history.lastDoneAt));
   return { data: list, isPending: overview === undefined || (ids.length > 0 && names.isPending) };
+}
+
+export interface ExerciseDetails extends ExerciseSummary {
+  instructions: string | null;
+  catalog: ExerciseCatalog;
+  createdBy: string | null;
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
+}
+
+/** One exercise with everything its edit form needs. */
+export function useExerciseDetails(exerciseId: string | null) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'exercise', exerciseId],
+    enabled: exerciseId !== null,
+    queryFn: async (): Promise<ExerciseDetails | null> => {
+      if (!exerciseId) return null;
+      const { data, error } = await supabase
+        .from('exercises')
+        .select(
+          'id, name, measure, instructions, catalog, created_by, exercise_muscles(muscle_group, role)',
+        )
+        .eq('id', exerciseId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const muscles = (role: string) =>
+        data.exercise_muscles.filter((m) => m.role === role).map((m) => m.muscle_group);
+      return {
+        id: data.id,
+        name: data.name,
+        measure: data.measure,
+        instructions: data.instructions,
+        catalog: data.catalog === 'mobility' ? 'mobility' : 'strength',
+        createdBy: data.created_by,
+        primaryMuscles: muscles('primary'),
+        secondaryMuscles: muscles('secondary'),
+      };
+    },
+  });
+}
+
+export interface UpdateExerciseInput {
+  id: string;
+  name: string;
+  instructions: string;
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
+}
+
+/**
+ * Edits an exercise of the shared catalogue (its creator or the super admin; the database
+ * decides). The new name shows up everywhere, past workouts included.
+ */
+export function useUpdateExercise() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: UpdateExerciseInput) => {
+      const { data, error } = await supabase
+        .from('exercises')
+        .update({ name: input.name.trim(), instructions: input.instructions.trim() || null })
+        .eq('id', input.id)
+        .select('id');
+      if (error) throw error;
+      if (data.length === 0) throw new Error('not_allowed');
+      const { error: removeError } = await supabase
+        .from('exercise_muscles')
+        .delete()
+        .eq('exercise_id', input.id);
+      if (removeError) throw removeError;
+      const muscles = [
+        ...input.primaryMuscles.map((key) => ({
+          exercise_id: input.id,
+          muscle_group: key,
+          role: 'primary',
+        })),
+        ...input.secondaryMuscles
+          .filter((key) => !input.primaryMuscles.includes(key))
+          .map((key) => ({ exercise_id: input.id, muscle_group: key, role: 'secondary' })),
+      ];
+      if (muscles.length > 0) {
+        const { error: muscleError } = await supabase.from('exercise_muscles').insert(muscles);
+        if (muscleError) throw muscleError;
+      }
+    },
+    // Names show up in templates, workouts and history: refresh all training data.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
+  });
 }

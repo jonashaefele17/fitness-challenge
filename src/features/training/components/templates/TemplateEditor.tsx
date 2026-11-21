@@ -22,7 +22,9 @@ import { useHomeStudio, usePlaces } from '../../api/usePlaces';
 import { useSaveTemplate } from '../../api/useTemplates';
 import type { TemplateDraft, TemplateItem } from '../../types';
 import { ExercisePickerSheet } from '../ExercisePickerSheet';
+import { RoutineSection } from './RoutineSection';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
+import { Stepper } from './Stepper';
 
 const chip =
   'flex min-h-tap shrink-0 items-center gap-2 rounded-pill border px-3 text-subhead font-semibold';
@@ -46,6 +48,7 @@ export function TemplateEditor({
   const focuses = (useTrainingFocuses().data ?? []).filter(
     (focus) => !type?.focusIds || type.focusIds.includes(focus.id),
   );
+  const guided = type?.guided ?? false;
   const homeId = useHomeStudio().data ?? null;
   const home = (usePlaces().data ?? []).find((place) => place.id === homeId) ?? null;
   const save = useSaveTemplate();
@@ -89,7 +92,7 @@ export function TemplateEditor({
     >
       <TextField
         label="Name"
-        placeholder="z. B. Push · Studio"
+        placeholder={guided ? 'z. B. Morgen-Mobility' : 'z. B. Push · Studio'}
         value={draft.name}
         maxLength={60}
         onChange={(event) => {
@@ -108,6 +111,9 @@ export function TemplateEditor({
               onClick={() => {
                 setDraft({
                   ...draft,
+                  // Routines and set lists use different exercises: switching between
+                  // them starts the list afresh.
+                  items: type.guided === guided ? draft.items : [],
                   trainingTypeId: type.id,
                   // A focus the new type does not offer is dropped.
                   focusId:
@@ -155,40 +161,54 @@ export function TemplateEditor({
         </div>
       </fieldset>
 
-      <section className="flex flex-col gap-2">
-        <h3 className="text-subhead text-text-muted">Übungen</h3>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-            <ul className="flex flex-col gap-2">
-              {draft.items.map((item, index) => (
-                <ItemRow
-                  key={item.exercise.id}
-                  item={item}
-                  onChange={(changes) => {
-                    update(index, changes);
-                  }}
-                  onRemove={() => {
-                    setDraft({ ...draft, items: draft.items.filter((_, i) => i !== index) });
-                  }}
-                />
-              ))}
-            </ul>
-          </SortableContext>
-        </DndContext>
-        {draft.items.length > 1 && (
-          <p className="text-footnote text-text-subtle">
-            Lange drücken und ziehen zum Umsortieren.
-          </p>
-        )}
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setPicking(true);
+      {guided ? (
+        <RoutineSection
+          items={draft.items}
+          onChange={(items) => {
+            setDraft((current) => ({ ...current, items }));
           }}
-        >
-          + Übung
-        </Button>
-      </section>
+          focusId={draft.focusId}
+          onFocusChange={(focusId) => {
+            setDraft((current) => ({ ...current, focusId }));
+          }}
+          allowedFocusIds={type?.focusIds ?? null}
+        />
+      ) : (
+        <section className="flex flex-col gap-2">
+          <h3 className="text-subhead text-text-muted">Übungen</h3>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+              <ul className="flex flex-col gap-2">
+                {draft.items.map((item, index) => (
+                  <ItemRow
+                    key={item.exercise.id}
+                    item={item}
+                    onChange={(changes) => {
+                      update(index, changes);
+                    }}
+                    onRemove={() => {
+                      setDraft({ ...draft, items: draft.items.filter((_, i) => i !== index) });
+                    }}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
+          {draft.items.length > 1 && (
+            <p className="text-footnote text-text-subtle">
+              Lange drücken und ziehen zum Umsortieren.
+            </p>
+          )}
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setPicking(true);
+            }}
+          >
+            + Übung
+          </Button>
+        </section>
+      )}
 
       <TextField
         label="Notiz (optional)"
@@ -208,39 +228,42 @@ export function TemplateEditor({
         Vorlage speichern
       </Button>
 
-      <ExercisePickerSheet
-        open={picking}
-        onOpenChange={setPicking}
-        title="Übung zur Vorlage"
-        place={home}
-        catalog={type?.catalog ?? 'strength'}
-        allowedFocusIds={type?.focusIds ?? null}
-        focusId={draft.focusId}
-        onFocusChange={(focusId) => {
-          setDraft({ ...draft, focusId });
-        }}
-        onPick={(exercise, device) => {
-          if (ids.includes(exercise.id)) return;
-          setDraft((current) => ({
-            ...current,
-            items: [
-              ...current.items,
-              {
-                exercise,
-                deviceType: device ? { id: device.typeId, name: device.name } : null,
-                sets: 3,
-                warmupSets: 0,
-                repMin: exercise.measure === 'duration' ? null : 8,
-                repMax: exercise.measure === 'duration' ? null : 12,
-                durationSeconds: exercise.measure === 'duration' ? 45 : null,
-                note: null,
-                restSeconds: 0,
-                perSide: false,
-              },
-            ],
-          }));
-        }}
-      />
+      {!guided && (
+        <ExercisePickerSheet
+          open={picking}
+          onOpenChange={setPicking}
+          title="Übung zur Vorlage"
+          place={home}
+          catalog={type?.catalog ?? 'strength'}
+          allowedFocusIds={type?.focusIds ?? null}
+          focusId={draft.focusId}
+          onFocusChange={(focusId) => {
+            setDraft({ ...draft, focusId });
+          }}
+          onPick={(exercise, device) => {
+            if (ids.includes(exercise.id)) return;
+            setDraft((current) => ({
+              ...current,
+              items: [
+                ...current.items,
+                {
+                  exercise,
+                  deviceType: device ? { id: device.typeId, name: device.name } : null,
+                  sets: 3,
+                  warmupSets: 0,
+                  repMin: exercise.measure === 'duration' ? null : 8,
+                  repMax: exercise.measure === 'duration' ? null : 12,
+                  durationSeconds: exercise.measure === 'duration' ? 45 : null,
+                  note: null,
+                  restSeconds: 0,
+                  perSide: false,
+                  sideRestSeconds: 0,
+                },
+              ],
+            }));
+          }}
+        />
+      )}
     </form>
   );
 }
@@ -363,51 +386,6 @@ function ItemRow({
         )}
       </div>
     </li>
-  );
-}
-
-function Stepper({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <span className="flex items-center gap-1 text-footnote text-text-muted">
-      {label}
-      <button
-        type="button"
-        aria-label={`${label} weniger`}
-        disabled={value <= min}
-        onClick={() => {
-          onChange(value - 1);
-        }}
-        className="flex size-tap items-center justify-center rounded-pill text-title-3 text-accent disabled:text-text-subtle"
-      >
-        −
-      </button>
-      <span className="w-5 text-center text-subhead font-semibold text-text tabular-nums">
-        {value}
-      </span>
-      <button
-        type="button"
-        aria-label={`${label} mehr`}
-        disabled={value >= max}
-        onClick={() => {
-          onChange(value + 1);
-        }}
-        className="flex size-tap items-center justify-center rounded-pill text-title-3 text-accent disabled:text-text-subtle"
-      >
-        +
-      </button>
-    </span>
   );
 }
 

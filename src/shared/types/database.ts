@@ -345,6 +345,7 @@ export type Database = {
           created_by: string | null;
           id: string;
           image_path: string | null;
+          instructions: string | null;
           measure: Database['public']['Enums']['exercise_measure'];
           merged_into: string | null;
           name: string;
@@ -356,6 +357,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           image_path?: string | null;
+          instructions?: string | null;
           measure: Database['public']['Enums']['exercise_measure'];
           merged_into?: string | null;
           name: string;
@@ -366,6 +368,7 @@ export type Database = {
           created_by?: string | null;
           id?: string;
           image_path?: string | null;
+          instructions?: string | null;
           measure?: Database['public']['Enums']['exercise_measure'];
           merged_into?: string | null;
           name?: string;
@@ -1277,6 +1280,7 @@ export type Database = {
           rep_max: number | null;
           rep_min: number | null;
           rest_seconds: number;
+          side_rest_seconds: number;
           target_seconds: number | null;
           workout_id: string;
         };
@@ -1292,6 +1296,7 @@ export type Database = {
           rep_max?: number | null;
           rep_min?: number | null;
           rest_seconds?: number;
+          side_rest_seconds?: number;
           target_seconds?: number | null;
           workout_id: string;
         };
@@ -1306,6 +1311,7 @@ export type Database = {
           rep_max?: number | null;
           rep_min?: number | null;
           rest_seconds?: number;
+          side_rest_seconds?: number;
           target_seconds?: number | null;
           workout_id?: string;
         };
@@ -1391,6 +1397,7 @@ export type Database = {
           rep_min: number | null;
           rest_seconds: number;
           sets: number;
+          side_rest_seconds: number;
           template_id: string;
           warmup_sets: number;
         };
@@ -1407,6 +1414,7 @@ export type Database = {
           rep_min?: number | null;
           rest_seconds?: number;
           sets?: number;
+          side_rest_seconds?: number;
           template_id: string;
           warmup_sets?: number;
         };
@@ -1422,6 +1430,7 @@ export type Database = {
           rep_min?: number | null;
           rest_seconds?: number;
           sets?: number;
+          side_rest_seconds?: number;
           template_id?: string;
           warmup_sets?: number;
         };

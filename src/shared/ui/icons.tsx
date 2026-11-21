@@ -147,3 +147,10 @@ export const SpeakerOffIcon = (p: IconProps) => (
     <path d="M16 9.5l5 5M21 9.5l-5 5" />
   </Icon>
 );
+
+/** Reorder handle (Tabler "menu-2", MIT). */
+export const DragHandleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </Icon>
+);

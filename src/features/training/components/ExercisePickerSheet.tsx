@@ -41,6 +41,12 @@ export interface ExercisePickerSheetProps {
   /** Focuses that make sense here (from the training type); null: all. */
   allowedFocusIds?: string[] | null | undefined;
   onPick: (exercise: ExerciseSummary, device: Device | null) => void;
+  /**
+   * Pick several (routines): the picker stays open, tapping a chosen exercise again
+   * removes it, "Fertig" closes. Without it one tap picks and closes.
+   */
+  selectedIds?: string[] | undefined;
+  onUnpick?: ((exercise: ExerciseSummary) => void) | undefined;
 }
 
 type Tab = 'devices' | 'exercises';
@@ -69,7 +75,10 @@ export function ExercisePickerSheet({
   catalog = 'strength',
   allowedFocusIds = null,
   onPick,
+  selectedIds,
+  onUnpick,
 }: ExercisePickerSheetProps) {
+  const multiple = selectedIds !== undefined;
   // Mobility has no devices: the picker is only the mobility catalogue.
   const place = catalog === 'strength' ? placeProp : null;
   const devices = useDevicesAt(place?.id ?? null);
@@ -93,7 +102,8 @@ export function ExercisePickerSheet({
 
   function pick(exercise: ExerciseSummary, device: Device | null) {
     onPick(exercise, device);
-    close();
+    if (multiple) setView({ kind: 'browse' });
+    else close();
   }
 
   function addSelected() {
@@ -178,6 +188,12 @@ export function ExercisePickerSheet({
               ? '1 Gerät hinzufügen'
               : `${String(selectedTypes.size)} Geräte hinzufügen`}
           </Button>
+        ) : multiple && view.kind === 'browse' ? (
+          <Button className="w-full" onClick={close}>
+            {selectedIds.length === 1
+              ? 'Fertig · 1 Übung'
+              : `Fertig · ${String(selectedIds.length)} Übungen`}
+          </Button>
         ) : undefined
       }
     >
@@ -242,8 +258,10 @@ export function ExercisePickerSheet({
               query={query}
               catalog={catalog}
               focus={focus}
+              selectedIds={selectedIds ?? []}
               onPick={(exercise) => {
-                pick(exercise, null);
+                if (multiple && selectedIds.includes(exercise.id)) onUnpick?.(exercise);
+                else pick(exercise, null);
               }}
               onCreate={() => {
                 setView({ kind: 'new-exercise', forDeviceId: null });
@@ -556,6 +574,7 @@ function ExercisesGrid({
   query,
   catalog,
   focus,
+  selectedIds,
   onPick,
   onCreate,
   onHistory,
@@ -563,6 +582,7 @@ function ExercisesGrid({
   query: string;
   catalog: ExerciseCatalog;
   focus: TrainingFocus | null;
+  selectedIds: string[];
   onPick: (exercise: ExerciseSummary) => void;
   onCreate: () => void;
   onHistory: (exercise: ExerciseSummary) => void;
@@ -600,6 +620,7 @@ function ExercisesGrid({
                     : `${measureLabel[exercise.measure]} · Muskelgruppe fehlt`
               }
               trend={history?.trend}
+              selected={selectedIds.includes(exercise.id)}
               onClick={() => {
                 onPick(exercise);
               }}

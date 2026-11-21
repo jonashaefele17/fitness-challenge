@@ -21,7 +21,7 @@ const ACTIVE_SELECT = `
   locations(id, name, owner_id),
   workout_items(
     id, position, note, rep_min, rep_max, target_seconds, rest_seconds, per_side,
-    exercises!inner(id, name, measure),
+    side_rest_seconds, exercises!inner(id, name, measure, instructions),
     devices(${DEVICE_COLUMNS}),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
   )
@@ -83,11 +83,13 @@ export function useActiveWorkout() {
             targetSeconds: item.target_seconds,
             restSeconds: item.rest_seconds,
             perSide: item.per_side,
+            sideRestSeconds: item.side_rest_seconds,
             device: item.devices ? toDevice(item.devices) : null,
             exercise: {
               id: item.exercises.id,
               name: item.exercises.name,
               measure: item.exercises.measure,
+              instructions: item.exercises.instructions,
             },
             sets: item.workout_sets
               .map((set): WorkoutSet => ({
@@ -335,6 +337,7 @@ export function useAddExercise(workoutId: string) {
         targetSeconds: null,
         restSeconds: 0,
         perSide: false,
+        sideRestSeconds: 0,
         device,
         exercise,
         sets: [

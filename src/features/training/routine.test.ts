@@ -24,6 +24,7 @@ function item(overrides: Partial<WorkoutItem>): WorkoutItem {
     targetSeconds: 45,
     restSeconds: 0,
     perSide: false,
+    sideRestSeconds: 0,
     sets: [],
     ...overrides,
   };
@@ -48,6 +49,35 @@ describe('routineSteps', () => {
     ]);
     expect(steps[0]?.seconds).toBe(45);
     expect(steps[2]?.seconds).toBe(15);
+  });
+
+  it('goes round by round through the whole list, like a follow-along video', () => {
+    const steps = routineSteps([
+      item({ id: 'a', position: 0, restSeconds: 10, sets: [set('a1', 0), set('a2', 1)] }),
+      item({ id: 'b', position: 1, restSeconds: 10, sets: [set('b1', 0), set('b2', 1)] }),
+    ]);
+    expect(
+      steps.map((s) => `${s.kind}:${s.setId ?? '-'}:${String(s.round)}/${String(s.rounds)}`),
+    ).toEqual([
+      'exercise:a1:1/2',
+      'rest:-:1/2',
+      'exercise:b1:1/2',
+      'rest:-:1/2',
+      'exercise:a2:2/2',
+      'rest:-:2/2',
+      'exercise:b2:2/2',
+    ]);
+  });
+
+  it('pauses to switch sides when the exercise asks for it', () => {
+    const steps = routineSteps([
+      item({ id: 'a', perSide: true, sideRestSeconds: 5, sets: [set('a1', 0), set('a2', 1)] }),
+    ]);
+    expect(steps.map((s) => `${s.name}:${String(s.seconds)}`)).toEqual([
+      'Dehnen:45',
+      'Seite wechseln:5',
+      'Dehnen:45',
+    ]);
   });
 
   it('keeps the exercise order and falls back to 30 s', () => {

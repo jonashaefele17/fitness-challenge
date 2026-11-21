@@ -85,6 +85,8 @@ export interface ExerciseSummary {
   name: string;
   measure: ExerciseMeasure;
   matchedAlias?: string | null;
+  /** Short how-to (guided routines show it in the player). */
+  instructions?: string | null;
 }
 
 export interface WorkoutSet {
@@ -110,6 +112,8 @@ export interface WorkoutItem {
   targetSeconds: number | null;
   restSeconds: number;
   perSide: boolean;
+  /** Guided routines: pause to switch from left to right. */
+  sideRestSeconds: number;
   sets: WorkoutSet[];
 }
 
@@ -230,9 +234,10 @@ export interface TemplateItem {
   /** Target time per set for duration exercises. */
   durationSeconds: number | null;
   note: string | null;
-  /** Guided routines: rest after the exercise, and left/right rounds. */
+  /** Guided routines: rest after the exercise, left/right rounds and the switch pause. */
   restSeconds: number;
   perSide: boolean;
+  sideRestSeconds: number;
 }
 
 export interface TemplateDraft {

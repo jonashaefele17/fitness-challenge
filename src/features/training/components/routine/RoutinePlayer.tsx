@@ -242,7 +242,7 @@ export function RoutinePlayer({
   const finished = index >= steps.length;
   const nextExercise = steps.slice(index + 1).find((s) => s.kind === 'exercise');
   const progress = step ? 1 - remainingMs / (step.seconds * 1000) : 1;
-  const sideLabel = step?.side === 'left' ? 'Links' : step?.side === 'right' ? 'Rechts' : null;
+  const sideLabel = sideText(step?.side ?? null);
 
   if (steps.length === 0) {
     return (
@@ -307,6 +307,9 @@ export function RoutinePlayer({
                 .filter(Boolean)
                 .join(' · ')}
             </span>
+            {step?.instructions && (
+              <p className="mt-1 max-w-sm text-footnote text-text-subtle">{step.instructions}</p>
+            )}
           </div>
 
           <div className="relative flex items-center justify-center">
@@ -339,7 +342,9 @@ export function RoutinePlayer({
           </div>
 
           <span className="text-footnote text-text-muted">
-            {nextExercise ? `Als Nächstes: ${nextExercise.name}` : 'Letzte Übung'}
+            {nextExercise
+              ? `Als Nächstes: ${[nextExercise.name, sideText(nextExercise.side)].filter(Boolean).join(' · ')}`
+              : 'Letzte Übung'}
           </span>
         </div>
       )}
@@ -467,4 +472,8 @@ function EmptyRoutine({
       </Sheet>
     </div>
   );
+}
+
+function sideText(side: RoutineStep['side']): string | null {
+  return side === 'left' ? 'Links' : side === 'right' ? 'Rechts' : null;
 }

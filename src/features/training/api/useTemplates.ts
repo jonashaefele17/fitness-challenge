@@ -47,7 +47,7 @@ export function useTemplateItems(templateId: string | null) {
       const { data, error } = await supabase
         .from('workout_template_items')
         .select(
-          'position, sets, warmup_sets, rep_min, rep_max, duration_seconds, note, rest_seconds, per_side, exercises!inner(id, name, measure), device_types(id, name)',
+          'position, sets, warmup_sets, rep_min, rep_max, duration_seconds, note, rest_seconds, per_side, side_rest_seconds, exercises!inner(id, name, measure, instructions), device_types(id, name)',
         )
         .eq('template_id', templateId)
         .order('position');
@@ -57,6 +57,7 @@ export function useTemplateItems(templateId: string | null) {
           id: row.exercises.id,
           name: row.exercises.name,
           measure: row.exercises.measure,
+          instructions: row.exercises.instructions,
         },
         deviceType: row.device_types,
         sets: row.sets,
@@ -67,6 +68,7 @@ export function useTemplateItems(templateId: string | null) {
         note: row.note,
         restSeconds: row.rest_seconds,
         perSide: row.per_side,
+        sideRestSeconds: row.side_rest_seconds,
       }));
     },
   });
@@ -99,6 +101,7 @@ export function useSaveTemplate() {
           note: item.note,
           restSeconds: item.restSeconds,
           perSide: item.perSide,
+          sideRestSeconds: item.sideRestSeconds,
         })),
       });
       if (error) throw error;

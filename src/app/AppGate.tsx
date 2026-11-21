@@ -1,6 +1,8 @@
 import { RouterProvider } from 'react-router';
 import { LoginScreen, OnboardingFlow, SplashScreen, useSession } from '@/features/auth';
+import { useHistoryCompare } from '@/features/comparison';
 import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
+import { HistoryCompareContext } from '@/features/training';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
 import { router } from './router';
@@ -41,7 +43,10 @@ export function AppGate() {
 
   return (
     <ActiveGroupProvider groups={groups.data}>
-      <RouterProvider router={router} />
+      {/* Social comparison plugs into training's history slot (composed only here). */}
+      <HistoryCompareContext.Provider value={useHistoryCompare}>
+        <RouterProvider router={router} />
+      </HistoryCompareContext.Provider>
     </ActiveGroupProvider>
   );
 }

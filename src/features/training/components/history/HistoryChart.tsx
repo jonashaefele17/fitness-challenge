@@ -10,8 +10,8 @@ export interface ChartPoint {
 
 export interface ChartSeries {
   id: string;
-  /** Text colour class; marks draw in currentColor (e.g. "text-accent"). */
-  colorClass: string;
+  /** CSS colour of the marks (e.g. "var(--color-accent)"). */
+  color: string;
   points: ChartPoint[];
 }
 
@@ -202,8 +202,9 @@ export function HistoryChart({
         )}
 
         {series.map((s, seriesIndex) => (
-          <g key={s.id} className={s.colorClass}>
-            {kind === 'line' ? (
+          <g key={s.id} style={{ color: s.color }}>
+            {/* In bar charts only my series are bars; others draw as a line on top. */}
+            {kind === 'line' || seriesIndex > 0 ? (
               <>
                 <polyline
                   points={s.points.map((p) => `${String(x(p.t))},${String(y(p.v))}`).join(' ')}

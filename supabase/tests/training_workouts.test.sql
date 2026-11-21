@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(23);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -125,6 +125,25 @@ select lives_ok(
 select throws_ok(
   $$update public.workouts set intensity = 7 where status = 'active'$$,
   '23514', null, 'intensity is 1–5');
+reset role;
+
+-- Comparison: a group mate may read a1's exercise sessions, another group may not.
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
+select is(
+  (select count(*) from public.exercise_sessions('e0000000-0000-4000-8000-000000000001', null, true,
+     '11111111-1111-4111-8111-111111111111')),
+  1::bigint, 'group mates see each other''s exercise sessions');
+select is(
+  (select count(*) from public.exercise_sessions('e0000000-0000-4000-8000-000000000001', null, true)),
+  0::bigint, 'without a person it is my own history');
+reset role;
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
+select is(
+  (select count(*) from public.exercise_sessions('e0000000-0000-4000-8000-000000000001', null, true,
+     '11111111-1111-4111-8111-111111111111')),
+  0::bigint, 'other groups see no exercise sessions');
 reset role;
 
 select * from finish();

@@ -47,3 +47,10 @@ export {
 } from './api/usePlaces';
 export { PlacePicker, type PlacePickerProps } from './components/PlacePicker';
 export { formatSettingValues } from './api/usePlaces';
+export { exerciseSessionsOptions, type HistoryScope } from './api/useHistory';
+export {
+  HistoryCompareContext,
+  type ComparePerson,
+  type HistoryCompare,
+  type UseHistoryCompare,
+} from './components/history/compare';

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type { ExerciseRecords, ExerciseSession, SetValues } from '../types';
@@ -33,14 +33,23 @@ function toSetValues(raw: unknown): SetValues & { isWarmup: boolean } {
   };
 }
 
-/** My workouts with this exercise, newest first. */
-export function useExerciseSessions(scope: HistoryScope) {
-  const userId = useUserId();
-  return useQuery({
-    queryKey: [...trainingKeys.all(userId), 'sessions', scope],
+/**
+ * Query options for the workouts with an exercise, newest first: mine, or another person's
+ * (only returns what that person shares with me). Shared so comparison can load others.
+ */
+export function exerciseSessionsOptions(
+  userId: string,
+  scope: HistoryScope,
+  personId: string | null = null,
+) {
+  return queryOptions({
+    queryKey: [...trainingKeys.all(userId), 'sessions', scope, personId],
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<ExerciseSession[]> => {
-      const { data, error } = await supabase.rpc('exercise_sessions', scopeArgs(scope));
+      const { data, error } = await supabase.rpc('exercise_sessions', {
+        ...scopeArgs(scope),
+        ...(personId && { p_user_id: personId }),
+      });
       if (error) throw error;
       return data.map((row) => {
         // Generated RPC types mark these as non-null; they are null without a best set.
@@ -65,6 +74,11 @@ export function useExerciseSessions(scope: HistoryScope) {
       });
     },
   });
+}
+
+/** My workouts with this exercise, newest first. */
+export function useExerciseSessions(scope: HistoryScope) {
+  return useQuery(exerciseSessionsOptions(useUserId(), scope));
 }
 
 export function useExerciseRecords(scope: HistoryScope) {

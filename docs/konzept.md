@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.8 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.9 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.9 | Übungsverlauf: Freunde zum Vergleich einblendbar (soziales Modul Vergleich) |
 | 21.11.2026 | 1.8 | Training: bester Satz nach Lombardi statt Epley (passt zu Double Progression) |
 | 21.11.2026 | 1.7 | Training: Übungsverlauf (Kraft- und Volumen-Graph, Rekorde, Trainingsliste); bester Satz wird nach geschätztem 1RM gewertet; eigene Übungszuordnungen entfernbar |
 | 21.11.2026 | 1.6 | Training: Gerätetypen (Klassen) mit Übungen, Geräte als Instanzen pro Studio, Übungen pro Gerät ausblendbar, Trainingsfokus (Push, Pull …) als Filter, Schulter in vorne/seitlich/hinten aufgeteilt |
@@ -104,7 +105,7 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 8. Menü „…“: Pausieren, Minimieren, Beenden & speichern, Abbrechen & verwerfen (mit Bestätigung).
 9. Ende: Zusammenfassung (Dauer, Arbeitssätze, Volumen, Bestwerte), Frage „Vorlage aktualisieren?“, Tageskarte im Feed, Habit „Sport“ hakt sich ab.
 
-**Übungsverlauf:** Pro Übung eine Detailansicht (Antippen der Mini-Kurve, „…“ → Verlauf, ⓘ in der Übungsauswahl): Kraft-Graph (bester Satz pro Training), Volumen-Graph (kg × Wdh. der Arbeitssätze), Rekorde (bester und schwerster Satz, meistes Volumen, meiste Wiederholungen pro Gewicht) und alle Trainings mit Datum, Ort und Sätzen; Zeitraum 3 Monate / 1 Jahr / Alles; bei Maschinen standardmäßig nur dieses Gerät, umschaltbar auf alle. Die Mini-Kurve auf der Karte bleibt ohne Beschriftung. Später: Linien der Freunde einblendbar (soziales Modul Vergleich).
+**Übungsverlauf:** Pro Übung eine Detailansicht (Antippen der Mini-Kurve, „…“ → Verlauf, ⓘ in der Übungsauswahl): Kraft-Graph (bester Satz pro Training), Volumen-Graph (kg × Wdh. der Arbeitssätze), Rekorde (bester und schwerster Satz, meistes Volumen, meiste Wiederholungen pro Gewicht) und alle Trainings mit Datum, Ort und Sätzen; Zeitraum 3 Monate / 1 Jahr / Alles; bei Maschinen standardmäßig nur dieses Gerät, umschaltbar auf alle. Die Mini-Kurve auf der Karte bleibt ohne Beschriftung. Freunde aus der Gruppe lassen sich in ihrer Personenfarbe dazuschalten (Kraft als Linie, Volumen als Linie über den eigenen Balken), am selben Gerät bzw. bei vergleichbaren Geräten oder „Alle Geräte“; sichtbar ist nur, was die Freigabe erlaubt (soziales Modul Vergleich über einen Steckplatz).
 
 **Progression:** Double Progression. Erreicht ein Satz beim letzten Mal das obere Ende des Wiederholungsbereichs, schlägt die App die nächste Gerätestufe vor (↑). Kein RIR, keine aktive Stagnationswarnung – Stagnation zeigt sich ruhig im Verlauf.
 

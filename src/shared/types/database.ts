@@ -1487,7 +1487,12 @@ export type Database = {
         }[];
       };
       exercise_sessions: {
-        Args: { p_all_devices?: boolean; p_device_id?: string; p_exercise_id: string };
+        Args: {
+          p_all_devices?: boolean;
+          p_device_id?: string;
+          p_exercise_id: string;
+          p_user_id?: string;
+        };
         Returns: {
           best_duration_seconds: number;
           best_reps: number;

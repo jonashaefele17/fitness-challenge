@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { cn } from '@/shared/lib';
 import { SegmentedControl, Switch } from '@/shared/ui';
 import { useExerciseRecords, useExerciseSessions } from '../../api/useHistory';
 import { formatKg, formatSet } from '../../format';
 import type { Device, ExerciseSession, ExerciseSummary } from '../../types';
+import { HistoryCompareContext } from './compare';
 import { HistoryChart, type ChartSeries } from './HistoryChart';
 
 type Range = '3m' | '1y' | 'all';
@@ -44,34 +46,46 @@ export function ExerciseHistory({
   const measure = exercise.measure;
 
   const days = RANGE_DAYS[range];
-  const inRange = (sessions.data ?? []).filter(
-    (s) => days === null || now - new Date(s.startedAt).getTime() <= days * DAY_MS,
-  );
-  const chronological = [...inRange].reverse();
+  const within = (session: ExerciseSession) =>
+    days === null || now - new Date(session.startedAt).getTime() <= days * DAY_MS;
+  const inRange = (sessions.data ?? []).filter(within);
   const selected = inRange.find((s) => s.workoutId === selectedId) ?? inRange[0];
 
-  const strength: ChartSeries[] = [
-    {
-      id: 'me',
-      colorClass: 'text-accent',
-      points: chronological.flatMap((s) =>
-        s.score === null
-          ? []
-          : [{ id: s.workoutId, t: new Date(s.startedAt).getTime(), v: s.score }],
-      ),
-    },
+  // Comparison slot (filled by the app); I pick whom to show.
+  const useCompare = useContext(HistoryCompareContext);
+  const compare = useCompare(scope);
+  const [shownIds, setShownIds] = useState<string[]>([]);
+  const shown = compare.people.filter((person) => shownIds.includes(person.id));
+  const myColor = shown.length > 0 && compare.myColor ? compare.myColor : 'var(--color-accent)';
+
+  const toSeries = (
+    id: string,
+    color: string,
+    list: ExerciseSession[],
+    value: (session: ExerciseSession) => number | null,
+  ): ChartSeries => ({
+    id,
+    color,
+    points: [...list].reverse().flatMap((session) => {
+      const v = value(session);
+      return v === null
+        ? []
+        : [{ id: session.workoutId, t: new Date(session.startedAt).getTime(), v }];
+    }),
+  });
+  const series = (value: (session: ExerciseSession) => number | null): ChartSeries[] => [
+    toSeries('me', myColor, inRange, value),
+    ...shown.map((person) =>
+      toSeries(person.id, person.color, person.sessions.filter(within), value),
+    ),
   ];
-  const volume: ChartSeries[] = [
-    {
-      id: 'me',
-      colorClass: 'text-accent',
-      points: chronological.flatMap((s) =>
-        s.volumeKg === null
-          ? []
-          : [{ id: s.workoutId, t: new Date(s.startedAt).getTime(), v: s.volumeKg }],
-      ),
-    },
-  ];
+  const strength = series((session) => session.score);
+  const volume = series((session) => session.volumeKg);
+  /** Their best set on or before the selected workout's day (their latest otherwise). */
+  const theirBest = (list: ExerciseSession[]) => {
+    const until = selected ? new Date(selected.startedAt).getTime() + DAY_MS : Infinity;
+    return list.filter(within).find((session) => new Date(session.startedAt).getTime() < until);
+  };
   const byId = new Map(inRange.map((s) => [s.workoutId, s]));
   const bestText = (id: string) => {
     const best = byId.get(id)?.best;
@@ -99,6 +113,50 @@ export function ExerciseHistory({
         />
       )}
 
+      {compare.people.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-footnote text-text-muted">Vergleichen mit</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {shown.length > 0 && (
+              <span className="flex min-h-tap items-center gap-2 px-2 text-subhead font-semibold">
+                <span
+                  aria-hidden
+                  className="size-2.5 rounded-pill"
+                  style={{ backgroundColor: myColor }}
+                />
+                Du
+              </span>
+            )}
+            {compare.people.map((person) => {
+              const on = shownIds.includes(person.id);
+              return (
+                <button
+                  key={person.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => {
+                    setShownIds((ids) =>
+                      on ? ids.filter((id) => id !== person.id) : [...ids, person.id],
+                    );
+                  }}
+                  className={cn(
+                    'flex min-h-tap items-center gap-2 rounded-pill border px-4 text-subhead font-semibold',
+                    on ? 'border-text-muted bg-surface-3' : 'border-border bg-surface-2',
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn('size-2.5 rounded-pill', !on && 'opacity-50')}
+                    style={{ backgroundColor: person.color }}
+                  />
+                  {person.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {!sessions.isPending && inRange.length === 0 && (
         <p className="text-subhead text-text-muted">
           {(sessions.data ?? []).length === 0
@@ -124,10 +182,31 @@ export function ExerciseHistory({
               Volumen {formatKg(selected.volumeKg)} kg
             </span>
           )}
+          {shown.map((person) => {
+            const best = theirBest(person.sessions);
+            return (
+              <span key={person.id} className="flex items-center gap-2 text-footnote">
+                <span
+                  aria-hidden
+                  className="size-2 shrink-0 rounded-pill"
+                  style={{ backgroundColor: person.color }}
+                />
+                <span className="text-text-muted">{person.name}</span>
+                <span className="font-semibold">
+                  {best?.best ? formatSet(measure, best.best) : '–'}
+                </span>
+                {best && (
+                  <span className="text-text-subtle">
+                    {shortDate.format(new Date(best.startedAt))}
+                  </span>
+                )}
+              </span>
+            );
+          })}
         </div>
       )}
 
-      {strength[0] && strength[0].points.length > 0 && (
+      {strength.some((line) => line.points.length > 0) && (
         <section className="flex flex-col gap-1">
           <h3 className="text-subhead font-semibold">Kraft</h3>
           <p className="text-footnote text-text-muted">
@@ -148,7 +227,7 @@ export function ExerciseHistory({
         </section>
       )}
 
-      {measure === 'weight_reps' && volume[0] && volume[0].points.length > 0 && (
+      {measure === 'weight_reps' && volume.some((line) => line.points.length > 0) && (
         <section className="flex flex-col gap-1">
           <h3 className="text-subhead font-semibold">Volumen</h3>
           <p className="text-footnote text-text-muted">

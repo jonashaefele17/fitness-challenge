@@ -16,7 +16,7 @@ export function WhenFields({
   showDate?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-6">
       {showDate && (
         <div className="col-span-2">
           <TextField

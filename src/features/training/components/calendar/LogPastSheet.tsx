@@ -44,7 +44,6 @@ export function LogPastSheet({
       open={open}
       onOpenChange={onOpenChange}
       title={type ? `${type.name} nachtragen` : 'Training nachtragen'}
-      className="min-h-sheet-min"
     >
       {type ? (
         <LogPastForm
@@ -113,7 +112,7 @@ function LogPastForm({
 
   return (
     <form
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-6 pt-1"
       onSubmit={(event) => {
         event.preventDefault();
         log.mutate(
@@ -190,12 +189,14 @@ function LogPastForm({
           Nachtragen hat nicht geklappt.
         </p>
       )}
-      <Button type="submit" size="lg" missing={parsed.missing} loading={log.isPending}>
-        {duration ? 'Nachtragen ✓' : 'Weiter zu den Übungen'}
-      </Button>
-      <Button variant="ghost" onClick={onBack}>
-        Andere Trainingsart
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button type="submit" size="lg" missing={parsed.missing} loading={log.isPending}>
+          {duration ? 'Nachtragen ✓' : 'Weiter zu den Übungen'}
+        </Button>
+        <Button variant="ghost" onClick={onBack}>
+          Andere Trainingsart
+        </Button>
+      </div>
     </form>
   );
 }

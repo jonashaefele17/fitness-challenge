@@ -20,6 +20,8 @@ export interface FeedCard {
   actorId: string;
   /** Local day, "2026-11-21". */
   day: string;
+  /** A person's day, or the small card for joining the group. */
+  kind: 'day' | 'joined';
   latestAt: string;
   lastActivityAt: string;
   events: FeedEvent[];

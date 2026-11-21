@@ -390,6 +390,7 @@ export type Database = {
           day: string;
           group_id: string;
           id: string;
+          kind: string;
           last_activity_at: string;
         };
         ComputedFields: never;
@@ -399,6 +400,7 @@ export type Database = {
           day: string;
           group_id: string;
           id?: string;
+          kind?: string;
           last_activity_at?: string;
         };
         Update: {
@@ -407,6 +409,7 @@ export type Database = {
           day?: string;
           group_id?: string;
           id?: string;
+          kind?: string;
           last_activity_at?: string;
         };
         Relationships: [
@@ -1779,6 +1782,7 @@ export type Database = {
           day: string;
           events: Json;
           id: string;
+          kind: string;
           last_activity_at: string;
           latest_at: string;
         }[];

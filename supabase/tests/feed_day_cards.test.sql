@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(19);
+select plan(20);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -24,8 +24,9 @@ insert into public.group_members (group_id, user_id) values
 -- a2 wants every activity
 insert into public.notification_prefs (user_id, preset) values
   ('22222222-2222-4222-8222-222222222222', 'all');
--- joining created member_joined cards; start clean
-delete from public.feed_days;
+-- joining created a small card per person (not a day card)
+select is((select count(*) from public.feed_days where kind = 'joined'), 3::bigint,
+  'joining gets its own card');
 
 create schema tests;
 grant usage on schema tests to authenticated;
@@ -41,7 +42,7 @@ values ('f0000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-1111111
 
 select is((select count(*) from public.feed_events where type = 'workout_finished'), 1::bigint,
   'a finished workout becomes a feed event');
-select is((select count(*) from public.feed_days), 1::bigint, 'on one day card');
+select is((select count(*) from public.feed_days where kind = 'day'), 1::bigint, 'on one day card');
 select is((select data ->> 'late' from public.feed_events where type = 'workout_finished'), 'false',
   'logged right away it is not late');
 select is(
@@ -57,13 +58,13 @@ select is(
 insert into public.workouts (id, user_id, training_type_id, status, started_at, ended_at, duration_seconds)
 values ('f0000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111', tests.run(),
         'finished', now() - interval '20 minutes', now() - interval '10 minutes', 600);
-select is((select count(*) from public.feed_days), 1::bigint, 'a second workout that day joins the card');
+select is((select count(*) from public.feed_days where kind = 'day'), 1::bigint, 'a second workout that day joins the card');
 
 -- logged a few days later: on its own day, no notification
 insert into public.workouts (id, user_id, training_type_id, status, started_at, ended_at, duration_seconds)
 values ('f0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', tests.run(),
         'finished', now() - interval '3 days', now() - interval '3 days' + interval '30 minutes', 1800);
-select is((select count(*) from public.feed_days), 2::bigint, 'a late workout lands on its own day');
+select is((select count(*) from public.feed_days where kind = 'day'), 2::bigint, 'a late workout lands on its own day');
 select is(
   (select data ->> 'late' from public.feed_events
     where target_id = 'f0000000-0000-4000-8000-000000000003'), 'true', 'marked as logged late');
@@ -75,7 +76,8 @@ select is(
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
 select results_eq(
-  $$select jsonb_array_length(events) from public.feed_cards('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  $$select jsonb_array_length(events) from public.feed_cards('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+     where kind = 'day'$$,
   $$values (2), (1)$$, 'newest day first, with its workouts');
 select is(
   (select count(*) from public.workout_summaries(array[
@@ -88,12 +90,12 @@ select is(
 -- reactions: one per person, the kind can change
 select lives_ok(
   $$select public.set_reaction('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'feed_day',
-      (select id from public.feed_days where day = private.local_day(
+      (select id from public.feed_days where kind = 'day' and day = private.local_day(
          '11111111-1111-4111-8111-111111111111', now())), null, 'fire')$$,
   'a2 reacts on the card');
 select lives_ok(
   $$select public.set_reaction('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'feed_day',
-      (select id from public.feed_days where day = private.local_day(
+      (select id from public.feed_days where kind = 'day' and day = private.local_day(
          '11111111-1111-4111-8111-111111111111', now())), null, 'strong')$$,
   'and changes it');
 select results_eq($$select kind from public.reactions$$, $$values ('strong'::text)$$,
@@ -115,7 +117,7 @@ reset role;
 
 -- a deleted workout leaves the feed, an empty card goes with it
 delete from public.workouts where id = 'f0000000-0000-4000-8000-000000000003';
-select is((select count(*) from public.feed_days), 1::bigint,
+select is((select count(*) from public.feed_days where kind = 'day'), 1::bigint,
   'deleting the only workout of a day removes the card');
 
 select * from finish();

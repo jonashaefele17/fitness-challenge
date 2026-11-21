@@ -5,7 +5,7 @@ import { useMemberLookup } from '@/features/groups';
 import { Avatar } from '@/features/profile';
 import { spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
-import { Button, Card, ChevronDownIcon } from '@/shared/ui';
+import { Button, Card, SegmentedControl } from '@/shared/ui';
 import { feedKeys, useFeed } from '../api/useFeed';
 import { markFeedSeen, useNewPosts } from '../api/useFeedRealtime';
 import { dayLabel } from '../dayLabel';
@@ -95,18 +95,18 @@ export function FeedList({ groupId, renderBody, renderActions, highlightId }: Fe
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="-mb-2 flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="text-footnote font-semibold text-text-muted">Beiträge</h2>
-        <button
-          type="button"
-          onClick={() => {
-            setSort(sort === 'newest' ? 'active' : 'newest');
-          }}
-          className="-mr-2 flex min-h-tap items-center gap-1 rounded-pill px-2 text-footnote font-semibold text-text-muted active:bg-surface-2"
-        >
-          {sort === 'newest' ? 'Neueste' : 'Zuletzt aktiv'}
-          <ChevronDownIcon aria-hidden />
-        </button>
+        <SegmentedControl
+          label="Sortierung"
+          size="compact"
+          value={sort}
+          onChange={setSort}
+          options={[
+            { value: 'newest', label: 'Neueste' },
+            { value: 'active', label: 'Zuletzt aktiv' },
+          ]}
+        />
       </div>
 
       <AnimatePresence>
@@ -142,15 +142,24 @@ export function FeedList({ groupId, renderBody, renderActions, highlightId }: Fe
           Noch nichts los. Sobald jemand trainiert oder beitritt, erscheint es hier.
         </Card>
       ) : (
-        cards.map((card) => (
-          <FeedDayCard
-            key={card.id}
-            card={card}
-            highlighted={card.id === highlighted}
-            body={renderBody?.(card)}
-            actions={renderActions?.(card)}
-          />
-        ))
+        cards.map((card) =>
+          card.kind === 'joined' ? (
+            <JoinCard
+              key={card.id}
+              card={card}
+              highlighted={card.id === highlighted}
+              actions={renderActions?.(card)}
+            />
+          ) : (
+            <FeedDayCard
+              key={card.id}
+              card={card}
+              highlighted={card.id === highlighted}
+              body={renderBody?.(card)}
+              actions={renderActions?.(card)}
+            />
+          ),
+        )
       )}
       <div ref={sentinel} aria-hidden />
       {isFetchingNextPage && <FeedSkeleton count={1} />}
@@ -182,7 +191,6 @@ function FeedDayCard({
         !Array.isArray(event.data) &&
         event.data.late === true,
     );
-  const joined = card.events.some((event) => event.type === 'member_joined');
 
   return (
     <Card
@@ -203,8 +211,37 @@ function FeedDayCard({
         </div>
       </div>
       {body}
-      {joined && <p className="text-subhead text-text-muted">ist der Gruppe beigetreten 👋</p>}
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </Card>
+  );
+}
+
+/** Someone joined the group: one line, no day card. */
+function JoinCard({
+  card,
+  highlighted,
+  actions,
+}: {
+  card: FeedCard;
+  highlighted: boolean;
+  actions: ReactNode;
+}) {
+  const member = useMemberLookup(card.groupId)(card.actorId);
+  return (
+    <Card
+      id={`feed-${card.id}`}
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-1 py-3 transition-colors duration-(--duration-base)',
+        highlighted && 'border-accent',
+      )}
+    >
+      {member && <Avatar profile={member} size="sm" />}
+      <p className="min-w-0 flex-1 text-subhead">
+        <span className="font-semibold">{member?.displayName ?? 'Jemand'}</span>{' '}
+        <span className="text-text-muted">ist der Gruppe beigetreten 👋</span>
+        <span className="block text-footnote text-text-subtle">{dayLabel(card.day)}</span>
+      </p>
+      {actions && <div className="flex items-center gap-1">{actions}</div>}
     </Card>
   );
 }

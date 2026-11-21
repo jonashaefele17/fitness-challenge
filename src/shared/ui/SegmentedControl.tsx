@@ -12,6 +12,8 @@ export interface SegmentedControlProps<T extends string> {
   options: SegmentedOption<T>[];
   onChange: (value: T) => void;
   label: string;
+  /** compact: only as wide as its labels (a secondary switch next to the screen's main one). */
+  size?: 'full' | 'compact';
 }
 
 /**
@@ -24,6 +26,7 @@ export function SegmentedControl<T extends string>({
   options,
   onChange,
   label,
+  size = 'full',
 }: SegmentedControlProps<T>) {
   const index = Math.max(
     0,
@@ -33,7 +36,11 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="relative flex min-h-tap rounded-pill bg-surface-2 p-1"
+      className={cn(
+        'relative min-h-tap rounded-pill bg-surface-2 p-1',
+        // Compact: equal columns as wide as the longest label, so the lens math still holds.
+        size === 'compact' ? 'inline-grid auto-cols-fr grid-flow-col' : 'flex',
+      )}
     >
       <motion.span
         aria-hidden
@@ -55,7 +62,8 @@ export function SegmentedControl<T extends string>({
               onChange(option.value);
             }}
             className={cn(
-              'relative flex-1 rounded-pill px-2 text-footnote font-semibold transition-colors duration-(--duration-fast)',
+              'relative flex-1 rounded-pill text-footnote font-semibold transition-colors duration-(--duration-fast)',
+              size === 'compact' ? 'px-3' : 'px-2',
               selected ? 'text-text' : 'text-text-muted',
             )}
           >

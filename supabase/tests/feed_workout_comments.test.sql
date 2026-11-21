@@ -57,7 +57,7 @@ select is(
   1::bigint, 'and about the reaction');
 select ok(
   (select last_activity_at > now() - interval '1 minute' from public.feed_days
-    where actor_id = '11111111-1111-4111-8111-111111111111'
+    where kind = 'day' and actor_id = '11111111-1111-4111-8111-111111111111'
       and day = private.local_day('11111111-1111-4111-8111-111111111111', now() - interval '3 days')),
   'the workout''s day card counts as active again');
 

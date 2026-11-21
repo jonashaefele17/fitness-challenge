@@ -36,6 +36,10 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] MCP-Server, damit Claude Einträge machen kann (nutzt dieselben RPCs).
 - [ ] Später ggf. Monorepo mit gemeinsamen Paketen für die persönlichen Module.
 
+## Feed / Habits (zu Baustein 6 besprechen)
+
+- [ ] Check-in nicht automatisch in den Feed: Muss der tägliche Check-in überhaupt auf der Tageskarte erscheinen, oder nur Trainings, Wiegetag und Meilensteine? Offen, wenn Baustein 6 (Habits) dran ist, gemeinsam entscheiden.
+
 ## Feinschliff
 
 - [ ] Optional: Einstellung „App-Farbe: Limette / meine Personenfarbe“ (Ich → Einstellungen). Technisch einfach (Akzent-Token zur Laufzeit setzen, Schriftfarbe auf Knöpfen automatisch hell/dunkel, gedrückt/Glas abgeleitet; App-Icon und Ladebildschirm bleiben Limette). Standard bleibt Limette, weil Personenfarben in Gruppenansichten „diese Person“ bedeuten.

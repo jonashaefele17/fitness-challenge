@@ -5,13 +5,15 @@ import {
   useMotionValueEvent,
   useReducedMotion,
 } from 'motion/react';
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { cn, hapticTick } from '@/shared/lib';
 
 /** Height of one value row in px (the wheel's step distance). */
 const ITEM_PX = 30;
 /** Values rendered above and below the current one. */
 const RANGE = 40;
+/** How far a flick carries (s): target = offset + velocity × power. */
+const INERTIA_POWER = 0.25;
 
 export interface NumberWheelProps {
   value: number | null;
@@ -45,13 +47,17 @@ export function NumberWheel({
   const [draft, setDraft] = useState('');
   const [spinning, setSpinning] = useState(false);
   const reduceMotion = useReducedMotion();
-  const base = value ?? 0;
+  // While a gesture (and its roll-out) runs, the column stays anchored to the value it
+  // started from, even if the new value already arrived from outside. Afterwards it re-bases.
+  const [anchor, setAnchor] = useState<number | null>(null);
+  const base = anchor ?? value ?? 0;
   const y = useMotionValue(0);
   // Steps we may go down before reaching 0.
   const minIndex = -Math.floor(base / step + 1e-9);
 
   const round = (n: number) => Math.round(n * 100) / 100;
   const indexAt = (offset: number) => Math.round(-offset / ITEM_PX);
+  const clampIndex = (index: number) => Math.min(RANGE, Math.max(minIndex, index));
   const [lastIndex, setLastIndex] = useState(0);
 
   useMotionValueEvent(y, 'change', (latest) => {
@@ -62,26 +68,40 @@ export function NumberWheel({
     }
   });
 
+  // Re-base without a visible jump: once the anchor is released, the column shows the new
+  // value at offset 0 before the browser paints.
+  useLayoutEffect(() => {
+    if (anchor === null) y.set(0);
+  }, [anchor, y]);
+
+  function startGesture() {
+    setSpinning(true);
+    // Grabbing a still-rolling wheel continues from where it is.
+    setAnchor((current) => current ?? value ?? 0);
+  }
+
   function settle(velocity: number) {
-    const clampIndex = (index: number) => Math.min(RANGE, Math.max(minIndex, index));
-    const commit = () => {
-      const index = clampIndex(indexAt(y.get()));
+    // Decide the target right away (same projection the roll-out uses) and report it
+    // immediately, so ticking the set during the roll-out already saves the new number.
+    const targetIndex = clampIndex(indexAt(y.get() + velocity * INERTIA_POWER));
+    const target = round(base + targetIndex * step);
+    if (targetIndex !== 0 && target !== value) onChange(target);
+    const release = () => {
       setSpinning(false);
-      y.set(0);
       setLastIndex(0);
-      if (index !== 0) onChange(round(base + index * step));
+      setAnchor(null);
     };
     if (reduceMotion) {
-      commit();
+      release();
       return;
     }
-    void animate(y, 0, {
+    void animate(y, -targetIndex * ITEM_PX, {
       type: 'inertia',
       velocity,
-      power: 0.25,
+      power: INERTIA_POWER,
       timeConstant: 180,
-      modifyTarget: (target) => -clampIndex(indexAt(target)) * ITEM_PX,
-      onComplete: commit,
+      modifyTarget: () => -targetIndex * ITEM_PX,
+      onComplete: release,
     });
   }
 
@@ -133,9 +153,7 @@ export function NumberWheel({
         drag="y"
         dragMomentum={false}
         dragElastic={0.15}
-        onDragStart={() => {
-          setSpinning(true);
-        }}
+        onDragStart={startGesture}
         onDragEnd={(_, info) => {
           settle(info.velocity.y);
         }}

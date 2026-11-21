@@ -67,3 +67,4 @@ export { trainingIconKeys } from './trainingIcons';
 export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailSheet';
 export { MyExercises } from './components/me/MyExercises';
 export { TrainingSettings } from './components/me/TrainingSettings';
+export { TemplatesView } from './components/templates/TemplatesView';

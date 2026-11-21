@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { WorkoutLog } from '@/features/training';
-import { Card, Screen, SegmentedControl } from '@/shared/ui';
+import { useNavigate } from 'react-router';
+import { TemplatesView, WorkoutLog } from '@/features/training';
+import { paths } from '../paths';
+import { Screen, SegmentedControl } from '@/shared/ui';
 
 type Section = 'calendar' | 'templates';
 
 /** "Was mache ich wann?": training log and (next) my templates. */
 export function TrainingRoute() {
   const [section, setSection] = useState<Section>('calendar');
+  const navigate = useNavigate();
   return (
     <Screen title="Training">
       <div className="flex flex-col gap-4">
@@ -22,9 +25,11 @@ export function TrainingRoute() {
         {section === 'calendar' ? (
           <WorkoutLog />
         ) : (
-          <Card className="text-subhead text-text-muted">
-            Hier kommen deine Vorlagen hin – als Nächstes dran.
-          </Card>
+          <TemplatesView
+            onStarted={() => {
+              void navigate(paths.liveWorkout);
+            }}
+          />
         )}
       </div>
     </Screen>

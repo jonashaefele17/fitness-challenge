@@ -184,3 +184,41 @@ export interface WorkoutDetailData extends CalendarWorkout {
   note: string | null;
   items: WorkoutItem[];
 }
+
+/** A template I can use (mine, or a group mate's I may see). */
+export interface TemplateSummary {
+  id: string;
+  ownerId: string;
+  ownerName: string | null;
+  mine: boolean;
+  name: string;
+  trainingTypeId: string;
+  focusId: string | null;
+  note: string | null;
+  archivedAt: string | null;
+  exerciseCount: number;
+  myLastUsedAt: string | null;
+  ownerLastUsedAt: string | null;
+}
+
+export interface TemplateItem {
+  exercise: ExerciseSummary;
+  /** Device class (works in any studio); null: no device. */
+  deviceType: { id: string; name: string } | null;
+  sets: number;
+  warmupSets: number;
+  repMin: number | null;
+  repMax: number | null;
+  /** Target time per set for duration exercises. */
+  durationSeconds: number | null;
+  note: string | null;
+}
+
+export interface TemplateDraft {
+  id: string | null;
+  name: string;
+  trainingTypeId: string;
+  focusId: string | null;
+  note: string;
+  items: TemplateItem[];
+}

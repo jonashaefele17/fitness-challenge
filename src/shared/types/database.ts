@@ -1348,6 +1348,123 @@ export type Database = {
           },
         ];
       };
+      workout_template_items: {
+        Row: {
+          device_type_id: string | null;
+          duration_seconds: number | null;
+          exercise_id: string;
+          id: string;
+          note: string | null;
+          position: number;
+          rep_max: number | null;
+          rep_min: number | null;
+          sets: number;
+          template_id: string;
+          warmup_sets: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_type_id?: string | null;
+          duration_seconds?: number | null;
+          exercise_id: string;
+          id?: string;
+          note?: string | null;
+          position: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          sets?: number;
+          template_id: string;
+          warmup_sets?: number;
+        };
+        Update: {
+          device_type_id?: string | null;
+          duration_seconds?: number | null;
+          exercise_id?: string;
+          id?: string;
+          note?: string | null;
+          position?: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
+          sets?: number;
+          template_id?: string;
+          warmup_sets?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_template_items_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_template_items_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_template_items_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_templates';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_templates: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          focus_id: string | null;
+          id: string;
+          name: string;
+          note: string | null;
+          training_type_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          name: string;
+          note?: string | null;
+          training_type_id: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          name?: string;
+          note?: string | null;
+          training_type_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_templates_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_templates_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       workouts: {
         Row: {
           created_at: string;
@@ -1363,6 +1480,7 @@ export type Database = {
           paused_seconds: number;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
           training_type_id: string;
           user_id: string;
           variant: string | null;
@@ -1382,6 +1500,7 @@ export type Database = {
           paused_seconds?: number;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
+          template_id?: string | null;
           training_type_id: string;
           user_id?: string;
           variant?: string | null;
@@ -1400,6 +1519,7 @@ export type Database = {
           paused_seconds?: number;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
+          template_id?: string | null;
           training_type_id?: string;
           user_id?: string;
           variant?: string | null;
@@ -1417,6 +1537,13 @@ export type Database = {
             columns: ['location_id'];
             isOneToOne: false;
             referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_templates';
             referencedColumns: ['id'];
           },
           {
@@ -1462,6 +1589,7 @@ export type Database = {
           unread: number;
         }[];
       };
+      copy_template: { Args: { p_template_id: string }; Returns: string };
       exercise_overview: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -1535,6 +1663,7 @@ export type Database = {
           paused_seconds: number;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
           training_type_id: string;
           user_id: string;
           variant: string | null;
@@ -1610,6 +1739,17 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      save_template: {
+        Args: {
+          p_focus_id: string;
+          p_items: Json;
+          p_name: string;
+          p_note: string;
+          p_template_id: string;
+          p_training_type_id: string;
+        };
+        Returns: string;
+      };
       search_exercises: {
         Args: { p_limit?: number; p_query: string };
         Returns: {
@@ -1621,7 +1761,7 @@ export type Database = {
       };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
       start_workout: {
-        Args: { p_location_id?: string; p_training_type_id: string };
+        Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
         Returns: {
           created_at: string;
           distance_m: number | null;
@@ -1636,6 +1776,7 @@ export type Database = {
           paused_seconds: number;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
+          template_id: string | null;
           training_type_id: string;
           user_id: string;
           variant: string | null;
@@ -1646,6 +1787,26 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      template_from_workout: {
+        Args: { p_name: string; p_template_id?: string; p_workout_id: string };
+        Returns: string;
+      };
+      template_overview: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          archived_at: string;
+          exercise_count: number;
+          focus_id: string;
+          id: string;
+          my_last_used_at: string;
+          name: string;
+          note: string;
+          owner_last_used_at: string;
+          owner_name: string;
+          training_type_id: string;
+          user_id: string;
+        }[];
       };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
     };

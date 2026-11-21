@@ -142,8 +142,18 @@ export function useStartWorkout() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
-    mutationFn: async ({ trainingTypeId }: { trainingTypeId: string }) => {
-      const { error } = await supabase.rpc('start_workout', { p_training_type_id: trainingTypeId });
+    mutationFn: async ({
+      trainingTypeId,
+      templateId,
+    }: {
+      trainingTypeId: string;
+      /** Start with a template (mine or a group mate's). */
+      templateId?: string | undefined;
+    }) => {
+      const { error } = await supabase.rpc('start_workout', {
+        p_training_type_id: trainingTypeId,
+        ...(templateId && { p_template_id: templateId }),
+      });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: trainingKeys.active(userId) }),

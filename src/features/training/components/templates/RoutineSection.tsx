@@ -224,7 +224,12 @@ function RoutineRow({ item, onOpen }: { item: TemplateItem; onOpen: () => void }
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn('relative flex items-center bg-surface-2', isDragging && 'z-10 opacity-80')}
+      // Rows carry their own background (they move while dragging), so the list's rounded
+      // corners are repeated on the first and last row.
+      className={cn(
+        'relative flex items-center overflow-hidden bg-surface-2 first:rounded-t-card last:rounded-b-card',
+        isDragging && 'z-10 rounded-card opacity-80',
+      )}
     >
       <button
         ref={setActivatorNodeRef}

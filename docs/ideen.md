@@ -45,6 +45,9 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Haptik auf dem iPhone: im Web nicht möglich (iOS-Schalter-Trick funktioniert auf iOS 26 nicht); mit nativer App (Capacitor) echte Haptik in `shared/lib/haptics.ts` ergänzen
 - [ ] Optional später: Satzpause-Erinnerung per Push (falls doch gewünscht; PWA kann im Hintergrund nicht selbst klingeln)
 
+- [ ] Laufentwicklung (nach hinten gestellt): Lauf-Fokus als Daten wie der Trainingsfokus (Easy Run, Long Run, Tempo, Intervalle …), daraus Pace pro Lauf-Art, km pro Woche, Bestzeiten; unter Ich → Training neben der Kraftentwicklung. Datenmodell offen halten (Distanz, Dauer, Variante sind schon da).
+- [ ] Habits direkt vergleichen (nicht nur Erfüllungsquote), wenn beide dieselbe Vorlage nutzen und „mit Werten“ teilen (z. B. Schritte) – zu Baustein 6 klären.
+
 ### Studio-Ketten (zusammen mit dem Bild-Upload bauen)
 
 - [ ] Tabelle `chains` (Name, Logo); Studios bekommen optional eine Kette (`locations.chain_id`). Beim Anlegen eines Studios Kette auswählen oder neu anlegen; Studios ohne Kette (Home Gym, kleines Studio) bleiben möglich.

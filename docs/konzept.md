@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.10 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.11 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.11 | Navigation nach Fragen getrennt: Training-Tab = Kalender · Vorlagen (was wann), Ich = Training · Habits · Einstellungen (wie entwickle ich mich), Gruppe = Feed · Vergleich; Vergleichbarkeit per Freigabe pro Datenart; „mit jemandem“ markieren schon vor den Einladungen |
 | 21.11.2026 | 1.10 | Personenfarbe unter „Ich“ selbst wählbar (nur Farben, die in den eigenen Gruppen frei sind); Farbe 7 und 8 neu (Terrakotta, Senf), weil 7 fast gleich 1 war |
 | 21.11.2026 | 1.9 | Übungsverlauf: Freunde zum Vergleich einblendbar (soziales Modul Vergleich) |
 | 21.11.2026 | 1.8 | Training: bester Satz nach Lombardi statt Epley (passt zu Double Progression) |
@@ -67,9 +68,9 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 | Tab | Inhalt |
 | --- | --- |
 | **Heute** | Heute geplant (Termin, mit wem), Tages-Check-in als 5 Kacheln, „Neu für dich“, Glocke mit Mitteilungen, Streak |
-| **Training** | Kalender Monat/Woche, beliebig blätterbar, Filter „Nur ich / Alle“, Tagesdetail mit „An diesem Tag planen“, eigene Vorlagen |
+| **Training** | Was mache ich wann? Umschalter **Kalender · Vorlagen**. Kalender Monat/Woche, beliebig blätterbar, Filter „Nur ich / Alle“ (andere in ihren Personenfarben, soweit geteilt), Fokus pro Training (OK, Push, Pull, Beine, GK …), „mit …“ markiert, Tagesdetail → Trainingsdetail, „An diesem Tag planen“ |
 | **Gruppe** | Avatar-Leiste „Heute“, Feed aus Tageskarten, Reiter „Vergleich“ (Ziele, Konsistenz, Gewicht, Kraft, Dranbleiben), Saison-Archiv kompakt |
-| **Ich** | Training (Kraftverlauf, Ziele), Habits (Auswertung, Supplements), Einstellungen (Benachrichtigungen, Trainingsarten, Geräte, Sichtbarkeit) |
+| **Ich** | Wie entwickle ich mich? Reiter **Training · Habits · Einstellungen** (später Körper). Training: Ziele oben, dann Kraftentwicklung (meine Übungen → Übungsverlauf), später Laufentwicklung. Habits: Auswertung, Supplements. Einstellungen: Benachrichtigungen, Farbe, Trainingsarten, Heimstudio, Sichtbarkeit pro Datenart, später Studios/Geräte |
 
 - **Start-Button (+):** Trainingsart → Vorlage oder frei → mit wem. Bei Light-Arten (Laufen, Fußball) entfällt Schritt 2.
 - **Laufendes Training:** minimierbar als Mini-Leiste über der Navigation, läuft im Hintergrund weiter.
@@ -345,6 +346,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 | 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Navigation nach Fragen: Training-Tab „was wann“ (Kalender, Vorlagen), Ich „wie entwickle ich mich“ (Training · Habits · Einstellungen), Gruppe „wie stehen wir zueinander“ (Feed, Vergleich). Vergleichbar ist alles, was jemand pro Datenart (Training, Habits, Körper) freigibt; Vergleich in den eigenen Ansichten („Vergleichen mit“) und als Übersicht in Gruppe → Vergleich |
 | 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Lombardi: kg × Wdh.^0,1, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen, das Gewicht aber mehr (72,5 × 6 vor 70 × 8; beim Gewichtssprung der Double Progression höchstens eine kleine Delle; Epley verworfen, weil die Linie dort bei jedem Sprung deutlich fällt); angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |
 | 21.11.2026 | Trainingsfokus als Daten (Muskelgruppen-Menge), optional am Training; Übungen passen über ihre primären Muskelgruppen. Schulter aufgeteilt in vordere, seitliche, hintere |
 

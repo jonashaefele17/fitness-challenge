@@ -189,7 +189,7 @@ function LogPastForm({
           Nachtragen hat nicht geklappt.
         </p>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="mt-4 flex flex-col gap-2">
         <Button type="submit" size="lg" missing={parsed.missing} loading={log.isPending}>
           {duration ? 'Nachtragen ✓' : 'Weiter zu den Übungen'}
         </Button>

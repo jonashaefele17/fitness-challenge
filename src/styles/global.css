@@ -94,6 +94,10 @@
   }
 }
 
+/* Toasts sit at the top, below the status bar. */
+@utility top-toast {
+  top: calc(env(safe-area-inset-top) + --spacing(3));
+}
 /* Bottom padding so content can scroll clear of the floating nav. */
 @utility pb-nav-clearance {
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8));

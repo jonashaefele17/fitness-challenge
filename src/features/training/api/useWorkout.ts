@@ -452,3 +452,43 @@ export function useExerciseTrend(exerciseId: string) {
     },
   });
 }
+
+/** Undo for removing an exercise: puts the item and its sets back where they were. */
+export function useRestoreItem(workoutId: string) {
+  return useActiveMutation(
+    async ({ item, items }: { item: WorkoutItem; items: WorkoutItem[] }) => {
+      const { error } = await supabase.from('workout_items').insert({
+        id: item.id,
+        workout_id: workoutId,
+        exercise_id: item.exercise.id,
+        device_id: item.deviceId,
+        position: item.position,
+        note: item.note,
+      });
+      if (error) throw error;
+      if (item.sets.length > 0) {
+        const { error: setError } = await supabase.from('workout_sets').insert(
+          item.sets.map((set) => ({
+            id: set.id,
+            item_id: item.id,
+            position: set.position,
+            weight_kg: set.weightKg,
+            reps: set.reps,
+            duration_seconds: set.durationSeconds,
+            is_warmup: set.isWarmup,
+            completed_at: set.completedAt,
+          })),
+        );
+        if (setError) throw setError;
+      }
+      const restored = [...items.filter((other) => other.id !== item.id)];
+      restored.splice(item.position, 0, item);
+      await savePositions(restored);
+    },
+    (workout, { item }) => {
+      const items = workout.items.filter((other) => other.id !== item.id);
+      items.splice(item.position, 0, item);
+      return { ...workout, items: items.map((other, position) => ({ ...other, position })) };
+    },
+  );
+}

@@ -10,4 +10,5 @@ export {
 export { Sheet, type SheetProps } from './Sheet';
 export { Switch, type SwitchProps } from './Switch';
 export { TextField, type TextFieldProps } from './TextField';
+export { Toaster } from './Toaster';
 export * from './icons';

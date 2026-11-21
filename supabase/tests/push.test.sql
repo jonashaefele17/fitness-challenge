@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(22);
+select plan(24);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -174,6 +174,12 @@ select is(
   (select count(*) from public.claim_push_deliveries()), 1::bigint,
   'after the bundle window the waiting notification is pushed');
 reset role;
+
+-- Bundling is opt-in; new notifications trigger delivery immediately.
+select ok(not private.wants_bundling('44444444-4444-4444-8444-444444444444'),
+  'without saved settings bundling is off');
+select has_trigger('public', 'notifications', 'notifications_kick_push',
+  'new notifications kick off push delivery right away');
 
 select * from finish();
 rollback;

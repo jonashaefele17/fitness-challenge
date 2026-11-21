@@ -102,7 +102,7 @@ Solange es keine Admin-Oberfläche gibt:
 
 ## Push-Mitteilungen (Web Push)
 
-Ablauf: Die Datenbank entscheidet, was fällig ist (Kategorie, Ruhezeit, Bündeln). `pg_cron` ruft jede Minute die Edge Function `send-push` auf, die an Apple/Google verschickt. Der Workflow „Deploy staging“ deployt die Function, setzt ihre Secrets und trägt URL und Cron-Secret in den Vault ein.
+Ablauf: Die Datenbank entscheidet, was fällig ist (Kategorie, Ruhezeit, Bündeln – standardmäßig aus). Jede neue Mitteilung ruft sofort die Edge Function `send-push` auf, die an Apple/Google verschickt; `pg_cron` schaut zusätzlich jede Minute nach (für Pushes, die wegen Ruhezeit oder Bündeln gewartet haben). Der Workflow „Deploy staging“ deployt die Function, setzt ihre Secrets und trägt URL und Cron-Secret in den Vault ein.
 
 **Benötigt im GitHub-Environment `staging`:**
 

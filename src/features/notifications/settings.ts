@@ -13,7 +13,7 @@ export function isPreset(value: string): value is Preset {
 export function defaultPrefs(): NotificationPrefs {
   return {
     preset: 'standard',
-    bundle: true,
+    bundle: false,
     quietHoursEnabled: true,
     quietStart: '22:00',
     quietEnd: '07:00',

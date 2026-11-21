@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.2 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.3 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -15,6 +15,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.0 | Grundkonzept erstellt |
 | 20.11.2026 | 1.1 | Datenmodell mehrgruppenfähig (siehe Entscheidungen) |
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
+| 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar), Pushes werden sofort ausgelöst |
 
 ## Vision und Kernschleife
 
@@ -135,7 +136,7 @@ Der Feed ist das, was die Gruppe antreibt: Man kann überall kommentieren, ohne 
 
 - **Glocke:** listet alles, was dich betrifft; ein Tap springt genau an die Stelle (Übung aufgeklappt, Satz markiert, Thread offen).
 - **Push** standardmäßig an: Besitzer des kommentierten Objekts, Thread-Teilnehmer, @Erwähnte.
-- **Einstellungen pro Person:** Voreinstellungen Nur Wichtiges / Standard / Alles, darunter 8 Kategorien einzeln (Kommentare auf meine Einträge, Antworten, Erwähnungen, Reaktionen, alle Aktivitäten, Termine, Check-in-Erinnerung, Supplements), dazu Bündeln (5 Min.) und Ruhezeit 22–7 Uhr.
+- **Einstellungen pro Person:** Voreinstellungen Nur Wichtiges / Standard / Alles, darunter 8 Kategorien einzeln (Kommentare auf meine Einträge, Antworten, Erwähnungen, Reaktionen, alle Aktivitäten, Termine, Check-in-Erinnerung, Supplements), dazu Bündeln (5 Min., standardmäßig aus) und Ruhezeit 22–7 Uhr.
 - **Technik:** Web Push über Supabase Edge Function; iPhone nur bei installierter App. Der Sprung an die Stelle läuft über ein lokal gemerktes Sprungziel, weil iOS Adressen aus Push-Klicks nicht zuverlässig öffnet. Badge-Zahl am App-Symbol.
 
 ## Habits

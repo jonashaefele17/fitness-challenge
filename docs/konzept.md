@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.7 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.8 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.8 | Training: bester Satz nach Lombardi statt Epley (passt zu Double Progression) |
 | 21.11.2026 | 1.7 | Training: Übungsverlauf (Kraft- und Volumen-Graph, Rekorde, Trainingsliste); bester Satz wird nach geschätztem 1RM gewertet; eigene Übungszuordnungen entfernbar |
 | 21.11.2026 | 1.6 | Training: Gerätetypen (Klassen) mit Übungen, Geräte als Instanzen pro Studio, Übungen pro Gerät ausblendbar, Trainingsfokus (Push, Pull …) als Filter, Schulter in vorne/seitlich/hinten aufgeteilt |
 | 21.11.2026 | 1.4 | Training: kein Satzpause-Timer; Messart pro Übung (Gewicht × Wdh., nur Wdh., Dauer); eigene Trainingsarten; Übungskatalog startet leer; Muskelgruppen pro Übung; Mobility-Player als eigene Etappe |
@@ -342,7 +343,7 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 | 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
-| 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Epley, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen; angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |
+| 21.11.2026 | „Bester Satz“ wird nach geschätztem 1RM gewertet (Lombardi: kg × Wdh.^0,1, immer dieselbe Formel), damit mehr Wiederholungen bei gleichem Gewicht als Fortschritt zählen, das Gewicht aber mehr (72,5 × 6 vor 70 × 8; beim Gewichtssprung der Double Progression höchstens eine kleine Delle; Epley verworfen, weil die Linie dort bei jedem Sprung deutlich fällt); angezeigt wird immer der echte Satz, nie die geschätzte Zahl. Kraft und Volumen sind getrennte Graphen (keine zwei Achsen) |
 | 21.11.2026 | Trainingsfokus als Daten (Muskelgruppen-Menge), optional am Training; Übungen passen über ihre primären Muskelgruppen. Schulter aufgeteilt in vordere, seitliche, hintere |
 
 **Offen (zu zweit klären)**

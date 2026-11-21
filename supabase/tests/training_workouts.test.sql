@@ -113,8 +113,8 @@ select results_eq(
   'previous_sets returns the ticked sets of the last workout');
 select results_eq(
   $$select value from public.exercise_trend('e0000000-0000-4000-8000-000000000001')$$,
-  $$values (88.67::numeric)$$,
-  'exercise_trend scores the best working set by estimated 1RM (70 × 8 beats 72.5 × 6; warm-ups excluded)');
+  $$values (86.73::numeric)$$,
+  'exercise_trend scores the best working set (Lombardi: 72.5 × 6 beats 70 × 8; warm-ups excluded)');
 
 -- Duration entries
 select lives_ok(

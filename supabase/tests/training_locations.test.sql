@@ -114,7 +114,7 @@ select results_eq(
 select results_eq(
   $$select scope_device_id, trend from public.exercise_overview()
      where exercise_id = 'e0000000-0000-4000-8000-000000000002'$$,
-  $$values (null::uuid, array[13.33, 8.00]::numeric[])$$,
+  $$values (null::uuid, array[12.59, 7.55]::numeric[])$$,
   'comparable devices share one history (oldest first)');
 select lives_ok(
   $$insert into public.device_type_exercises (device_type_id, exercise_id)

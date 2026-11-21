@@ -1,7 +1,7 @@
 -- Exercise history: progress per workout, volume and records (computed, never stored).
 --
 -- A set's score ranks sets of one exercise:
---   weight_reps: estimated one-rep max (Epley: kg × (1 + reps / 30); a single rep is its kg),
+--   weight_reps: estimated one-rep max (Epley here; replaced by Lombardi in 20261121101200),
 --                so 40 kg × 10 beats 40 kg × 8 (double progression shows as progress)
 --   reps:        repetitions
 --   duration:    seconds

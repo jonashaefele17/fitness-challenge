@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.19 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.20 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.20 | Mobility-Player (3f) umgesetzt: geführte Trainingsart, Routinen als Vorlagen mit Pause und beidseitig |
 | 21.11.2026 | 1.19 | „Gerät merken?“ in der Zusammenfassung umgesetzt |
 | 21.11.2026 | 1.18 | Progression umgesetzt (↑-Vorschlag im Zahlenrad, Zielbereich auf der Karte), neue Bestwerte in der Zusammenfassung; Feed-Karte zum Training bewusst in Baustein 4 (Tageskarten) |
 | 21.11.2026 | 1.17 | Vorlagen umgesetzt: Gerätetyp statt Gerät, Wiederholungsbereich pro Übung, Aufwärmsätze, ein Besitzer (andere benutzen/kopieren), Ordnung gegen Chaos, Archiv mit endgültigem Löschen |
@@ -89,7 +90,7 @@ Am Handy gibt es vier Tabs in einer schwebenden Pillen-Leiste und daneben einen 
 
 Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, und jedes Training lässt sich unterwegs verändern.
 
-**Trainingsarten** (als Daten, pro Person wählbar): Studio (z. B. FitX), Home Gym, Mobility, Fußball, Laufen … Studio und Home Gym werden mit Übungen und Sätzen erfasst, die anderen mit Dauer, optional Distanz, Intensität 1–5 und Notiz. Mobility-Routinen laufen mit Timer ab.
+**Trainingsarten** (als Daten, pro Person wählbar): Studio (z. B. FitX), Home Gym, Mobility, Fußball, Laufen … Studio und Home Gym werden mit Übungen und Sätzen erfasst, die anderen mit Dauer, optional Distanz, Intensität 1–5 und Notiz. Mobility-Routinen laufen geführt ab (umgesetzt): Mobility ist eine Standard-Trainingsart, die als Player läuft; eine Routine ist eine Vorlage dieser Art mit Zeit pro Runde, Runden, Pause danach und „beidseitig“ (links, dann rechts). Der Player zeigt Übung, Seite, Countdown-Ring, „Als Nächstes“, schaltet automatisch weiter (3–2–1-Töne, abschaltbar), hält den Bildschirm an und rechnet mit Uhrzeiten (nach Rückkehr in die App steht er richtig); jede Runde wird als Satz mit Dauer gespeichert. Animationen/Bilder pro Übung folgen mit dem Bild-Upload.
 
 **Geräte und Übungen**
 

@@ -17,10 +17,10 @@ import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
   id, user_id, started_at, paused_at, paused_seconds, focus_id, template_id,
-  training_types!inner(id, name, kind),
+  training_types!inner(id, name, kind, guided),
   locations(id, name, owner_id),
   workout_items(
-    id, position, note, rep_min, rep_max,
+    id, position, note, rep_min, rep_max, target_seconds, rest_seconds, per_side,
     exercises!inner(id, name, measure),
     devices(${DEVICE_COLUMNS}),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
@@ -69,6 +69,7 @@ export function useActiveWorkout() {
           id: data.training_types.id,
           name: data.training_types.name,
           kind: data.training_types.kind === 'duration' ? 'duration' : 'exercises',
+          guided: data.training_types.guided,
         },
         items: data.workout_items
           .map((item): WorkoutItem => ({
@@ -77,6 +78,9 @@ export function useActiveWorkout() {
             note: item.note,
             repMin: item.rep_min,
             repMax: item.rep_max,
+            targetSeconds: item.target_seconds,
+            restSeconds: item.rest_seconds,
+            perSide: item.per_side,
             device: item.devices ? toDevice(item.devices) : null,
             exercise: {
               id: item.exercises.id,
@@ -326,6 +330,9 @@ export function useAddExercise(workoutId: string) {
         note: null,
         repMin: null,
         repMax: null,
+        targetSeconds: null,
+        restSeconds: 0,
+        perSide: false,
         device,
         exercise,
         sets: [

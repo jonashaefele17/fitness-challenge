@@ -215,6 +215,8 @@ export function TemplateEditor({
                 repMax: exercise.measure === 'duration' ? null : 12,
                 durationSeconds: exercise.measure === 'duration' ? 45 : null,
                 note: null,
+                restSeconds: 0,
+                perSide: false,
               },
             ],
           }));
@@ -282,13 +284,44 @@ function ItemRow({
           }}
         />
         {duration ? (
-          <NumberInput
-            label="Sek."
-            value={item.durationSeconds}
-            onChange={(durationSeconds) => {
-              onChange({ durationSeconds });
-            }}
-          />
+          <>
+            <span className="flex items-center gap-1 text-footnote text-text-muted">
+              <NumberInput
+                label="Sekunden pro Runde"
+                value={item.durationSeconds}
+                onChange={(durationSeconds) => {
+                  onChange({ durationSeconds });
+                }}
+              />
+              Sek.
+            </span>
+            <span className="flex items-center gap-1 text-footnote text-text-muted">
+              Pause
+              <NumberInput
+                label="Pause danach in Sekunden"
+                value={item.restSeconds || null}
+                onChange={(rest) => {
+                  onChange({ restSeconds: rest ?? 0 });
+                }}
+              />
+              Sek.
+            </span>
+            <button
+              type="button"
+              aria-pressed={item.perSide}
+              onClick={() => {
+                onChange({ perSide: !item.perSide });
+              }}
+              className={cn(
+                'flex min-h-tap items-center rounded-pill border px-3 text-footnote font-semibold',
+                item.perSide
+                  ? 'border-accent bg-accent text-on-accent'
+                  : 'border-border text-text-muted',
+              )}
+            >
+              beidseitig
+            </button>
+          </>
         ) : (
           <span className="flex items-center gap-1 text-footnote text-text-muted">
             <NumberInput

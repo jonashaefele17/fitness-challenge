@@ -14,6 +14,8 @@ export interface TrainingType {
   variants: string[];
   /** Key of the line icon (barbell, home_gym, run …). */
   icon: string;
+  /** Guided: the phone leads through a routine (Mobility player). */
+  guided: boolean;
 }
 
 export interface Place {
@@ -98,6 +100,10 @@ export interface WorkoutItem {
   /** Target rep range (from the template); null: none set. */
   repMin: number | null;
   repMax: number | null;
+  /** Guided routines: seconds per round, rest afterwards, left and right. */
+  targetSeconds: number | null;
+  restSeconds: number;
+  perSide: boolean;
   sets: WorkoutSet[];
 }
 
@@ -106,7 +112,7 @@ export interface ActiveWorkout {
   startedAt: string;
   pausedAt: string | null;
   pausedSeconds: number;
-  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
+  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided'>;
   location: Place | null;
   focusId: string | null;
   /** Template the workout was started with. */
@@ -218,6 +224,9 @@ export interface TemplateItem {
   /** Target time per set for duration exercises. */
   durationSeconds: number | null;
   note: string | null;
+  /** Guided routines: rest after the exercise, and left/right rounds. */
+  restSeconds: number;
+  perSide: boolean;
 }
 
 export interface TemplateDraft {

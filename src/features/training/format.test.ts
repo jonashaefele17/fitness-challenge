@@ -46,6 +46,9 @@ describe('summarize', () => {
         note: null,
         repMin: null,
         repMax: null,
+        targetSeconds: null,
+        restSeconds: 0,
+        perSide: false,
         device: null,
         exercise: { id: 'e1', name: 'Bankdrücken', measure: 'weight_reps' },
         sets: [

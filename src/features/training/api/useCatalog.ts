@@ -19,7 +19,7 @@ export function useTrainingTypes() {
     queryFn: async (): Promise<TrainingType[]> => {
       const { data, error } = await supabase
         .from('training_types')
-        .select('id, name, kind, with_distance, owner_id, location_mode, variants, icon')
+        .select('id, name, kind, with_distance, owner_id, location_mode, variants, icon, guided')
         .is('archived_at', null)
         .or(`owner_id.is.null,owner_id.eq.${userId}`)
         .order('sort')
@@ -37,6 +37,7 @@ export function useTrainingTypes() {
             : 'none',
         variants: row.variants,
         icon: row.icon,
+        guided: row.guided,
       }));
     },
   });

@@ -59,6 +59,8 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
   2. **MCP-Server** (siehe Life-App): Claude fragt die Daten mit dem eigenen Zugang direkt ab (RLS gilt), optional Schreibrecht für Vorlagen/Termine.
   3. Später ggf. **„Analyse“ in der App** über die Claude-API (Kosten pro Nutzung, Daten über unseren Server) – erst wenn 1/2 sich bewährt haben.
 
+- [ ] Animationen/Bilder pro Mobility-Übung im Player (Jonas legt Routinen selbst an und braucht dafür Hilfe bei den Animationen) – zusammen mit dem Bild-Upload.
+
 ### Studio-Ketten (zusammen mit dem Bild-Upload bauen)
 
 - [ ] Tabelle `chains` (Name, Logo); Studios bekommen optional eine Kette (`locations.chain_id`). Beim Anlegen eines Studios Kette auswählen oder neu anlegen; Studios ohne Kette (Home Gym, kleines Studio) bleiben möglich.

@@ -50,6 +50,7 @@ import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
 import { RememberDevices } from './RememberDevices';
+import { RoutinePlayer } from './routine/RoutinePlayer';
 import { SaveAsTemplate } from './templates/SaveAsTemplate';
 import { ExerciseHistorySheet, type HistoryTarget } from './history/ExerciseHistorySheet';
 
@@ -178,94 +179,101 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         </button>
       </header>
 
-      {items.length > 0 && (
-        <ExerciseChips
-          items={items}
-          activeId={active?.id ?? null}
-          onSelect={setActiveId}
-          onReorder={(next) => {
-            reorder.mutate(next);
-          }}
-        />
-      )}
+      {/* Guided routines (Mobility): the phone leads instead of a set list. */}
+      {workout.trainingType.guided ? (
+        <RoutinePlayer items={items} onFinish={finishWorkout} finishing={finish.isPending} />
+      ) : (
+        <>
+          {items.length > 0 && (
+            <ExerciseChips
+              items={items}
+              activeId={active?.id ?? null}
+              onSelect={setActiveId}
+              onReorder={(next) => {
+                reorder.mutate(next);
+              }}
+            />
+          )}
 
-      <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
-        <AnimatePresence mode="wait" initial={false}>
-          {active ? (
-            <motion.div
-              key={active.id}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={fade.fast}
-            >
-              <ExerciseCard
-                item={active}
-                onDevice={() => {
-                  if (active.device)
-                    setDeviceTarget({ device: active.device, exercise: active.exercise });
-                }}
-                onMenu={() => {
-                  setMenu({ kind: 'item', item: active });
-                }}
-                onHistory={() => {
-                  setHistoryTarget({ exercise: active.exercise, device: active.device });
-                }}
-              />
-            </motion.div>
-          ) : (
-            <Card className="flex flex-col items-start gap-3">
-              <p className="text-subhead text-text-muted">
-                Füg deine erste Übung hinzu. Sätze werden beim Abhaken sofort gespeichert.
-              </p>
+          <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
+            <AnimatePresence mode="wait" initial={false}>
+              {active ? (
+                <motion.div
+                  key={active.id}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -16 }}
+                  transition={fade.fast}
+                >
+                  <ExerciseCard
+                    item={active}
+                    onDevice={() => {
+                      if (active.device)
+                        setDeviceTarget({ device: active.device, exercise: active.exercise });
+                    }}
+                    onMenu={() => {
+                      setMenu({ kind: 'item', item: active });
+                    }}
+                    onHistory={() => {
+                      setHistoryTarget({ exercise: active.exercise, device: active.device });
+                    }}
+                  />
+                </motion.div>
+              ) : (
+                <Card className="flex flex-col items-start gap-3">
+                  <p className="text-subhead text-text-muted">
+                    Füg deine erste Übung hinzu. Sätze werden beim Abhaken sofort gespeichert.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setAddOpen(true);
+                    }}
+                  >
+                    Übung hinzufügen
+                  </Button>
+                </Card>
+              )}
+            </AnimatePresence>
+          </main>
+
+          {items.length > 0 && (
+            <nav className="mx-gutter mb-3 flex shrink-0 items-center justify-between rounded-pill glass p-1">
               <Button
+                variant="ghost"
+                aria-label="Vorherige Übung"
+                disabled={index === 0}
+                onClick={() => {
+                  setActiveId(items[index - 1]?.id ?? null);
+                }}
+              >
+                ‹
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setAddOpen(true);
                 }}
               >
-                Übung hinzufügen
+                + Übung
               </Button>
-            </Card>
+              {index < items.length - 1 ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setActiveId(items[index + 1]?.id ?? null);
+                  }}
+                >
+                  Nächste ›
+                </Button>
+              ) : (
+                // Last exercise: the same spot finishes the workout.
+                <Button loading={finish.isPending} onClick={finishWorkout}>
+                  Beenden ✓
+                </Button>
+              )}
+            </nav>
           )}
-        </AnimatePresence>
-      </main>
-
-      {items.length > 0 && (
-        <nav className="mx-gutter mb-3 flex shrink-0 items-center justify-between rounded-pill glass p-1">
-          <Button
-            variant="ghost"
-            aria-label="Vorherige Übung"
-            disabled={index === 0}
-            onClick={() => {
-              setActiveId(items[index - 1]?.id ?? null);
-            }}
-          >
-            ‹
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setAddOpen(true);
-            }}
-          >
-            + Übung
-          </Button>
-          {index < items.length - 1 ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setActiveId(items[index + 1]?.id ?? null);
-              }}
-            >
-              Nächste ›
-            </Button>
-          ) : (
-            // Last exercise: the same spot finishes the workout.
-            <Button loading={finish.isPending} onClick={finishWorkout}>
-              Beenden ✓
-            </Button>
-          )}
-        </nav>
+        </>
       )}
 
       <ExercisePickerSheet

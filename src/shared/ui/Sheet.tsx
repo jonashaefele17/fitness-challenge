@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { fade, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
+import { fade, sheetBehind, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
 export interface SheetProps {
@@ -150,6 +150,15 @@ export function Sheet({
                       {footer}
                     </div>
                   )}
+                  {/* Behind another sheet: dimmed, and lit up again a little slower than the
+                      overlay fades, so you notice it was there all along. */}
+                  <motion.div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-t-sheet bg-overlay"
+                    initial={false}
+                    animate={{ opacity: covered ? 1 : 0 }}
+                    transition={sheetBehind.transition}
+                  />
                 </motion.div>
               </Dialog.Content>
             </div>

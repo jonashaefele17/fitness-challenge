@@ -32,7 +32,7 @@ function iosSwitchLabel(): HTMLLabelElement | null {
 export function hapticTick() {
   try {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(8);
+      navigator.vibrate(10);
       return;
     }
     iosSwitchLabel()?.click();

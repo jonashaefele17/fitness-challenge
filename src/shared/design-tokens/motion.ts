@@ -22,5 +22,8 @@ export const fade = {
 
 export const pressScale = 0.97;
 
+/** A sheet with another sheet on top shrinks back (iOS sheet stack). */
+export const sheetBehindScale = 0.92;
+
 /** Drag distance (px) or velocity (px/s) after which a sheet dismisses. */
 export const sheetDismiss = { offset: 120, velocity: 500 } as const;

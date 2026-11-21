@@ -1,4 +1,4 @@
-import { motion, useDragControls, type PanInfo } from 'motion/react';
+import { animate, motion, useDragControls, useMotionValue, type PanInfo } from 'motion/react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, hapticTick, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
@@ -17,7 +17,10 @@ import { NumberWheel } from './NumberWheel';
 import { Sparkline } from './Sparkline';
 
 const STEP = { weight: 2.5, reps: 1, duration: 5 } as const;
-const SWIPE_DELETE_PX = 90;
+/** Width of the revealed delete button. */
+const DELETE_ACTION_PX = 88;
+/** A swipe past this share of the row width deletes immediately. */
+const FULL_SWIPE_SHARE = 0.5;
 
 export interface ExerciseCardProps {
   item: WorkoutItem;
@@ -150,6 +153,7 @@ function SetRow({
   const addSet = useAddSet();
   const done = set.completedAt !== null;
   const dragControls = useDragControls();
+  const x = useMotionValue(0);
 
   // Suggested values for an empty active row: last ticked set, else last workout.
   const suggestion = {
@@ -172,8 +176,8 @@ function SetRow({
     change({ ...suggestion, completedAt: new Date().toISOString() });
   }
 
-  function handleDragEnd(_: unknown, info: PanInfo) {
-    if (info.offset.x > -SWIPE_DELETE_PX) return;
+  function deleteSet() {
+    hapticTick();
     remove.mutate({ itemId, setId: set.id });
     showToast('Satz gelöscht', {
       label: 'Rückgängig',
@@ -183,15 +187,32 @@ function SetRow({
     });
   }
 
+  // iOS Mail style: the row follows the finger; a short swipe snaps open to reveal the
+  // delete button, a long swipe (or a fast flick) deletes right away.
+  function handleDragEnd(event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) {
+    const rowWidth = (event.target as Element | null)?.closest('li')?.clientWidth ?? 360;
+    const offset = x.get();
+    if (offset < -rowWidth * FULL_SWIPE_SHARE || info.velocity.x < -1200) {
+      deleteSet();
+      return;
+    }
+    const open = offset < -DELETE_ACTION_PX / 3 || info.velocity.x < -300;
+    void animate(x, open ? -DELETE_ACTION_PX : 0, spring.snappy);
+  }
+
   return (
     <li className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="absolute inset-0 flex items-center justify-end bg-danger px-5 text-subhead font-semibold text-text"
-      >
-        Löschen
+      <div className="absolute inset-0 flex justify-end bg-danger">
+        <button
+          type="button"
+          onClick={deleteSet}
+          className="flex w-22 items-center justify-center text-subhead font-semibold text-text"
+        >
+          Löschen
+        </button>
       </div>
       <motion.div
+        style={{ x }}
         drag="x"
         dragListener={false}
         dragControls={dragControls}
@@ -200,9 +221,17 @@ function SetRow({
           if ((event.target as Element).closest('[data-wheel]')) return;
           dragControls.start(event);
         }}
+        onClickCapture={(event) => {
+          // A tap on an opened row closes it instead of triggering its buttons.
+          if (x.get() < -4) {
+            event.stopPropagation();
+            void animate(x, 0, spring.snappy);
+          }
+        }}
         dragDirectionLock
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={{ left: 0.6, right: 0 }}
+        dragMomentum={false}
+        dragElastic={false}
+        dragConstraints={{ left: -10_000, right: 0 }}
         onDragEnd={handleDragEnd}
         className={cn(
           'relative grid min-h-tap grid-cols-[2.25rem_minmax(0,1fr)_auto_2.75rem] items-center gap-x-2 bg-surface px-4 py-1',

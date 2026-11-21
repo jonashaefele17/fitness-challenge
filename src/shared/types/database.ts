@@ -1343,6 +1343,18 @@ export type Database = {
           unread: number;
         }[];
       };
+      exercise_overview: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          exercise_id: string;
+          last_done_at: string;
+          last_duration_seconds: number;
+          last_reps: number;
+          last_weight_kg: number;
+          scope_device_id: string;
+          trend: number[];
+        }[];
+      };
       exercise_trend: {
         Args: { p_device_id?: string; p_exercise_id: string; p_limit?: number };
         Returns: {

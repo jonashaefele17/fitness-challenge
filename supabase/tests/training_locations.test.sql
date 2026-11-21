@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(12);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -95,6 +95,26 @@ select results_eq(
       'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000009') limit 1$$,
   $$values (false)$$,
   'a new machine falls back to other devices, marked as "other device"');
+reset role;
+
+-- Overview for the exercise picker
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select results_eq(
+  $$select scope_device_id, last_weight_kg from public.exercise_overview()
+     where exercise_id = 'e0000000-0000-4000-8000-000000000001' order by last_weight_kg$$,
+  $$values ('d0000000-0000-4000-8000-000000000002'::uuid, 60.00::numeric),
+           ('d0000000-0000-4000-8000-000000000001'::uuid, 100.00::numeric)$$,
+  'overview keeps one history per machine');
+select results_eq(
+  $$select scope_device_id, trend from public.exercise_overview()
+     where exercise_id = 'e0000000-0000-4000-8000-000000000002'$$,
+  $$values (null::uuid, array[10.00, 6.00]::numeric[])$$,
+  'comparable devices share one history (oldest first)');
+select lives_ok(
+  $$insert into public.device_exercises (device_id, exercise_id)
+    values ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000002')$$,
+  'anyone may link an exercise to a device at a public studio');
 reset role;
 
 select * from finish();

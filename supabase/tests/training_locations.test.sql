@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(15);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -128,6 +128,27 @@ select lives_ok(
   $$update public.workouts set focus_id = (select id from public.training_focuses where name = 'Push')
      where status = 'active'$$,
   'workouts record a training focus');
+reset role;
+
+-- A newer workout without a device must not push the machine's own history aside.
+do $$
+declare w uuid := gen_random_uuid(); i uuid := gen_random_uuid();
+begin
+  insert into public.workouts (id, user_id, training_type_id, location_id, status, started_at, ended_at)
+  values (w, '11111111-1111-4111-8111-111111111111', tests.type_id('Studio'), null,
+          'finished', now(), now());
+  insert into public.workout_items (id, workout_id, exercise_id, device_id, position)
+  values (i, w, 'e0000000-0000-4000-8000-000000000001', null, 0);
+  insert into public.workout_sets (item_id, position, weight_kg, reps, completed_at)
+  values (i, 0, 5, 10, now());
+end $$;
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select results_eq(
+  $$select weight_kg, same_device from public.previous_sets(
+      'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001')$$,
+  $$values (100.00::numeric, true)$$,
+  'a newer workout without a device does not hide the machine''s own history');
 reset role;
 
 select * from finish();

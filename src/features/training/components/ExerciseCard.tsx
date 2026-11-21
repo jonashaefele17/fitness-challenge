@@ -119,7 +119,7 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
 
       <ul>
         <AnimatePresence initial={false}>
-          {item.sets.map((set) => {
+          {item.sets.map((set, index) => {
             const label = set.isWarmup ? 'W' : String(++workingIndex);
             return (
               <SetRow
@@ -129,7 +129,8 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
                 label={label}
                 measure={measure}
                 active={set.id === activeId}
-                previous={previous[set.position] ?? previous[previous.length - 1]}
+                // Only the set at the same place last time; a 4th set after 3 last time: "–".
+                previous={previous[index]}
                 fallback={item.sets.filter((other) => other.completedAt !== null).at(-1)}
                 weightStep={weightStep}
               />

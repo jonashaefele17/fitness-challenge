@@ -1,6 +1,14 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { fade, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
@@ -52,6 +60,37 @@ export function Sheet({
     };
   }, [open, setParentCovered]);
 
+  // Behind another sheet it grows to full height (its top edge peeks out above the new
+  // sheet) and shrinks back afterwards, gliding in step with the new sheet instead of
+  // jumping. Done on the element: from its measured height to the maximum and back.
+  const baseHeight = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+    const glide = `min-height ${String(fade.base.duration)}s cubic-bezier(${fade.base.ease.join(',')})`;
+    if (covered) {
+      baseHeight.current = element.offsetHeight;
+      element.style.transition = 'none';
+      element.style.minHeight = `${String(element.offsetHeight)}px`;
+      element.getBoundingClientRect(); // apply the start height before gliding
+      element.style.transition = glide;
+      element.style.minHeight = getComputedStyle(element).maxHeight;
+      return;
+    }
+    if (baseHeight.current === null) return;
+    element.style.transition = glide;
+    element.style.minHeight = `${String(baseHeight.current)}px`;
+    baseHeight.current = null;
+    const reset = () => {
+      element.style.transition = '';
+      element.style.minHeight = '';
+    };
+    element.addEventListener('transitionend', reset, { once: true });
+    return () => {
+      element.removeEventListener('transitionend', reset);
+    };
+  }, [covered]);
+
   function handleDragEnd(_: unknown, info: PanInfo) {
     if (info.offset.y > sheetDismiss.offset || info.velocity.y > sheetDismiss.velocity) {
       onOpenChange(false);
@@ -89,12 +128,10 @@ export function Sheet({
                 <motion.div
                   ref={contentRef}
                   className={cn(
-                    'absolute inset-x-0 bottom-0 flex max-h-(--spacing-sheet-max) origin-top flex-col rounded-t-sheet border-t border-border bg-surface pb-safe transition-[min-height] duration-(--duration-base) outline-none',
+                    'absolute inset-x-0 bottom-0 flex max-h-(--spacing-sheet-max) origin-top flex-col rounded-t-sheet border-t border-border bg-surface pb-safe outline-none',
                     stacked && 'max-h-(--spacing-sheet-stacked)',
                     className,
                   )}
-                  // Behind another sheet: full height, shrunk back, its top edge peeking out.
-                  style={covered ? { minHeight: 'var(--spacing-sheet-max)' } : {}}
                   initial={{ y: '100%' }}
                   animate={{ y: 0, scale: covered ? sheetBehindScale : 1 }}
                   exit={{ y: '100%' }}

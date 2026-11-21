@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
-import type { Device, ExerciseMeasure, ExerciseSummary, TrainingType, TrendPoint } from '../types';
+import type {
+  Device,
+  ExerciseMeasure,
+  ExerciseSummary,
+  TrainingFocus,
+  TrainingType,
+  TrendPoint,
+} from '../types';
 import { trainingKeys } from './keys';
 
 export function useTrainingTypes() {
@@ -128,38 +135,108 @@ export function useCreateExercise() {
       }
       return { id, name, measure: input.measure };
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [...trainingKeys.all(userId), 'exercise-search'] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...trainingKeys.all(userId), 'exercise-search'],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [...trainingKeys.all(userId), 'primary-muscles'],
+      });
+    },
   });
 }
 
-/** Primary muscle labels per exercise, for tiles ("Brust · Trizeps"). */
-export function usePrimaryMuscles(exerciseIds: string[]) {
+export interface MuscleRef {
+  key: string;
+  label: string;
+}
+
+/**
+ * Primary muscles of every exercise in the catalogue (small), for tile subtitles and the
+ * training-focus filter. Exercises without muscles are missing from the map.
+ */
+export function usePrimaryMuscleIndex() {
   const userId = useUserId();
   const muscles = useMuscleGroups();
-  const ids = [...exerciseIds].sort();
   const query = useQuery({
-    queryKey: [...trainingKeys.all(userId), 'primary-muscles', ids],
-    enabled: ids.length > 0,
+    queryKey: [...trainingKeys.all(userId), 'primary-muscles'],
     staleTime: 10 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('exercise_muscles')
         .select('exercise_id, muscle_group')
-        .in('exercise_id', ids)
         .eq('role', 'primary');
       if (error) throw error;
       return data;
     },
   });
   const labels = new Map((muscles.data ?? []).map((m) => [m.key, m.label]));
-  const byExercise = new Map<string, string[]>();
+  const byExercise = new Map<string, MuscleRef[]>();
   for (const row of query.data ?? []) {
     const list = byExercise.get(row.exercise_id) ?? [];
-    list.push(labels.get(row.muscle_group) ?? row.muscle_group);
+    list.push({ key: row.muscle_group, label: labels.get(row.muscle_group) ?? row.muscle_group });
     byExercise.set(row.exercise_id, list);
   }
   return byExercise;
+}
+
+// ---------------------------------------------------------------------------
+// Training focus (Push, Pull, Beine … and personal ones)
+// ---------------------------------------------------------------------------
+export function useTrainingFocuses() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'focuses'],
+    staleTime: 10 * 60_000,
+    queryFn: async (): Promise<TrainingFocus[]> => {
+      const { data, error } = await supabase
+        .from('training_focuses')
+        .select('id, name, muscle_groups, owner_id')
+        .is('archived_at', null)
+        .or(`owner_id.is.null,owner_id.eq.${userId}`)
+        .order('sort')
+        .order('name');
+      if (error) throw error;
+      return data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        muscleGroups: row.muscle_groups,
+        ownerId: row.owner_id,
+      }));
+    },
+  });
+}
+
+export function useCreateTrainingFocus() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (input: { name: string; muscleGroups: string[] }): Promise<string> => {
+      const id = crypto.randomUUID();
+      const { error } = await supabase.from('training_focuses').insert({
+        id,
+        owner_id: userId,
+        name: input.name.trim(),
+        muscle_groups: input.muscleGroups,
+      });
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [...trainingKeys.all(userId), 'focuses'] }),
+  });
+}
+
+/**
+ * Whether an exercise fits a focus (any primary muscle in the focus). Exercises without
+ * muscles always fit, so nothing silently disappears.
+ */
+export function fitsFocus(
+  focus: TrainingFocus | null | undefined,
+  muscles: MuscleRef[] | undefined,
+): boolean {
+  if (!focus || !muscles || muscles.length === 0) return true;
+  return muscles.some((muscle) => focus.muscleGroups.includes(muscle.key));
 }
 
 export interface ExerciseHistory {

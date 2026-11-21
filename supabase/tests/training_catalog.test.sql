@@ -6,11 +6,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(29);
+select plan(41);
 
 -- Start from an empty catalogue (seed migrations add a starter catalogue).
-delete from public.device_exercises;
 delete from public.devices;
+delete from public.device_type_exercises;
+delete from public.device_types;
+delete from public.training_focuses where owner_id is not null;
 delete from public.locations;
 delete from public.exercise_aliases;
 delete from public.exercise_muscles;
@@ -80,16 +82,39 @@ select throws_ok(
     ('Fremdes Gym', '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111')$$,
   '42501', null, 'nobody creates private places for others');
 select lives_ok(
-  $$insert into public.devices (id, location_id, name, weight_step, weight_min, weight_max, created_by) values
-    ('d0000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002',
-     'Kurzhanteln', 2.5, 2.5, 30, '11111111-1111-4111-8111-111111111111'),
-    ('d0000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001',
-     'Kabelzug', 5, 5, 100, '11111111-1111-4111-8111-111111111111')$$,
-  'devices at the own private place and at public studios');
+  $$insert into public.device_types (id, name, default_weight_step, comparable) values
+    ('70000000-0000-4000-8000-000000000001', 'Kurzhanteln', 2.5, true),
+    ('70000000-0000-4000-8000-000000000002', 'Kabelzug', 5, false)$$,
+  'anyone adds device types');
+select throws_ok(
+  $$insert into public.device_types (name) values (' kabelzug')$$,
+  '23505', null, 'device type names are unique (case and spaces ignored)');
 select lives_ok(
-  $$insert into public.device_exercises (device_id, exercise_id) values
-    ('d0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001')$$,
-  'device editors link exercises');
+  $$insert into public.devices (id, location_id, device_type_id, created_by) values
+    ('d0000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002',
+     '70000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111'),
+    ('d0000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000001',
+     '70000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111')$$,
+  'devices at the own private place and at public studios');
+select throws_ok(
+  $$insert into public.devices (location_id, device_type_id, created_by) values
+    ('10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000002',
+     '11111111-1111-4111-8111-111111111111')$$,
+  '23505', null, 'one device per type and place');
+select lives_ok(
+  $$insert into public.device_type_exercises (device_type_id, exercise_id) values
+    ('70000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001'),
+    ('70000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001')$$,
+  'members link exercises to device types');
+select lives_ok(
+  $$insert into public.device_hidden_exercises (device_id, exercise_id) values
+    ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001')$$,
+  'members hide an exercise a public studio device does not offer');
+select lives_ok(
+  $$insert into public.training_focuses (id, name, muscle_groups, owner_id) values
+    ('f0000000-0000-4000-8000-000000000001', 'Brust & Bizeps', array['chest', 'biceps'],
+     '11111111-1111-4111-8111-111111111111')$$,
+  'people define their own training focus');
 select lives_ok(
   $$insert into public.user_device_settings (device_id, exercise_id, "values") values
     ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000001', '{"Höhe": "12"}')$$,
@@ -115,6 +140,19 @@ set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222",
 select is((select count(*) from public.locations), 2::bigint,
   'group mates see public studios and each other''s private places');
 select is((select count(*) from public.devices), 2::bigint, 'and their devices');
+select is((select count(*) from public.device_hidden_exercises), 1::bigint,
+  'hidden exercises at visible devices are visible');
+select is((select count(*) from public.training_focuses where owner_id is null), 7::bigint,
+  'seven default training focuses');
+select is((select count(*) from public.training_focuses), 8::bigint,
+  'group mates see each other''s training focuses');
+update public.training_focuses set name = 'Hacked' where id = 'f0000000-0000-4000-8000-000000000001';
+select is((select name from public.training_focuses where id = 'f0000000-0000-4000-8000-000000000001'),
+  'Brust & Bizeps', 'others cannot edit someone''s training focus');
+delete from public.device_type_exercises
+ where device_type_id = '70000000-0000-4000-8000-000000000001';
+select is((select count(*) from public.device_type_exercises), 2::bigint,
+  'members hide instead of removing exercises from a type');
 select is((select count(*) from public.training_types), 6::bigint,
   'group mates see default and personal training types');
 select is((select count(*) from public.user_device_settings), 0::bigint,
@@ -123,8 +161,9 @@ update public.exercises set name = 'Hacked' where id = 'e0000000-0000-4000-8000-
 select is((select name from public.exercises where id = 'e0000000-0000-4000-8000-000000000001'),
   'Bankdrücken', 'others cannot rename an exercise');
 select throws_ok(
-  $$insert into public.devices (location_id, name, created_by) values
-    ('10000000-0000-4000-8000-000000000002', 'Fremdes Gerät', '22222222-2222-4222-8222-222222222222')$$,
+  $$insert into public.devices (location_id, device_type_id, created_by) values
+    ('10000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000002',
+     '22222222-2222-4222-8222-222222222222')$$,
   '42501', null, 'nobody adds devices to someone else''s private place');
 update public.devices set weight_step = 1.25 where id = 'd0000000-0000-4000-8000-000000000002';
 update public.devices set weight_step = 99 where id = 'd0000000-0000-4000-8000-000000000001';
@@ -133,7 +172,11 @@ select is(
   1.25::numeric, 'members may edit devices at public studios');
 select is(
   (select weight_step from public.devices where id = 'd0000000-0000-4000-8000-000000000001'),
-  2.50::numeric, 'devices at someone else''s private place stay untouched');
+  null::numeric, 'devices at someone else''s private place stay untouched');
+select throws_ok(
+  $$insert into public.device_hidden_exercises (device_id, exercise_id) values
+    ('d0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001')$$,
+  '42501', null, 'nobody hides exercises at someone else''s private place');
 select throws_ok(
   $$insert into public.exercise_aliases (exercise_id, alias) values
     ('e0000000-0000-4000-8000-000000000001', 'Brustpresse')$$,
@@ -150,6 +193,8 @@ select is((select count(*) from public.locations), 1::bigint,
   'only public studios are visible to other groups');
 select is((select count(*) from public.devices), 1::bigint,
   'devices at private places of other groups are hidden');
+select is((select count(*) from public.training_focuses), 7::bigint,
+  'training focuses of other groups are hidden');
 select is((select count(*) from public.training_types), 5::bigint,
   'personal training types of other groups are hidden');
 reset role;

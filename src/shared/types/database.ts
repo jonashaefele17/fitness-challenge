@@ -126,30 +126,36 @@ export type Database = {
           },
         ];
       };
-      device_exercises: {
+      device_hidden_exercises: {
         Row: {
+          created_at: string;
           device_id: string;
           exercise_id: string;
+          hidden_by: string | null;
         };
         ComputedFields: never;
         Insert: {
+          created_at?: string;
           device_id: string;
           exercise_id: string;
+          hidden_by?: string | null;
         };
         Update: {
+          created_at?: string;
           device_id?: string;
           exercise_id?: string;
+          hidden_by?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'device_exercises_device_id_fkey';
+            foreignKeyName: 'device_hidden_exercises_device_id_fkey';
             columns: ['device_id'];
             isOneToOne: false;
             referencedRelation: 'devices';
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'device_exercises_exercise_id_fkey';
+            foreignKeyName: 'device_hidden_exercises_exercise_id_fkey';
             columns: ['exercise_id'];
             isOneToOne: false;
             referencedRelation: 'exercises';
@@ -157,48 +163,114 @@ export type Database = {
           },
         ];
       };
-      devices: {
+      device_type_exercises: {
+        Row: {
+          added_by: string | null;
+          created_at: string;
+          device_type_id: string;
+          exercise_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          added_by?: string | null;
+          created_at?: string;
+          device_type_id: string;
+          exercise_id: string;
+        };
+        Update: {
+          added_by?: string | null;
+          created_at?: string;
+          device_type_id?: string;
+          exercise_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_type_exercises_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'device_type_exercises_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      device_types: {
         Row: {
           comparable: boolean;
           created_at: string;
           created_by: string | null;
+          default_weight_step: number | null;
           id: string;
           image_path: string | null;
-          location_id: string;
           name: string;
           setting_fields: string[];
-          weight_max: number | null;
-          weight_min: number | null;
-          weight_step: number | null;
         };
         ComputedFields: never;
         Insert: {
           comparable?: boolean;
           created_at?: string;
           created_by?: string | null;
+          default_weight_step?: number | null;
           id?: string;
           image_path?: string | null;
-          location_id: string;
           name: string;
           setting_fields?: string[];
-          weight_max?: number | null;
-          weight_min?: number | null;
-          weight_step?: number | null;
         };
         Update: {
           comparable?: boolean;
           created_at?: string;
           created_by?: string | null;
+          default_weight_step?: number | null;
+          id?: string;
+          image_path?: string | null;
+          name?: string;
+          setting_fields?: string[];
+        };
+        Relationships: [];
+      };
+      devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          device_type_id: string;
+          id: string;
+          image_path: string | null;
+          location_id: string;
+          weight_step: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          device_type_id: string;
+          id?: string;
+          image_path?: string | null;
+          location_id: string;
+          weight_step?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          device_type_id?: string;
           id?: string;
           image_path?: string | null;
           location_id?: string;
-          name?: string;
-          setting_fields?: string[];
-          weight_max?: number | null;
-          weight_min?: number | null;
           weight_step?: number | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'devices_device_type_id_fkey';
+            columns: ['device_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'device_types';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'devices_location_id_fkey';
             columns: ['location_id'];
@@ -1034,6 +1106,37 @@ export type Database = {
         };
         Relationships: [];
       };
+      training_focuses: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          muscle_groups: string[];
+          name: string;
+          owner_id: string | null;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          muscle_groups: string[];
+          name: string;
+          owner_id?: string | null;
+          sort?: number;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          muscle_groups?: string[];
+          name?: string;
+          owner_id?: string | null;
+          sort?: number;
+        };
+        Relationships: [];
+      };
       training_prefs: {
         Row: {
           home_location_id: string | null;
@@ -1245,6 +1348,7 @@ export type Database = {
           distance_m: number | null;
           duration_seconds: number | null;
           ended_at: string | null;
+          focus_id: string | null;
           id: string;
           intensity: number | null;
           location_id: string | null;
@@ -1263,6 +1367,7 @@ export type Database = {
           distance_m?: number | null;
           duration_seconds?: number | null;
           ended_at?: string | null;
+          focus_id?: string | null;
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
@@ -1280,6 +1385,7 @@ export type Database = {
           distance_m?: number | null;
           duration_seconds?: number | null;
           ended_at?: string | null;
+          focus_id?: string | null;
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
@@ -1293,6 +1399,13 @@ export type Database = {
           variant?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'workouts_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'workouts_location_id_fkey';
             columns: ['location_id'];
@@ -1355,6 +1468,13 @@ export type Database = {
           trend: number[];
         }[];
       };
+      exercise_popularity: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          exercise_id: string;
+          uses: number;
+        }[];
+      };
       exercise_trend: {
         Args: { p_device_id?: string; p_exercise_id: string; p_limit?: number };
         Returns: {
@@ -1369,6 +1489,7 @@ export type Database = {
           distance_m: number | null;
           duration_seconds: number | null;
           ended_at: string | null;
+          focus_id: string | null;
           id: string;
           intensity: number | null;
           location_id: string | null;
@@ -1468,6 +1589,7 @@ export type Database = {
           distance_m: number | null;
           duration_seconds: number | null;
           ended_at: string | null;
+          focus_id: string | null;
           id: string;
           intensity: number | null;
           location_id: string | null;

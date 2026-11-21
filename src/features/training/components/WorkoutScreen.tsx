@@ -29,6 +29,7 @@ import {
   useSwapExercise,
   useTogglePause,
   useSetItemDevice,
+  useSetWorkoutFocus,
   useSetWorkoutLocation,
   useUpdateItemNote,
   type FinishedWorkout,
@@ -72,6 +73,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   } | null>(null);
   const setItemDevice = useSetItemDevice();
   const setLocation = useSetWorkoutLocation(workout.id);
+  const setFocus = useSetWorkoutFocus(workout.id);
   const [summary, setSummary] = useState<(WorkoutSummary & FinishedWorkout) | null>(null);
 
   const addExercise = useAddExercise(workout.id);
@@ -234,6 +236,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         open={addOpen}
         onOpenChange={setAddOpen}
         place={workout.location}
+        focusId={workout.focusId}
+        onFocusChange={(focusId) => {
+          setFocus.mutate(focusId);
+        }}
         onPick={(exercise, device) => {
           const itemId = crypto.randomUUID();
           addExercise.mutate({
@@ -254,6 +260,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         }}
         title="Übung tauschen"
         place={workout.location}
+        focusId={workout.focusId}
+        onFocusChange={(focusId) => {
+          setFocus.mutate(focusId);
+        }}
         onPick={(exercise, device) => {
           if (!swapItem) return;
           swap.mutate({ itemId: swapItem.id, exercise });

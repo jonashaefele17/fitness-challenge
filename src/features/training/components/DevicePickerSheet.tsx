@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, Sheet, Switch, TextField } from '@/shared/ui';
-import { linkExerciseToDevice, useCreateDevice, useDevicesAt } from '../api/usePlaces';
+import { Button, Sheet, TextField } from '@/shared/ui';
+import { linkExerciseToType, useAddDevices, useDevicesAt, useDeviceTypes } from '../api/usePlaces';
 import { useSetItemDevice } from '../api/useWorkout';
 import type { Device, Place, WorkoutItem } from '../types';
+import { NewDeviceTypeForm } from './picker/AddDevices';
 
 export interface DevicePickerSheetProps {
   item: WorkoutItem | null;
@@ -11,7 +12,7 @@ export interface DevicePickerSheetProps {
   onClose: () => void;
 }
 
-/** Pick the device used for an exercise here, or add it as a new device. */
+/** Pick the device used for an exercise here, or add one from the device type catalogue. */
 export function DevicePickerSheet({ item, place, onClose }: DevicePickerSheetProps) {
   return (
     <Sheet
@@ -34,84 +35,119 @@ export function DevicePickerSheet({ item, place, onClose }: DevicePickerSheetPro
   );
 }
 
+type Step = 'here' | 'catalogue' | 'new-type';
+
 function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDone: () => void }) {
-  const devices = useDevicesAt(place.id).data ?? [];
+  const devices = useDevicesAt(place.id);
+  const types = useDeviceTypes().data ?? [];
   const setDevice = useSetItemDevice();
-  const create = useCreateDevice();
-  const [adding, setAdding] = useState(false);
-  const [name, setName] = useState(item.exercise.name);
-  const [step, setStep] = useState('2,5');
-  const [comparable, setComparable] = useState(false);
+  const add = useAddDevices(place.id);
+  const [step, setStep] = useState<Step>('here');
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const deviceList = devices.data ?? [];
+  const offers = (device: { exercises: { id: string }[] }) =>
+    device.exercises.some((e) => e.id === item.exercise.id);
 
   // Devices that already offer this exercise come first.
-  const sorted = [...devices].sort(
-    (a, b) =>
-      Number(b.exercises.some((e) => e.id === item.exercise.id)) -
-      Number(a.exercises.some((e) => e.id === item.exercise.id)),
-  );
+  const sorted = [...deviceList].sort((a, b) => Number(offers(b)) - Number(offers(a)));
 
   function choose(device: Device | null) {
     setDevice.mutate({ itemId: item.id, device });
-    if (device) void linkExerciseToDevice(device.id, item.exercise.id);
+    if (device) void linkExerciseToType(device.typeId, item.exercise.id);
     onDone();
   }
 
-  if (adding) {
-    const stepValue = step.trim() === '' ? null : Number(step.replace(',', '.'));
+  /** Once the new device shows up in the list, pick it. */
+  async function chooseAdded(deviceId: string | undefined) {
+    const refreshed = await devices.refetch();
+    const added = refreshed.data?.find((device) => device.id === deviceId);
+    if (added) choose(added);
+  }
+
+  if (step === 'new-type') {
     return (
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          create.mutate(
+      <NewDeviceTypeForm
+        initialName={query.trim()}
+        pending={add.isPending}
+        error={error}
+        onSubmit={(values) => {
+          setError(null);
+          add.mutate(
+            { typeIds: [], newType: values },
             {
-              locationId: place.id,
-              name,
-              weightStep: stepValue,
-              comparable,
-              exerciseId: item.exercise.id,
+              onSuccess: (ids) => void chooseAdded([...ids.values()][0]),
+              onError: () => {
+                setError('Anlegen hat nicht geklappt (gibt es den Typ schon?).');
+              },
             },
-            { onSuccess: choose },
           );
         }}
-      >
-        <p className="text-subhead text-text-muted">Neues Gerät in {place.name}</p>
+      />
+    );
+  }
+
+  if (step === 'catalogue') {
+    const here = new Set(deviceList.map((device) => device.typeId));
+    const term = query.trim().toLowerCase();
+    const candidates = types
+      .filter((type) => !here.has(type.id))
+      .filter((type) => !term || type.name.toLowerCase().includes(term))
+      .sort(
+        (a, b) =>
+          Number(b.exercises.some((e) => e.id === item.exercise.id)) -
+          Number(a.exercises.some((e) => e.id === item.exercise.id)),
+      );
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-subhead text-text-muted">Welches Gerät gibt es in {place.name}?</p>
         <TextField
-          label="Name des Geräts"
-          value={name}
-          maxLength={60}
+          label="Gerät suchen"
+          value={query}
+          autoCorrect="off"
           onChange={(event) => {
-            setName(event.target.value);
+            setQuery(event.target.value);
           }}
         />
-        <TextField
-          label="Gewichtsstufe (kg)"
-          inputMode="decimal"
-          value={step}
-          onChange={(event) => {
-            setStep(event.target.value);
+        <ul className="-mx-gutter flex flex-col">
+          {candidates.map((type) => (
+            <li key={type.id}>
+              <button
+                type="button"
+                disabled={add.isPending}
+                onClick={() => {
+                  add.mutate(
+                    { typeIds: [type.id] },
+                    { onSuccess: (ids) => void chooseAdded(ids.get(type.id)) },
+                  );
+                }}
+                className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
+              >
+                <span className="text-body">{type.name}</span>
+                {type.exercises.some((e) => e.id === item.exercise.id) && (
+                  <span className="text-footnote text-accent">passt zur Übung</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setStep('new-type');
           }}
-        />
-        <Switch
-          label="Überall vergleichbar"
-          description="Kurzhanteln, Bank, Stange: an. Maschinen: aus."
-          checked={comparable}
-          onCheckedChange={setComparable}
-        />
-        <div className="flex gap-2">
-          <Button type="submit" disabled={name.trim().length < 2} loading={create.isPending}>
-            Anlegen
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setAdding(false);
-            }}
-          >
-            Zurück
-          </Button>
-        </div>
-      </form>
+        >
+          Neuer Gerätetyp
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setStep('here');
+          }}
+        >
+          Zurück
+        </Button>
+      </div>
     );
   }
 
@@ -119,7 +155,6 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-2">
         {sorted.map((device) => {
-          const offers = device.exercises.some((e) => e.id === item.exercise.id);
           const selected = item.device?.id === device.id;
           return (
             <button
@@ -135,7 +170,7 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
             >
               <span className="text-subhead font-semibold">{device.name}</span>
               <span className="text-caption text-text-muted">
-                {offers ? 'passt zur Übung' : `${String(device.exercises.length)} Übungen`}
+                {offers(device) ? 'passt zur Übung' : `${String(device.exercises.length)} Übungen`}
               </span>
             </button>
           );
@@ -144,10 +179,10 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
       <Button
         variant="secondary"
         onClick={() => {
-          setAdding(true);
+          setStep('catalogue');
         }}
       >
-        + Neues Gerät hier
+        + Weiteres Gerät hier
       </Button>
       {item.device && (
         <Button

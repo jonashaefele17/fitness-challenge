@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(14);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -15,11 +15,15 @@ insert into public.locations (id, name) values
 insert into public.exercises (id, name, measure) values
   ('e0000000-0000-4000-8000-000000000001', 'Test-Beinpresse', 'weight_reps'),
   ('e0000000-0000-4000-8000-000000000002', 'Test-Kurzhantel', 'weight_reps');
-insert into public.devices (id, location_id, name, comparable) values
-  ('d0000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Presse 1', false),
-  ('d0000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'Presse 2', false),
-  ('d0000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', 'Hanteln 1', true),
-  ('d0000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000002', 'Hanteln 2', true);
+insert into public.device_types (id, name, comparable) values
+  ('70000000-0000-4000-8000-000000000001', 'Test-Presse', false),
+  ('70000000-0000-4000-8000-000000000002', 'Test-Hanteln', true),
+  ('70000000-0000-4000-8000-000000000003', 'Test-Presse neu', false);
+insert into public.devices (id, location_id, device_type_id) values
+  ('d0000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000001'),
+  ('d0000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000001'),
+  ('d0000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', '70000000-0000-4000-8000-000000000002'),
+  ('d0000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000002', '70000000-0000-4000-8000-000000000002');
 insert into public.training_prefs (user_id, home_location_id)
 values ('11111111-1111-4111-8111-111111111111', '10000000-0000-4000-8000-000000000001');
 
@@ -86,8 +90,9 @@ select results_eq(
   'the trend of a machine only includes that machine');
 reset role;
 
-insert into public.devices (id, location_id, name)
-values ('d0000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000001', 'Neue Presse');
+insert into public.devices (id, location_id, device_type_id)
+values ('d0000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000001',
+        '70000000-0000-4000-8000-000000000003');
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
 select results_eq(
@@ -112,9 +117,17 @@ select results_eq(
   $$values (null::uuid, array[10.00, 6.00]::numeric[])$$,
   'comparable devices share one history (oldest first)');
 select lives_ok(
-  $$insert into public.device_exercises (device_id, exercise_id)
+  $$insert into public.device_type_exercises (device_type_id, exercise_id)
+    values ('70000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000002')$$,
+  'anyone may link an exercise to a device type');
+select lives_ok(
+  $$insert into public.device_hidden_exercises (device_id, exercise_id)
     values ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000002')$$,
-  'anyone may link an exercise to a device at a public studio');
+  'anyone may hide an exercise at a public studio device');
+select lives_ok(
+  $$update public.workouts set focus_id = (select id from public.training_focuses where name = 'Push')
+     where status = 'active'$$,
+  'workouts record a training focus');
 reset role;
 
 select * from finish();

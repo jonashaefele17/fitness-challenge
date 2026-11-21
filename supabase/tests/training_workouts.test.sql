@@ -22,7 +22,7 @@ insert into public.group_members (group_id, user_id) values
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '33333333-3333-4333-8333-333333333333');
 
 insert into public.exercises (id, name, measure) values
-  ('e0000000-0000-4000-8000-000000000001', 'Bankdrücken', 'weight_reps');
+  ('e0000000-0000-4000-8000-000000000001', 'Test-Bankdrücken', 'weight_reps');
 insert into public.training_types (id, name, kind, owner_id) values
   ('70000000-0000-4000-8000-000000000001', 'B-Privat', 'exercises', '33333333-3333-4333-8333-333333333333');
 

@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.5 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.6 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.6 | Training: Gerätetypen (Klassen) mit Übungen, Geräte als Instanzen pro Studio, Übungen pro Gerät ausblendbar, Trainingsfokus (Push, Pull …) als Filter, Schulter in vorne/seitlich/hinten aufgeteilt |
 | 21.11.2026 | 1.4 | Training: kein Satzpause-Timer; Messart pro Übung (Gewicht × Wdh., nur Wdh., Dauer); eigene Trainingsarten; Übungskatalog startet leer; Muskelgruppen pro Übung; Mobility-Player als eigene Etappe |
 
 ## Vision und Kernschleife
@@ -79,7 +80,11 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 
 **Geräte und Übungen**
 
-- Übungen sind allgemein (Bankdrücken, Latzug); Geräte gehören zu einem Studio und haben Foto, Gewichtsstufen (z. B. 5 kg, 2,5 kg) und eine oder mehrere Übungen.
+- Übungen sind allgemein (Bankdrücken, Latzug). **Gerätetypen** sind die allgemeine Klasse (Kabelturm, Beinbeuger, Kurzhanteln) mit Bild, Einstellungsfeldern, Standard-Gewichtsstufe, „überall vergleichbar“ und den Übungen, die man daran macht. Ein Startkatalog mit gut 20 Typen ist dabei; neue Typen und Übungen kann jeder ergänzen.
+- Ein **Gerät** ist ein Typ in einem Studio (der Kabelturm im FitX Neuperlach Süd): eigener Verlauf, optional eigene Gewichtsstufe. Übungen, die es dort nicht gibt, werden nur an diesem Gerät ausgeblendet („Hier nicht verfügbar“).
+- Studio einrichten: einmal die vorhandenen Gerätetypen auswählen (Mehrfachauswahl); danach zeigt das Raster nur diese Geräte.
+- Gerätedetails: „Deine Übungen“ (letzte 3 Monate), „Früher gemacht“ (mit „zuletzt vor …“), „Weitere Übungen“ (in der Gruppe häufige zuerst). Hat ein Gerät genau eine Übung, reicht ein Tipp.
+- **Trainingsfokus** (als Daten): Push, Pull, Beine, Oberkörper, Unterkörper, Arme, Ganzkörper; eigene aus Muskelgruppen zusammenstellbar. Ein Training kann einen Fokus haben; er filtert die Übungsauswahl nach primären Muskelgruppen („Alle“ zeigt alles). Später auch für Termine und Vorlagen.
 - Einstellungen werden pro Person, Gerät und Übung gespeichert (Kabelzug: Trizepsdrücken Höhe 12, Face Pulls Höhe 9).
 - Hinzufügen über ein Geräte-Raster mit Bildern; Geräte mit mehreren Übungen öffnen eine Auswahl.
 - FitX-Katalog legt Jonas mit eigenen Fotos an (einheitlicher Bildstil); andere Studios entstehen nebenbei („Gerät merken?“ nach dem Training).
@@ -261,7 +266,7 @@ Die Tabellen sind nach Modulen gruppiert; die generischen Bausteine (Kommentare,
 | Modul | Tabellen (Auswahl) | Hinweis |
 | --- | --- | --- |
 | Kern | profiles, groups, group\_members, invites | Rollen (Admin), Heimstudio, Sichtbarkeit |
-| Orte & Katalog | locations, devices, exercises, device\_exercises, exercise\_aliases | Gewichtsstufen am Gerät, Bild-URL |
+| Orte & Katalog | locations, device\_types, device\_type\_exercises, devices, device\_hidden\_exercises, exercises, exercise\_aliases, training\_focuses | Gerät = Typ im Studio; Stufe am Typ, am Gerät überschreibbar |
 | Einstellungen | user\_device\_settings | pro Person, Gerät, Übung |
 | Training | training\_types, templates, template\_items, workouts, workout\_participants, workout\_items, sets | Satz: kg, Wdh., Aufwärm-Flag, erledigt |
 | Planung | appointments, appointment\_invites, rest\_days | Status, Gegenvorschlag |
@@ -333,6 +338,8 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Ort kommt aus der Trainingsart: Studio → Heimstudio, Home Gym → eigener privater Ort, Laufen/Fußball → kein Ort; ändern nur bei Bedarf über „…“ im Training |
 | 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
 | 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
+| 21.11.2026 | Gerätetypen als globale Klasse mit Übungen; Geräte sind Instanzen pro Studio mit eigenem Verlauf; fehlende Übungen werden pro Gerät ausgeblendet statt gelöscht (skaliert auf mehrere Studios ohne Doppelpflege) |
+| 21.11.2026 | Trainingsfokus als Daten (Muskelgruppen-Menge), optional am Training; Übungen passen über ihre primären Muskelgruppen. Schulter aufgeteilt in vordere, seitliche, hintere |
 
 **Offen (zu zweit klären)**
 

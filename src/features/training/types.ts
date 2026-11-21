@@ -21,13 +21,19 @@ export interface Place {
   private: boolean;
 }
 
+/** A device at a place: an instance of a device type (Kabelturm at FitX Neuperlach Süd). */
 export interface Device {
   id: string;
+  typeId: string;
+  /** Name of the device type. */
   name: string;
+  /** Effective weight step: own override or the type's default. */
   weightStep: number | null;
+  /** The type's default step (an override equal to it is not stored). */
+  typeWeightStep: number | null;
   /** Comparable everywhere (dumbbells, bench, bar) vs. machine. */
   comparable: boolean;
-  /** Names of the device's settings, e.g. ["Rückenlehne", "Beinpolster"]; empty: none. */
+  /** Names of the type's settings, e.g. ["Rückenlehne", "Beinpolster"]; empty: none. */
   settingFields: string[];
 }
 
@@ -35,7 +41,29 @@ export interface Device {
 export type DeviceSettingValues = Record<string, string>;
 
 export interface DeviceWithExercises extends Device {
+  /** Exercises of the type offered here. */
   exercises: ExerciseSummary[];
+  /** Exercises of the type this place does not offer ("nicht verfügbar"). */
+  hiddenExercises: ExerciseSummary[];
+}
+
+/** Global device class with its exercises (catalogue for setting up a place). */
+export interface DeviceType {
+  id: string;
+  name: string;
+  weightStep: number | null;
+  comparable: boolean;
+  settingFields: string[];
+  exercises: ExerciseSummary[];
+}
+
+/** Push, Pull, Beine … or a personal one: a set of muscle groups. */
+export interface TrainingFocus {
+  id: string;
+  name: string;
+  muscleGroups: string[];
+  /** Personal focus of the signed-in user (null for defaults). */
+  ownerId: string | null;
 }
 
 export interface ExerciseSummary {
@@ -71,6 +99,7 @@ export interface ActiveWorkout {
   pausedSeconds: number;
   trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
   location: Place | null;
+  focusId: string | null;
   items: WorkoutItem[];
 }
 

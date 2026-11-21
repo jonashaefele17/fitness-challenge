@@ -78,7 +78,10 @@ function DeviceForm({
         }
         if (deviceChanged && name.trim().length >= 2 && (stepValue === null || stepValue > 0)) {
           updateDevice.mutate(
-            { ...device, name, weightStep: stepValue, comparable, settingFields: fields },
+            {
+              before: device,
+              after: { ...device, name, weightStep: stepValue, comparable, settingFields: fields },
+            },
             { onSuccess: onDone },
           );
         } else {
@@ -115,6 +118,10 @@ function DeviceForm({
 
       <div className="flex flex-col gap-3 border-t border-border pt-4">
         <span className="text-footnote font-medium text-text-muted">Gerät</span>
+        <p className="text-footnote text-text-subtle">
+          Name, Einstellungen und „vergleichbar“ gelten für jeden {device.name} in allen Studios,
+          die Gewichtsstufe nur für dieses Gerät.
+        </p>
         <div className="flex flex-col gap-2">
           <span className="text-footnote text-text-muted">Einstellungen des Geräts</span>
           <div className="flex flex-wrap gap-2">
@@ -170,7 +177,11 @@ function DeviceForm({
           onChange={(event) => {
             setStep(event.target.value);
           }}
-          hint="Um so viel springen die ‹ › Pfeile, z. B. 2,5 oder 1,25."
+          hint={`Um so viel springt das Gewicht, z. B. 2,5 oder 1,25. Leer: Standard des Typs${
+            device.typeWeightStep === null
+              ? ''
+              : ` (${String(device.typeWeightStep).replace('.', ',')})`
+          }.`}
         />
         <Switch
           label="Überall vergleichbar"
@@ -180,7 +191,7 @@ function DeviceForm({
         />
         {updateDevice.isError && (
           <p role="alert" className="text-footnote text-danger">
-            Das Gerät kann nur ändern, wer es angelegt hat.
+            Speichern hat nicht geklappt.
           </p>
         )}
       </div>

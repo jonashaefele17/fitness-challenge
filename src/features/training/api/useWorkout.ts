@@ -12,16 +12,17 @@ import type {
   WorkoutItem,
   WorkoutSet,
 } from '../types';
+import { DEVICE_COLUMNS, toDevice } from './deviceRow';
 import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
-  id, user_id, started_at, paused_at, paused_seconds,
+  id, user_id, started_at, paused_at, paused_seconds, focus_id,
   training_types!inner(id, name, kind),
   locations(id, name, owner_id),
   workout_items(
     id, position, note,
     exercises!inner(id, name, measure),
-    devices(id, name, weight_step, comparable, setting_fields),
+    devices(${DEVICE_COLUMNS}),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
   )
 `;
@@ -55,6 +56,7 @@ export function useActiveWorkout() {
         startedAt: data.started_at,
         pausedAt: data.paused_at,
         pausedSeconds: data.paused_seconds,
+        focusId: data.focus_id,
         location: data.locations
           ? {
               id: data.locations.id,
@@ -72,15 +74,7 @@ export function useActiveWorkout() {
             id: item.id,
             position: item.position,
             note: item.note,
-            device: item.devices
-              ? {
-                  id: item.devices.id,
-                  name: item.devices.name,
-                  weightStep: num(item.devices.weight_step),
-                  comparable: item.devices.comparable,
-                  settingFields: item.devices.setting_fields,
-                }
-              : null,
+            device: item.devices ? toDevice(item.devices) : null,
             exercise: {
               id: item.exercises.id,
               name: item.exercises.name,
@@ -563,5 +557,19 @@ export function useSetItemDevice() {
       if (error) throw error;
     },
     (workout, { itemId, device }) => mapItem(workout, itemId, (item) => ({ ...item, device })),
+  );
+}
+
+/** Set (or clear) the training focus, e.g. Push; it filters the exercise picker. */
+export function useSetWorkoutFocus(workoutId: string) {
+  return useActiveMutation(
+    async (focusId: string | null) => {
+      const { error } = await supabase
+        .from('workouts')
+        .update({ focus_id: focusId })
+        .eq('id', workoutId);
+      if (error) throw error;
+    },
+    (workout, focusId) => ({ ...workout, focusId }),
   );
 }

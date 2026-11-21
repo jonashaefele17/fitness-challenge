@@ -24,6 +24,18 @@ describe('targetPath', () => {
     ).toBe('/gruppe?karte=d1&thread=1&kommentar=c1');
   });
 
+  it('opens a workout, an exercise or a set with its thread', () => {
+    expect(targetPath({ groupId: 'g', type: 'workout', id: 'w1' }, { thread: true })).toBe(
+      '/gruppe?training=w1&thread=1',
+    );
+    expect(
+      targetPath(
+        { groupId: 'g', type: 'workout_item', id: 'i1', index: 2 },
+        { thread: true, commentId: 'c1' },
+      ),
+    ).toBe('/gruppe?uebung=i1&satz=2&thread=1&kommentar=c1');
+  });
+
   it('falls back to the group tab for unknown types', () => {
     expect(targetPath({ ...event, type: 'unknown' }, { thread: true })).toBe('/gruppe');
   });

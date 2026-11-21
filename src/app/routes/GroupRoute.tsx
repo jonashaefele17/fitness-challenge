@@ -5,7 +5,7 @@ import { FeedList, TrainedToday } from '@/features/feed';
 import { useActiveGroup } from '@/features/groups';
 import { NotificationBell, useInvalidateNotifications } from '@/features/notifications';
 import { ReactionBar } from '@/features/reactions';
-import { WorkoutDetailSheet } from '@/features/training';
+import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
 import { CardWorkouts } from '../feed/CardWorkouts';
@@ -35,6 +35,12 @@ export function GroupRoute() {
     setThread(focused);
   }
   const [workoutId, setWorkoutId] = useState<string | null>(null);
+  // Linked from a notification: a workout, or an exercise/set of one.
+  const linkedItem = params.get(targetParams.item);
+  const linkedSet = params.get(targetParams.set);
+  const itemWorkout = useWorkoutIdOfItem(linkedItem).data ?? null;
+  const linkedWorkout = params.get(targetParams.workout) ?? itemWorkout;
+  const shownWorkout = workoutId ?? linkedWorkout;
 
   return (
     <Screen title="Gruppe" accessory={<NotificationBell onOpenTarget={openTarget} />}>
@@ -72,9 +78,15 @@ export function GroupRoute() {
         />
       )}
       <WorkoutDetailSheet
-        workoutId={workoutId}
+        workoutId={shownWorkout}
+        focus={
+          linkedItem && !workoutId
+            ? { itemId: linkedItem, setIndex: linkedSet === null ? null : Number(linkedSet) }
+            : null
+        }
         onClose={() => {
           setWorkoutId(null);
+          if (linkedWorkout) setParams({}, { replace: true });
         }}
       />
     </Screen>

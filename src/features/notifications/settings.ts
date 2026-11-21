@@ -31,8 +31,23 @@ export function isCategoryEnabled(
 }
 
 /** German sentence for the bell, e.g. "hat deinen Beitrag kommentiert". */
+/** "deinen Satz" / "deine Übung" / "dein Training" / "deinen Beitrag". */
+export function ownObject(target?: { type: string; index?: number | null }): string {
+  switch (target?.type) {
+    case 'workout':
+      return 'dein Training';
+    case 'workout_item':
+      return target.index == null ? 'deine Übung' : 'deinen Satz';
+    default:
+      return 'deinen Beitrag';
+  }
+}
+
 export function describeNotification(
-  notification: Pick<AppNotification, 'event' | 'category'> & { emoji?: string | null },
+  notification: Pick<AppNotification, 'event' | 'category'> & {
+    emoji?: string | null;
+    target?: { type: string; index?: number | null };
+  },
 ) {
   switch (notification.event) {
     case 'mention':
@@ -47,7 +62,7 @@ export function describeNotification(
       return 'ist der Gruppe beigetreten';
     case 'comment':
       return notification.category === 'comments_on_mine'
-        ? 'hat deinen Beitrag kommentiert'
+        ? `hat ${ownObject(notification.target)} kommentiert`
         : 'hat kommentiert';
     default:
       return 'hat etwas Neues';

@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.26 | Feed (4c): Glocke und Push springen an die Stelle – Training öffnet sich, Übung im Blick, Satz markiert, Thread mit dem Kommentar offen; Texte nennen das Objekt („hat deinen Satz kommentiert“) |
 | 21.11.2026 | 1.25 | Feed (4b): Kommentare und Reaktionen am Training, an jeder Übung und an jedem Satz (Satz = Übung + Satz-Index); Satz antippen öffnet seinen Thread, Sätze mit Kommentaren/Reaktionen sind markiert; gilt in jeder Trainingsansicht (Feed und Kalender) |
 | 21.11.2026 | 1.24 | Feed (4a): Tageskarte pro Person, Gruppe und Tag (Trainings per Server-Trigger), Sortierung Neueste/Zuletzt aktiv, Pille „↑ Neue Beiträge“, Leiste „Heute“; nachgetragene Trainings am echten Tag mit „nachgetragen“ und ohne Benachrichtigung; Reaktionen 🔥 💪 👏 😂 😮 ❤️ (Tippen = 🔥, lange drücken = Auswahl, eine pro Person) |
 | 21.11.2026 | 1.23 | Trainings der Gruppe lassen sich als eigene Vorlage speichern; „Als Vorlage speichern“ ist eine einklappbare Zeile; Routinen behalten dabei ihre Einstellungen |

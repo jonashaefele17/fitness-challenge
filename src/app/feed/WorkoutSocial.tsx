@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router';
 import { CommentBubble, CommentThreadSheet, useCommentStatsByIndex } from '@/features/comments';
 import { useActiveGroup } from '@/features/groups';
 import { useInvalidateNotifications } from '@/features/notifications';
@@ -7,6 +8,44 @@ import { WorkoutSocialContext, type WorkoutSocialSlots } from '@/features/traini
 import { cn } from '@/shared/lib';
 import { ChatIcon } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
+import { targetParams } from '../targets';
+
+/**
+ * A thread opened by tapping, or linked from a notification (address of the group tab:
+ * ?training=… / ?uebung=…&satz=…, plus thread=1 and the comment to scroll to).
+ */
+function useThreadOpen(link: { workoutId?: string; itemId?: string; index?: number | null }) {
+  const [params, setParams] = useSearchParams();
+  const [tapped, setTapped] = useState(false);
+  const item = params.get(targetParams.item);
+  const set = params.get(targetParams.set);
+  const linked =
+    params.get(targetParams.thread) === '1' &&
+    (link.workoutId !== undefined
+      ? params.get(targetParams.workout) === link.workoutId && item === null
+      : item === link.itemId && (link.index == null ? set === null : set === String(link.index)));
+  return {
+    open: tapped || linked,
+    focusCommentId: linked ? params.get(targetParams.comment) : null,
+    openThread: () => {
+      setTapped(true);
+    },
+    close: () => {
+      setTapped(false);
+      if (linked) {
+        setParams(
+          (current) => {
+            const next = new URLSearchParams(current);
+            next.delete(targetParams.thread);
+            next.delete(targetParams.comment);
+            return next;
+          },
+          { replace: true },
+        );
+      }
+    },
+  };
+}
 
 /** A thread for one target, stacked on the sheet it is opened from. */
 function Thread({
@@ -15,12 +54,14 @@ function Thread({
   open,
   onClose,
   withReactions,
+  focusCommentId,
 }: {
   target: TargetRef;
   title: string;
   open: boolean;
   onClose: () => void;
   withReactions: boolean;
+  focusCommentId: string | null;
 }) {
   const invalidateNotifications = useInvalidateNotifications();
   return (
@@ -32,6 +73,7 @@ function Thread({
         if (!next) onClose();
       }}
       onRead={() => void invalidateNotifications()}
+      focusCommentId={focusCommentId}
       header={withReactions ? <ReactionBar target={target} /> : undefined}
     />
   );
@@ -39,7 +81,7 @@ function Thread({
 
 function WorkoutActions({ workoutId, title }: { workoutId: string; title: string }) {
   const { group } = useActiveGroup();
-  const [open, setOpen] = useState(false);
+  const thread = useThreadOpen({ workoutId });
   const target = { groupId: group.id, type: 'workout', id: workoutId };
   return (
     <div className="flex items-center gap-2">
@@ -47,16 +89,15 @@ function WorkoutActions({ workoutId, title }: { workoutId: string; title: string
       <CommentBubble
         target={target}
         onOpen={() => {
-          setOpen(true);
+          thread.openThread();
         }}
       />
       <Thread
         target={target}
         title={title}
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
+        open={thread.open}
+        onClose={thread.close}
+        focusCommentId={thread.focusCommentId}
         withReactions={false}
       />
     </div>
@@ -65,7 +106,7 @@ function WorkoutActions({ workoutId, title }: { workoutId: string; title: string
 
 function ExerciseBubble({ itemId, title }: { itemId: string; title: string }) {
   const { group } = useActiveGroup();
-  const [open, setOpen] = useState(false);
+  const thread = useThreadOpen({ itemId });
   const target = { groupId: group.id, type: 'workout_item', id: itemId };
   const emojis = useReactionsByIndex(target).get('') ?? [];
   return (
@@ -78,16 +119,15 @@ function ExerciseBubble({ itemId, title }: { itemId: string; title: string }) {
       <CommentBubble
         target={target}
         onOpen={() => {
-          setOpen(true);
+          thread.openThread();
         }}
       />
       <Thread
         target={target}
         title={title}
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
+        open={thread.open}
+        onClose={thread.close}
+        focusCommentId={thread.focusCommentId}
         withReactions
       />
     </div>
@@ -106,7 +146,7 @@ function SetRow({
   children: ReactNode;
 }) {
   const { group } = useActiveGroup();
-  const [open, setOpen] = useState(false);
+  const thread = useThreadOpen({ itemId, index });
   const item = { groupId: group.id, type: 'workout_item', id: itemId };
   const stats = useCommentStatsByIndex(item).data?.get(String(index));
   const emojis = useReactionsByIndex(item).get(String(index)) ?? [];
@@ -118,7 +158,7 @@ function SetRow({
         type="button"
         aria-label={`${title}: kommentieren oder reagieren`}
         onClick={() => {
-          setOpen(true);
+          thread.openThread();
         }}
         className="-mx-2 flex min-h-8 w-[calc(100%+var(--spacing)*4)] items-center justify-between gap-2 rounded-sm px-2 text-left active:bg-surface-3"
       >
@@ -141,10 +181,9 @@ function SetRow({
       <Thread
         target={{ ...item, index }}
         title={title}
-        open={open}
-        onClose={() => {
-          setOpen(false);
-        }}
+        open={thread.open}
+        onClose={thread.close}
+        focusCommentId={thread.focusCommentId}
         withReactions
       />
     </>

@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { useSetFinishedWorkoutFocus } from '../../api/useCalendar';
@@ -24,10 +24,38 @@ const when = new Intl.DateTimeFormat('de', {
  * social slots (if plugged in) add reactions and comments to the workout, each exercise
  * and each set. The focus of my own workouts can be set.
  */
-export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
+export interface WorkoutFocus {
+  itemId: string;
+  /** Set position; null: the exercise itself. */
+  setIndex: number | null;
+}
+
+/** Let the sheet finish sliding in before scrolling inside it. */
+const FOCUS_DELAY_MS = 350;
+
+export function WorkoutDetail({
+  workout,
+  focus,
+}: {
+  workout: WorkoutDetailData;
+  focus: WorkoutFocus | null;
+}) {
   const mine = workout.userId === useUserId();
   const social = useContext(WorkoutSocialContext);
   const title = [workout.trainingType.name, workout.focus?.name].filter(Boolean).join(' · ');
+  const focusItemId = focus?.itemId ?? null;
+
+  useEffect(() => {
+    if (!focusItemId) return;
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(`item-${focusItemId}`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, FOCUS_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [focusItemId]);
   const [history, setHistory] = useState<HistoryTarget | null>(null);
   const summary = summarize(workout.items);
   const isDuration = workout.trainingType.kind === 'duration';
@@ -92,6 +120,7 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
             <ExerciseBlock
               key={item.id}
               item={item}
+              focusSet={focus?.itemId === item.id ? (focus.setIndex ?? -1) : null}
               onHistory={
                 mine
                   ? () => {
@@ -127,9 +156,12 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
 
 function ExerciseBlock({
   item,
+  focusSet,
   onHistory,
 }: {
   item: WorkoutItem;
+  /** Marked (from a notification): -1 the exercise, else the set position; null: none. */
+  focusSet: number | null;
   onHistory?: (() => void) | undefined;
 }) {
   const social = useContext(WorkoutSocialContext);
@@ -143,7 +175,13 @@ function ExerciseBlock({
     </span>
   );
   return (
-    <li className="flex flex-col gap-1.5 rounded-card bg-surface-2 px-4 py-3">
+    <li
+      id={`item-${item.id}`}
+      className={cn(
+        'flex flex-col gap-1.5 rounded-card border bg-surface-2 px-4 py-3',
+        focusSet === -1 ? 'border-accent' : 'border-transparent',
+      )}
+    >
       <div className="flex min-h-tap items-center gap-2">
         {onHistory ? (
           <button
@@ -176,7 +214,7 @@ function ExerciseBlock({
             </span>
           );
           return (
-            <li key={set.id}>
+            <li key={set.id} className={cn(focusSet === set.position && 'rounded-sm bg-surface-3')}>
               {social.Set ? (
                 <social.Set
                   itemId={item.id}

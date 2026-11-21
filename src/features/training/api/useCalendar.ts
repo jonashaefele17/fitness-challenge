@@ -185,3 +185,23 @@ export function useSetFinishedWorkoutFocus(workoutId: string) {
       }),
   });
 }
+
+/** The workout an exercise entry belongs to (e.g. to open it from a notification). */
+export function useWorkoutIdOfItem(itemId: string | null) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'item-workout', itemId],
+    enabled: itemId !== null,
+    staleTime: Infinity,
+    queryFn: async (): Promise<string | null> => {
+      if (!itemId) return null;
+      const { data, error } = await supabase
+        .from('workout_items')
+        .select('workout_id')
+        .eq('id', itemId)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.workout_id ?? null;
+    },
+  });
+}

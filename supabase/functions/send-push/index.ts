@@ -25,7 +25,18 @@ interface Delivery {
 
 const APP_NAME = 'Fitness Challenge';
 
-// Keep in sync with describeNotification in src/features/notifications/settings.ts.
+// Keep in sync with ownObject / describeNotification in src/features/notifications/settings.ts.
+function ownObject(target: PushItem['target']): string {
+  switch (target.type) {
+    case 'workout':
+      return 'dein Training';
+    case 'workout_item':
+      return target.index === null ? 'deine Übung' : 'deinen Satz';
+    default:
+      return 'deinen Beitrag';
+  }
+}
+
 function describe(item: PushItem): string {
   switch (item.event) {
     case 'mention':
@@ -40,7 +51,7 @@ function describe(item: PushItem): string {
       return 'ist der Gruppe beigetreten';
     case 'comment':
       return item.category === 'comments_on_mine'
-        ? 'hat deinen Beitrag kommentiert'
+        ? `hat ${ownObject(item.target)} kommentiert`
         : 'hat kommentiert';
     default:
       return 'hat etwas Neues';

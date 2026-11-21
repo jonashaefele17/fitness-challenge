@@ -417,8 +417,15 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+# Local-only values. Staging/live get their secrets from the deploy workflow.
+[edge_runtime.secrets]
+CRON_SECRET = "local-cron-secret"
+VAPID_PUBLIC_KEY = "env(VAPID_PUBLIC_KEY)"
+VAPID_PRIVATE_KEY = "env(VAPID_PRIVATE_KEY)"
+
+# Called by pg_cron with a shared secret instead of a user JWT.
+[functions.send-push]
+verify_jwt = false
 
 [analytics]
 enabled = false

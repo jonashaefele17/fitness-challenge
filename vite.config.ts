@@ -28,9 +28,17 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       VitePWA({
+        // Custom service worker (src/service-worker/sw.ts) for Web Push; Workbox still
+        // precaches the build output.
+        strategies: 'injectManifest',
+        srcDir: 'src/service-worker',
+        filename: 'sw.ts',
         registerType: 'autoUpdate',
         injectRegister: false,
         includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        },
         manifest: {
           name: 'Fitness Challenge',
           short_name: 'Challenge',
@@ -53,13 +61,6 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
-        },
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-          navigateFallback: `${base}index.html`,
-          // OAuth callbacks carry ?code=… and must reach the app shell, which they do via
-          // the fallback. Supabase API calls go to another origin and are never cached.
-          cleanupOutdatedCaches: true,
         },
         devOptions: { enabled: false },
       }),

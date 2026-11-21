@@ -5,6 +5,7 @@ import {
   useSetCategoryEnabled,
 } from '../api/useNotificationSettings';
 import { isCategoryEnabled, presets } from '../settings';
+import { PushSection } from './PushSection';
 import type { NotificationPrefs } from '../types';
 
 /** "Ich → Benachrichtigungen": preset, categories, bundling and quiet hours. */
@@ -36,6 +37,7 @@ export function NotificationSettingsPanel() {
       <h2 id="notification-settings-title" className="text-title-3 font-semibold">
         Benachrichtigungen
       </h2>
+      <PushSection />
       <Card className="flex flex-col gap-3">
         <SegmentedControl
           label="Voreinstellung"
@@ -95,10 +97,6 @@ export function NotificationSettingsPanel() {
           </div>
         )}
       </Card>
-      <p className="px-1 text-footnote text-text-subtle">
-        Push-Mitteilungen aufs Handy kommen im nächsten Schritt. Die Glocke zeigt schon jetzt alles,
-        was dich betrifft.
-      </p>
     </section>
   );
 }

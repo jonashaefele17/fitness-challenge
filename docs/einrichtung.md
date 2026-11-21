@@ -100,6 +100,23 @@ Solange es keine Admin-Oberfläche gibt:
 3. Die ausgegebene SQL-Zeile im **SQL-Editor des Supabase-Projekts** ausführen (enthält nur den Hash).
 4. Den Code der Person schicken.
 
+## Push-Mitteilungen (Web Push)
+
+Ablauf: Die Datenbank entscheidet, was fällig ist (Kategorie, Ruhezeit, Bündeln). `pg_cron` ruft jede Minute die Edge Function `send-push` auf, die an Apple/Google verschickt. Der Workflow „Deploy staging“ deployt die Function, setzt ihre Secrets und trägt URL und Cron-Secret in den Vault ein.
+
+**Benötigt im GitHub-Environment `staging`:**
+
+| Name | Art | Inhalt |
+| --- | --- | --- |
+| `SUPABASE_ACCESS_TOKEN` | Secret | Supabase-Token, nur Staging-Projekt; Rechte: Edge Functions schreiben, Edge-Function-Secrets schreiben, Projekt lesen |
+| `VAPID_PRIVATE_KEY` | Secret | privater Schlüssel aus `npm run vapid` |
+| `CRON_SECRET` | Secret | langes Zufallspasswort (nur Buchstaben/Ziffern) |
+| `VITE_VAPID_PUBLIC_KEY` | Variable | öffentlicher Schlüssel aus `npm run vapid` |
+
+**Lokal:** `npm run vapid -- --local` schreibt ein eigenes Schlüsselpaar nach `supabase/.env` und `.env.local`; danach `npm run db:stop` und `npm run db:start`.
+
+**Am iPhone:** Push gibt es nur in der installierten App (Home-Bildschirm). Ich → Benachrichtigungen → „Push aktivieren“ → Erlauben. Achtung: Die Ruhezeit (Standard 22–7 Uhr) hält Pushes bis morgens zurück.
+
 ## Backups
 
 - Jeden Sonntag 03:00 UTC exportiert die Action „Weekly database export“ Staging und Live (Rollen, Schema, Daten), verschlüsselt mit `BACKUP_PASSPHRASE`, 90 Tage aufbewahrt.

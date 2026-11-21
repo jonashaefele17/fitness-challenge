@@ -466,6 +466,8 @@ export type Database = {
           event: string;
           group_id: string;
           id: string;
+          push_skipped: boolean;
+          pushed_at: string | null;
           read_at: string | null;
           recipient_id: string;
           target_id: string;
@@ -482,6 +484,8 @@ export type Database = {
           event: string;
           group_id: string;
           id?: string;
+          push_skipped?: boolean;
+          pushed_at?: string | null;
           read_at?: string | null;
           recipient_id: string;
           target_id: string;
@@ -497,6 +501,8 @@ export type Database = {
           event?: string;
           group_id?: string;
           id?: string;
+          push_skipped?: boolean;
+          pushed_at?: string | null;
           read_at?: string | null;
           recipient_id?: string;
           target_id?: string;
@@ -581,6 +587,75 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      push_state: {
+        Row: {
+          last_push_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          last_push_at: string;
+          user_id: string;
+        };
+        Update: {
+          last_push_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_state_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          failure_count: number;
+          id: string;
+          last_success_at: string | null;
+          p256dh: string;
+          user_agent: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          failure_count?: number;
+          id?: string;
+          last_success_at?: string | null;
+          p256dh: string;
+          user_agent?: string | null;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          failure_count?: number;
+          id?: string;
+          last_success_at?: string | null;
+          p256dh?: string;
+          user_agent?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_subscriptions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       reaction_kinds: {
         Row: {
@@ -748,6 +823,15 @@ export type Database = {
           group_name: string;
         }[];
       };
+      claim_push_deliveries: {
+        Args: { p_bundle_window?: string };
+        Returns: {
+          notifications: Json;
+          subscriptions: Json;
+          unread: number;
+          user_id: string;
+        }[];
+      };
       comment_stats: {
         Args: { p_group_id: string; p_target_ids: string[]; p_target_type: string };
         Returns: {
@@ -805,6 +889,15 @@ export type Database = {
         Args: { p_code: string; p_display_name?: string; p_home_gym?: string };
         Returns: string;
       };
+      register_push_subscription: {
+        Args: { p_auth: string; p_endpoint: string; p_p256dh: string; p_user_agent?: string };
+        Returns: undefined;
+      };
+      report_push_result: {
+        Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
+        Returns: undefined;
+      };
+      unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
     };
     Enums: {
       group_role: 'admin' | 'member';

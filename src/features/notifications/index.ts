@@ -12,6 +12,7 @@ export {
   useSetCategoryEnabled,
 } from './api/useNotificationSettings';
 export { useNotificationsRealtime } from './api/useNotificationsRealtime';
+export { useDisablePush, useEnablePush, usePushStatus } from './api/usePushSubscription';
 export { AppBadgeSync } from './components/AppBadgeSync';
 export {
   NotificationBell,
@@ -19,4 +20,4 @@ export {
   type OpenTargetOptions,
 } from './components/NotificationBell';
 export { NotificationSettingsPanel } from './components/NotificationSettingsPanel';
-export type { AppNotification, NotificationPrefs, Preset } from './types';
+export type { AppNotification, NotificationPrefs, Preset, PushStatus } from './types';

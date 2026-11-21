@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import { AppBadgeSync } from '@/features/notifications';
 import { fade } from '@/shared/design-tokens';
 import { PillNav } from './PillNav';
+import { PushTargetHandler } from './PushTargetHandler';
 import { RealtimeSync } from './RealtimeSync';
 
 export function AppShell() {
@@ -24,6 +25,7 @@ export function AppShell() {
       <ScrollRestoration />
       <AppBadgeSync />
       <RealtimeSync />
+      <PushTargetHandler />
     </div>
   );
 }

@@ -38,3 +38,7 @@ export interface NotificationSettings {
   prefs: NotificationPrefs;
   overrides: Record<string, boolean>;
 }
+
+/** Push state of the current device. */
+export type PushStatus =
+  'supported' | 'unsupported' | 'needs-install' | 'unconfigured' | 'denied' | 'off' | 'on';

@@ -1,6 +1,6 @@
 import { useSignOut, useUserId } from '@/features/auth';
 import { useActiveGroup } from '@/features/groups';
-import { NotificationSettingsPanel } from '@/features/notifications';
+import { NotificationSettingsPanel, useDisablePush } from '@/features/notifications';
 import { Avatar, useMyProfile } from '@/features/profile';
 import { Button, Card, Screen } from '@/shared/ui';
 
@@ -10,6 +10,7 @@ export function MeRoute() {
   const profile = useMyProfile(useUserId());
   const { group } = useActiveGroup();
   const signOut = useSignOut();
+  const disablePush = useDisablePush();
 
   return (
     <Screen title="Ich">
@@ -35,9 +36,14 @@ export function MeRoute() {
         <Button
           variant="danger"
           fullWidth
-          loading={signOut.isPending}
+          loading={signOut.isPending || disablePush.isPending}
           onClick={() => {
-            signOut.mutate();
+            // This device should not receive the next person's notifications.
+            disablePush.mutate(undefined, {
+              onSettled: () => {
+                signOut.mutate();
+              },
+            });
           }}
         >
           Abmelden

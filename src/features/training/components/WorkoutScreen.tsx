@@ -49,6 +49,7 @@ import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
 import { ExerciseCard } from './ExerciseCard';
+import { RememberDevices } from './RememberDevices';
 import { SaveAsTemplate } from './templates/SaveAsTemplate';
 import { ExerciseHistorySheet, type HistoryTarget } from './history/ExerciseHistorySheet';
 
@@ -84,6 +85,8 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         FinishedWorkout & {
           exerciseIds: string[];
           exerciseList: ExerciseSummary[];
+          location: ActiveWorkout['location'];
+          deviceless: Pick<WorkoutItem, 'id' | 'exercise'>[];
           templateId: string | null;
           trainingTypeId: string;
           focusId: string | null;
@@ -131,6 +134,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
             .filter((item) => item.sets.some((set) => set.completedAt !== null))
             .map((item) => item.exercise.id),
           exerciseList: items.map((item) => item.exercise),
+          location: workout.location,
+          deviceless: items
+            .filter((item) => !item.device && item.sets.some((set) => set.completedAt !== null))
+            .map((item) => ({ id: item.id, exercise: item.exercise })),
           templateId: workout.templateId,
           trainingTypeId: workout.trainingType.id,
           focusId: workout.focusId,
@@ -493,6 +500,13 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
               <Stat label="Volumen" value={`${formatKg(Math.round(summary.volumeKg))} kg`} />
             </div>
             <NewBests workoutId={summary.id} exercises={summary.exerciseList} />
+            {summary.location && summary.deviceless.length > 0 && (
+              <RememberDevices
+                locationId={summary.location.id}
+                locationName={summary.location.name}
+                items={summary.deviceless}
+              />
+            )}
             <SaveAsTemplate
               workoutId={summary.id}
               trainingTypeId={summary.trainingTypeId}

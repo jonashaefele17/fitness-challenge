@@ -455,3 +455,27 @@ export function useSetExerciseHidden(locationId: string) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 }
+
+/**
+ * "Gerät merken?": after a workout, attach the device of a type to an exercise done
+ * without one – the device is added to the place if it is missing.
+ */
+export function useRememberDevice(locationId: string) {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  const addDevices = useAddDevices(locationId);
+  return useMutation({
+    mutationFn: async ({ itemId, typeId }: { itemId: string; typeId: string }) => {
+      const ids = await addDevices.mutateAsync({ typeIds: [typeId] });
+      const deviceId = ids.get(typeId);
+      if (!deviceId) throw new Error('device_not_created');
+      const { error } = await supabase
+        .from('workout_items')
+        .update({ device_id: deviceId })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    // History, "Vorher", trend and progression depend on the device.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: trainingKeys.all(userId) }),
+  });
+}

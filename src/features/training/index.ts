@@ -65,3 +65,5 @@ export { WorkoutLog } from './components/calendar/WorkoutLog';
 export { TrainingTypeIcon } from './components/TrainingTypeIcon';
 export { trainingIconKeys } from './trainingIcons';
 export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailSheet';
+export { MyExercises } from './components/me/MyExercises';
+export { TrainingSettings } from './components/me/TrainingSettings';

@@ -304,3 +304,41 @@ export function historyFor(
   const scope = device && !device.comparable ? device.id : '';
   return overview.get(`${exerciseId}:${scope}`);
 }
+
+export interface MyExercise {
+  exercise: ExerciseSummary;
+  /** Most recent scope (machine or shared) and its history. */
+  history: ExerciseHistory;
+}
+
+/** Every exercise I have done, most recently done first, with its latest history. */
+export function useMyExercises() {
+  const userId = useUserId();
+  const overview = useExerciseOverview().data;
+  const latest = new Map<string, ExerciseHistory>();
+  for (const [key, history] of overview ?? []) {
+    const exerciseId = key.slice(0, key.indexOf(':'));
+    const known = latest.get(exerciseId);
+    if (!known || history.lastDoneAt > known.lastDoneAt) latest.set(exerciseId, history);
+  }
+  const ids = [...latest.keys()].sort();
+  const names = useQuery({
+    queryKey: [...trainingKeys.all(userId), 'exercise-names', ids],
+    enabled: ids.length > 0,
+    staleTime: 10 * 60_000,
+    queryFn: async (): Promise<ExerciseSummary[]> => {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, name, measure')
+        .in('id', ids);
+      if (error) throw error;
+      return data;
+    },
+  });
+  const list: MyExercise[] = (names.data ?? []).flatMap((exercise) => {
+    const history = latest.get(exercise.id);
+    return history ? [{ exercise, history }] : [];
+  });
+  list.sort((a, b) => b.history.lastDoneAt.localeCompare(a.history.lastDoneAt));
+  return { data: list, isPending: overview === undefined || (ids.length > 0 && names.isPending) };
+}

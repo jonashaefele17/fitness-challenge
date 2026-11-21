@@ -95,6 +95,9 @@ export interface WorkoutItem {
   note: string | null;
   exercise: ExerciseSummary;
   device: Device | null;
+  /** Target rep range (from the template); null: none set. */
+  repMin: number | null;
+  repMax: number | null;
   sets: WorkoutSet[];
 }
 

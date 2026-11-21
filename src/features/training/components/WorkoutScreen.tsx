@@ -32,12 +32,14 @@ import {
   useSetWorkoutFocus,
   useSetWorkoutLocation,
   useUpdateItemNote,
+  useWorkoutRecords,
   type FinishedWorkout,
 } from '../api/useWorkout';
 import {
   elapsedSeconds,
   formatDuration,
   formatKg,
+  formatSet,
   summarize,
   type WorkoutSummary,
 } from '../format';
@@ -81,6 +83,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
     | (WorkoutSummary &
         FinishedWorkout & {
           exerciseIds: string[];
+          exerciseList: ExerciseSummary[];
           templateId: string | null;
           trainingTypeId: string;
           focusId: string | null;
@@ -127,6 +130,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
           exerciseIds: items
             .filter((item) => item.sets.some((set) => set.completedAt !== null))
             .map((item) => item.exercise.id),
+          exerciseList: items.map((item) => item.exercise),
           templateId: workout.templateId,
           trainingTypeId: workout.trainingType.id,
           focusId: workout.focusId,
@@ -488,6 +492,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
               <Stat label="Arbeitssätze" value={String(summary.workingSets)} />
               <Stat label="Volumen" value={`${formatKg(Math.round(summary.volumeKg))} kg`} />
             </div>
+            <NewBests workoutId={summary.id} exercises={summary.exerciseList} />
             <SaveAsTemplate
               workoutId={summary.id}
               trainingTypeId={summary.trainingTypeId}
@@ -502,6 +507,42 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         )}
       </Sheet>
     </div>
+  );
+}
+
+/** New bests of the workout just finished, with the previous best. */
+function NewBests({ workoutId, exercises }: { workoutId: string; exercises: ExerciseSummary[] }) {
+  const records = useWorkoutRecords(workoutId).data ?? [];
+  if (records.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-2 rounded-card bg-surface-2 p-4">
+      <h3 className="text-subhead font-semibold">
+        {records.length === 1 ? 'Neuer Bestwert 🏆' : `${String(records.length)} neue Bestwerte 🏆`}
+      </h3>
+      <ul className="flex flex-col gap-1">
+        {records.map((record) => {
+          const exercise = exercises.find((e) => e.id === record.exerciseId);
+          if (!exercise) return null;
+          return (
+            <li key={record.exerciseId} className="flex items-baseline justify-between gap-3">
+              <span className="truncate text-subhead">{exercise.name}</span>
+              <span className="shrink-0 text-footnote tabular-nums">
+                <span className="font-semibold">{formatSet(exercise.measure, record)}</span>
+                <span className="text-text-subtle">
+                  {' '}
+                  vorher{' '}
+                  {formatSet(exercise.measure, {
+                    weightKg: record.previousWeightKg,
+                    reps: record.previousReps,
+                    durationSeconds: record.previousDurationSeconds,
+                  })}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

@@ -1258,6 +1258,8 @@ export type Database = {
           id: string;
           note: string | null;
           position: number;
+          rep_max: number | null;
+          rep_min: number | null;
           workout_id: string;
         };
         ComputedFields: never;
@@ -1268,6 +1270,8 @@ export type Database = {
           id?: string;
           note?: string | null;
           position: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
           workout_id: string;
         };
         Update: {
@@ -1277,6 +1281,8 @@ export type Database = {
           id?: string;
           note?: string | null;
           position?: number;
+          rep_max?: number | null;
+          rep_min?: number | null;
           workout_id?: string;
         };
         Relationships: [
@@ -1609,6 +1615,23 @@ export type Database = {
           uses: number;
         }[];
       };
+      exercise_progression: {
+        Args: {
+          p_device_id?: string;
+          p_exercise_id: string;
+          p_rep_max?: number;
+          p_rep_min?: number;
+        };
+        Returns: {
+          go_up: boolean;
+          last_reps: number;
+          last_weight_kg: number;
+          rep_max: number;
+          rep_min: number;
+          step_kg: number;
+          suggested_weight_kg: number;
+        }[];
+      };
       exercise_records: {
         Args: { p_all_devices?: boolean; p_device_id?: string; p_exercise_id: string };
         Returns: {
@@ -1809,6 +1832,18 @@ export type Database = {
         }[];
       };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      workout_records: {
+        Args: { p_workout_id: string };
+        Returns: {
+          duration_seconds: number;
+          exercise_id: string;
+          previous_duration_seconds: number;
+          previous_reps: number;
+          previous_weight_kg: number;
+          reps: number;
+          weight_kg: number;
+        }[];
+      };
     };
     Enums: {
       exercise_measure: 'weight_reps' | 'reps' | 'duration';

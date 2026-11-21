@@ -17,9 +17,11 @@ import {
   useAddSet,
   useDeleteSet,
   useExerciseTrend,
+  useProgression,
   usePreviousSets,
   useUpdateSet,
   type SetChanges,
+  type Progression,
 } from '../api/useWorkout';
 import { formatDuration, formatKg, formatSet } from '../format';
 import type { ExerciseMeasure, PreviousSet, WorkoutItem, WorkoutSet } from '../types';
@@ -47,6 +49,16 @@ export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCard
   const deviceId = item.device?.id ?? null;
   const previous = usePreviousSets(item.exercise.id, deviceId).data ?? [];
   const trend = useExerciseTrend(item.exercise.id, deviceId).data ?? [];
+  const progression =
+    useProgression(item.exercise.id, deviceId, item.repMin, item.repMax).data ?? null;
+  // Start values for working sets that nothing has been entered or ticked for yet.
+  const planned =
+    item.exercise.measure === 'weight_reps' && progression?.suggestedWeightKg != null
+      ? {
+          weightKg: progression.suggestedWeightKg,
+          reps: progression.goUp ? progression.repMin : null,
+        }
+      : undefined;
   const settingValues = useDeviceSetting(deviceId, item.exercise.id).data ?? {};
   const fields = item.device?.settingFields ?? [];
   const settingText = formatSettingValues(fields, settingValues);
@@ -65,15 +77,17 @@ export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCard
       addButton.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 260);
     const last = item.sets[item.sets.length - 1];
+    // A new set is a working set: start from the last working set (not a warm-up).
+    const lastWorking = item.sets.filter((other) => !other.isWarmup).at(-1);
     const prev = previous[item.sets.length];
     addSet.mutate({
       itemId: item.id,
       set: {
         id: crypto.randomUUID(),
         position: (last?.position ?? -1) + 1,
-        weightKg: last?.weightKg ?? prev?.weightKg ?? null,
-        reps: last?.reps ?? prev?.reps ?? null,
-        durationSeconds: last?.durationSeconds ?? prev?.durationSeconds ?? null,
+        weightKg: lastWorking?.weightKg ?? prev?.weightKg ?? null,
+        reps: lastWorking?.reps ?? prev?.reps ?? null,
+        durationSeconds: lastWorking?.durationSeconds ?? prev?.durationSeconds ?? null,
         isWarmup: false,
         completedAt: null,
       },
@@ -98,6 +112,9 @@ export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCard
                   ? ` · ${settingText}`
                   : ' · Einstellungen eintragen'}
             </button>
+          )}
+          {item.exercise.measure === 'weight_reps' && progression && (
+            <ProgressionHint progression={progression} />
           )}
           {trend.length >= 2 && (
             <button
@@ -142,7 +159,11 @@ export function ExerciseCard({ item, onMenu, onDevice, onHistory }: ExerciseCard
                 active={set.id === activeId}
                 // Only the set at the same place last time; a 4th set after 3 last time: "–".
                 previous={previous[index]}
-                fallback={item.sets.filter((other) => other.completedAt !== null).at(-1)}
+                planned={set.isWarmup ? undefined : planned}
+                // Working sets follow working sets, warm-ups follow warm-ups.
+                fallback={item.sets
+                  .filter((other) => other.completedAt !== null && other.isWarmup === set.isWarmup)
+                  .at(-1)}
                 weightStep={weightStep}
               />
             );
@@ -170,6 +191,7 @@ function SetRow({
   active,
   previous,
   fallback,
+  planned,
   weightStep,
 }: {
   itemId: string;
@@ -179,6 +201,8 @@ function SetRow({
   active: boolean;
   previous: PreviousSet | undefined;
   fallback: WorkoutSet | undefined;
+  /** Progression start values for working sets (e.g. ↑ next weight step). */
+  planned?: { weightKg: number; reps: number | null } | undefined;
   weightStep: number;
 }) {
   const update = useUpdateSet();
@@ -206,8 +230,8 @@ function SetRow({
 
   // Suggested values for an empty active row: last ticked set, else last workout.
   const suggestion = {
-    weightKg: set.weightKg ?? fallback?.weightKg ?? previous?.weightKg ?? null,
-    reps: set.reps ?? fallback?.reps ?? previous?.reps ?? null,
+    weightKg: set.weightKg ?? fallback?.weightKg ?? planned?.weightKg ?? previous?.weightKg ?? null,
+    reps: set.reps ?? fallback?.reps ?? planned?.reps ?? previous?.reps ?? null,
     durationSeconds:
       set.durationSeconds ?? fallback?.durationSeconds ?? previous?.durationSeconds ?? null,
   };
@@ -422,4 +446,25 @@ function ActiveInputs({
 function parseDuration(text: string): number {
   const [m, s] = text.split(':');
   return s === undefined ? Number(m) : Number(m) * 60 + Number(s);
+}
+
+/** "Ziel 8–12 Wdh." or, when the top was reached last time, "↑ 52,5 kg – 12 Wdh. mit 50". */
+function ProgressionHint({ progression }: { progression: Progression }) {
+  if (progression.goUp && progression.suggestedWeightKg !== null) {
+    return (
+      <span className="text-footnote font-semibold text-accent">
+        ↑ {formatKg(progression.suggestedWeightKg)} kg
+        <span className="font-normal text-text-muted">
+          {' '}
+          · letztes Mal {progression.lastReps} Wdh. mit {formatKg(progression.lastWeightKg)} kg
+        </span>
+      </span>
+    );
+  }
+  if (progression.repMin === null || progression.repMax === null) return null;
+  return (
+    <span className="text-footnote text-text-muted">
+      Ziel {progression.repMin}–{progression.repMax} Wdh.
+    </span>
+  );
 }

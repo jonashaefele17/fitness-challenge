@@ -111,7 +111,7 @@ export function useWorkoutDetail(workoutId: string | null) {
         .select(
           `${SUMMARY_COLUMNS}, intensity, note, template_id,
            items:workout_items(
-             id, position, note,
+             id, position, note, rep_min, rep_max,
              exercises!inner(id, name, measure),
              devices(${DEVICE_COLUMNS}),
              workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
@@ -132,6 +132,8 @@ export function useWorkoutDetail(workoutId: string | null) {
             id: item.id,
             position: item.position,
             note: item.note,
+            repMin: item.rep_min,
+            repMax: item.rep_max,
             device: item.devices ? toDevice(item.devices) : null,
             exercise: {
               id: item.exercises.id,

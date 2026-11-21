@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.17 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.18 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.18 | Progression umgesetzt (↑-Vorschlag im Zahlenrad, Zielbereich auf der Karte), neue Bestwerte in der Zusammenfassung; Feed-Karte zum Training bewusst in Baustein 4 (Tageskarten) |
 | 21.11.2026 | 1.17 | Vorlagen umgesetzt: Gerätetyp statt Gerät, Wiederholungsbereich pro Übung, Aufwärmsätze, ein Besitzer (andere benutzen/kopieren), Ordnung gegen Chaos, Archiv mit endgültigem Löschen |
 | 21.11.2026 | 1.16 | Besondere Tage im Kalender (Saison, Wiegetag, Pause, Ruhetag, eigene Events) als Marker an der Tageszahl; eigene Events als Termin-Art; Ruhetage ohne Einzelklicks (Wochenbewertung, Rhythmus, Zeiträume) |
 | 21.11.2026 | 1.15 | Darstellung geplanter Termine und Teilnehmer im Kalender festgelegt (Umriss-Icon, Avatar-Punkt mit Status); Ich-Ansicht in eigener Personenfarbe |
@@ -115,7 +116,7 @@ Trainiert wird flexibel: Es gibt keinen vorgegebenen Plan, nur eigene Vorlagen, 
 
 **Übungsverlauf:** Pro Übung eine Detailansicht (Antippen der Mini-Kurve, „…“ → Verlauf, ⓘ in der Übungsauswahl): Kraft-Graph (bester Satz pro Training), Volumen-Graph (kg × Wdh. der Arbeitssätze), Rekorde (bester und schwerster Satz, meistes Volumen, meiste Wiederholungen pro Gewicht) und alle Trainings mit Datum, Ort und Sätzen; Zeitraum 3 Monate / 1 Jahr / Alles; bei Maschinen standardmäßig nur dieses Gerät, umschaltbar auf alle. Die Mini-Kurve auf der Karte bleibt ohne Beschriftung. Freunde aus der Gruppe lassen sich in ihrer Personenfarbe dazuschalten (Kraft als Linie, Volumen als Linie über den eigenen Balken), am selben Gerät bzw. bei vergleichbaren Geräten oder „Alle Geräte“; sichtbar ist nur, was die Freigabe erlaubt (soziales Modul Vergleich über einen Steckplatz).
 
-**Progression:** Double Progression. Erreicht ein Satz beim letzten Mal das obere Ende des Wiederholungsbereichs, schlägt die App die nächste Gerätestufe vor (↑). Kein RIR, keine aktive Stagnationswarnung – Stagnation zeigt sich ruhig im Verlauf.
+**Progression:** Double Progression (umgesetzt: Wiederholungsbereich aus der Vorlage, bei freien Trainings aus der eigenen letzten Vorlage mit der Übung; ↑ = Gerätestufe des Geräts, sonst 2,5 kg; der Vorschlag steht als Startwert im Zahlenrad, Wiederholungen = unteres Ende des Bereichs; Arbeitssätze übernehmen nie Werte von Aufwärmsätzen). Neue Bestwerte erscheinen in der Zusammenfassung am Trainingsende. Double Progression. Erreicht ein Satz beim letzten Mal das obere Ende des Wiederholungsbereichs, schlägt die App die nächste Gerätestufe vor (↑). Kein RIR, keine aktive Stagnationswarnung – Stagnation zeigt sich ruhig im Verlauf.
 
 **Gemeinsames Training:** Einer startet und lädt ein (Push „beitreten?“), beide haben dieselbe Übungsliste, jeder trägt nur seine eigenen Sätze ein und sieht die des anderen live. Jeder darf Übungen ergänzen. Am Ende hat jeder sein Training, verknüpft als „mit …“.
 

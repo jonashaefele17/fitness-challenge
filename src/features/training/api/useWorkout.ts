@@ -20,7 +20,7 @@ const ACTIVE_SELECT = `
   training_types!inner(id, name, kind),
   locations(id, name, owner_id),
   workout_items(
-    id, position, note,
+    id, position, note, rep_min, rep_max,
     exercises!inner(id, name, measure),
     devices(${DEVICE_COLUMNS}),
     workout_sets(id, position, weight_kg, reps, duration_seconds, is_warmup, completed_at)
@@ -75,6 +75,8 @@ export function useActiveWorkout() {
             id: item.id,
             position: item.position,
             note: item.note,
+            repMin: item.rep_min,
+            repMax: item.rep_max,
             device: item.devices ? toDevice(item.devices) : null,
             exercise: {
               id: item.exercises.id,
@@ -322,6 +324,8 @@ export function useAddExercise(workoutId: string) {
         id: itemId,
         position: index,
         note: null,
+        repMin: null,
+        repMax: null,
         device,
         exercise,
         sets: [
@@ -583,4 +587,85 @@ export function useSetWorkoutFocus(workoutId: string) {
     },
     (workout, focusId) => ({ ...workout, focusId }),
   );
+}
+
+export interface Progression {
+  repMin: number | null;
+  repMax: number | null;
+  /** Heaviest working weight last time and the most reps done with it. */
+  lastWeightKg: number | null;
+  lastReps: number | null;
+  stepKg: number;
+  suggestedWeightKg: number | null;
+  /** Top of the rep range reached last time: one weight step up. */
+  goUp: boolean;
+}
+
+/** Double progression suggestion for an exercise (computed on the server). */
+export function useProgression(
+  exerciseId: string,
+  deviceId: string | null,
+  repMin: number | null,
+  repMax: number | null,
+) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'progression', exerciseId, deviceId, repMin, repMax],
+    staleTime: 10 * 60_000,
+    queryFn: async (): Promise<Progression | null> => {
+      const { data, error } = await supabase.rpc('exercise_progression', {
+        p_exercise_id: exerciseId,
+        ...(deviceId && { p_device_id: deviceId }),
+        ...(repMin !== null && { p_rep_min: repMin }),
+        ...(repMax !== null && { p_rep_max: repMax }),
+      });
+      if (error) throw error;
+      const row = data[0];
+      if (!row) return null;
+      const num = (value: unknown) => (value === null ? null : Number(value));
+      return {
+        repMin: row.rep_min,
+        repMax: row.rep_max,
+        lastWeightKg: num(row.last_weight_kg),
+        lastReps: row.last_reps,
+        stepKg: row.step_kg,
+        suggestedWeightKg: num(row.suggested_weight_kg),
+        goUp: row.go_up,
+      };
+    },
+  });
+}
+
+export interface WorkoutRecord {
+  exerciseId: string;
+  weightKg: number | null;
+  reps: number | null;
+  durationSeconds: number | null;
+  previousWeightKg: number | null;
+  previousReps: number | null;
+  previousDurationSeconds: number | null;
+}
+
+/** New bests of a finished workout of mine (computed on the server). */
+export function useWorkoutRecords(workoutId: string | null) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...trainingKeys.all(userId), 'workout-records', workoutId],
+    enabled: workoutId !== null,
+    queryFn: async (): Promise<WorkoutRecord[]> => {
+      if (!workoutId) return [];
+      const { data, error } = await supabase.rpc('workout_records', { p_workout_id: workoutId });
+      if (error) throw error;
+      const num = (value: unknown) => (value === null ? null : Number(value));
+      return data.map((row) => ({
+        exerciseId: row.exercise_id,
+        weightKg: num(row.weight_kg),
+        reps: row.reps,
+        durationSeconds: row.duration_seconds,
+        previousWeightKg: num(row.previous_weight_kg),
+        previousReps: row.previous_reps,
+        previousDurationSeconds: row.previous_duration_seconds,
+      }));
+    },
+  });
 }

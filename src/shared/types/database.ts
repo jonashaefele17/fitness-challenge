@@ -1129,6 +1129,171 @@ export type Database = {
           },
         ];
       };
+      workout_items: {
+        Row: {
+          created_at: string;
+          device_id: string | null;
+          exercise_id: string;
+          id: string;
+          note: string | null;
+          position: number;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          device_id?: string | null;
+          exercise_id: string;
+          id?: string;
+          note?: string | null;
+          position: number;
+          workout_id: string;
+        };
+        Update: {
+          created_at?: string;
+          device_id?: string | null;
+          exercise_id?: string;
+          id?: string;
+          note?: string | null;
+          position?: number;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_items_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_items_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workout_items_workout_id_fkey';
+            columns: ['workout_id'];
+            isOneToOne: false;
+            referencedRelation: 'workouts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workout_sets: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          duration_seconds: number | null;
+          id: string;
+          is_warmup: boolean;
+          item_id: string;
+          position: number;
+          reps: number | null;
+          weight_kg: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          is_warmup?: boolean;
+          item_id: string;
+          position: number;
+          reps?: number | null;
+          weight_kg?: number | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          duration_seconds?: number | null;
+          id?: string;
+          is_warmup?: boolean;
+          item_id?: string;
+          position?: number;
+          reps?: number | null;
+          weight_kg?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workout_sets_item_id_fkey';
+            columns: ['item_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_items';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workouts: {
+        Row: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          training_type_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          distance_m?: number | null;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          id?: string;
+          intensity?: number | null;
+          location_id?: string | null;
+          note?: string | null;
+          paused_at?: string | null;
+          paused_seconds?: number;
+          started_at?: string;
+          status?: Database['public']['Enums']['workout_status'];
+          training_type_id: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          distance_m?: number | null;
+          duration_seconds?: number | null;
+          ended_at?: string | null;
+          id?: string;
+          intensity?: number | null;
+          location_id?: string | null;
+          note?: string | null;
+          paused_at?: string | null;
+          paused_seconds?: number;
+          started_at?: string;
+          status?: Database['public']['Enums']['workout_status'];
+          training_type_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workouts_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workouts_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1162,6 +1327,38 @@ export type Database = {
           total: number;
           unread: number;
         }[];
+      };
+      exercise_trend: {
+        Args: { p_exercise_id: string; p_limit?: number };
+        Returns: {
+          value: number;
+          workout_started_at: string;
+        }[];
+      };
+      finish_workout: {
+        Args: { p_workout_id: string };
+        Returns: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          training_type_id: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'workouts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       mark_thread_read: {
@@ -1203,6 +1400,17 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      previous_sets: {
+        Args: { p_exercise_id: string };
+        Returns: {
+          duration_seconds: number;
+          is_warmup: boolean;
+          reps: number;
+          set_position: number;
+          weight_kg: number;
+          workout_started_at: string;
+        }[];
+      };
       redeem_invite: {
         Args: { p_code: string; p_display_name?: string; p_home_gym?: string };
         Returns: string;
@@ -1224,11 +1432,37 @@ export type Database = {
           name: string;
         }[];
       };
+      start_workout: {
+        Args: { p_location_id?: string; p_training_type_id: string };
+        Returns: {
+          created_at: string;
+          distance_m: number | null;
+          duration_seconds: number | null;
+          ended_at: string | null;
+          id: string;
+          intensity: number | null;
+          location_id: string | null;
+          note: string | null;
+          paused_at: string | null;
+          paused_seconds: number;
+          started_at: string;
+          status: Database['public']['Enums']['workout_status'];
+          training_type_id: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'workouts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
     };
     Enums: {
       exercise_measure: 'weight_reps' | 'reps' | 'duration';
       group_role: 'admin' | 'member';
+      workout_status: 'active' | 'finished';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1345,6 +1579,7 @@ export const Constants = {
     Enums: {
       exercise_measure: ['weight_reps', 'reps', 'duration'],
       group_role: ['admin', 'member'],
+      workout_status: ['active', 'finished'],
     },
   },
 } as const;

@@ -1171,6 +1171,7 @@ export type Database = {
         Row: {
           archived_at: string | null;
           created_at: string;
+          guided: boolean;
           icon: string;
           id: string;
           kind: string;
@@ -1185,6 +1186,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null;
           created_at?: string;
+          guided?: boolean;
           icon?: string;
           id?: string;
           kind: string;
@@ -1198,6 +1200,7 @@ export type Database = {
         Update: {
           archived_at?: string | null;
           created_at?: string;
+          guided?: boolean;
           icon?: string;
           id?: string;
           kind?: string;
@@ -1257,9 +1260,12 @@ export type Database = {
           exercise_id: string;
           id: string;
           note: string | null;
+          per_side: boolean;
           position: number;
           rep_max: number | null;
           rep_min: number | null;
+          rest_seconds: number;
+          target_seconds: number | null;
           workout_id: string;
         };
         ComputedFields: never;
@@ -1269,9 +1275,12 @@ export type Database = {
           exercise_id: string;
           id?: string;
           note?: string | null;
+          per_side?: boolean;
           position: number;
           rep_max?: number | null;
           rep_min?: number | null;
+          rest_seconds?: number;
+          target_seconds?: number | null;
           workout_id: string;
         };
         Update: {
@@ -1280,9 +1289,12 @@ export type Database = {
           exercise_id?: string;
           id?: string;
           note?: string | null;
+          per_side?: boolean;
           position?: number;
           rep_max?: number | null;
           rep_min?: number | null;
+          rest_seconds?: number;
+          target_seconds?: number | null;
           workout_id?: string;
         };
         Relationships: [
@@ -1361,9 +1373,11 @@ export type Database = {
           exercise_id: string;
           id: string;
           note: string | null;
+          per_side: boolean;
           position: number;
           rep_max: number | null;
           rep_min: number | null;
+          rest_seconds: number;
           sets: number;
           template_id: string;
           warmup_sets: number;
@@ -1375,9 +1389,11 @@ export type Database = {
           exercise_id: string;
           id?: string;
           note?: string | null;
+          per_side?: boolean;
           position: number;
           rep_max?: number | null;
           rep_min?: number | null;
+          rest_seconds?: number;
           sets?: number;
           template_id: string;
           warmup_sets?: number;
@@ -1388,9 +1404,11 @@ export type Database = {
           exercise_id?: string;
           id?: string;
           note?: string | null;
+          per_side?: boolean;
           position?: number;
           rep_max?: number | null;
           rep_min?: number | null;
+          rest_seconds?: number;
           sets?: number;
           template_id?: string;
           warmup_sets?: number;

@@ -1,12 +1,14 @@
 import {
+  AnimatePresence,
   animate,
   motion,
   useDragControls,
   useMotionValue,
   useMotionValueEvent,
+  useTransform,
   type PanInfo,
 } from 'motion/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, hapticTick, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
@@ -27,6 +29,10 @@ import { Sparkline } from './Sparkline';
 const STEP = { weight: 2.5, reps: 1, duration: 5 } as const;
 /** Width of the revealed delete button. */
 const DELETE_ACTION_PX = 88;
+/** Beyond the button the row moves this much per finger pixel (felt resistance). */
+const SWIPE_RESISTANCE = 0.55;
+/** Swiped past this share of the row width, releasing deletes. */
+const FULL_SWIPE_SHARE = 0.45;
 
 export interface ExerciseCardProps {
   item: WorkoutItem;
@@ -49,7 +55,13 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
   const activeId = item.sets.find((set) => set.completedAt === null)?.id ?? null;
   let workingIndex = 0;
 
+  const addButton = useRef<HTMLButtonElement>(null);
+
   function newSet() {
+    // Keep the new set in view (it may otherwise end up behind the bottom bar).
+    window.setTimeout(() => {
+      addButton.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 260);
     const last = item.sets[item.sets.length - 1];
     const prev = previous[item.sets.length];
     addSet.mutate({
@@ -106,25 +118,28 @@ export function ExerciseCard({ item, onMenu, onDevice }: ExerciseCardProps) {
       </div>
 
       <ul>
-        {item.sets.map((set) => {
-          const label = set.isWarmup ? 'W' : String(++workingIndex);
-          return (
-            <SetRow
-              key={set.id}
-              itemId={item.id}
-              set={set}
-              label={label}
-              measure={measure}
-              active={set.id === activeId}
-              previous={previous[set.position] ?? previous[previous.length - 1]}
-              fallback={item.sets.filter((other) => other.completedAt !== null).at(-1)}
-              weightStep={weightStep}
-            />
-          );
-        })}
+        <AnimatePresence initial={false}>
+          {item.sets.map((set) => {
+            const label = set.isWarmup ? 'W' : String(++workingIndex);
+            return (
+              <SetRow
+                key={set.id}
+                itemId={item.id}
+                set={set}
+                label={label}
+                measure={measure}
+                active={set.id === activeId}
+                previous={previous[set.position] ?? previous[previous.length - 1]}
+                fallback={item.sets.filter((other) => other.completedAt !== null).at(-1)}
+                weightStep={weightStep}
+              />
+            );
+          })}
+        </AnimatePresence>
       </ul>
 
       <button
+        ref={addButton}
         type="button"
         onClick={newSet}
         className="min-h-tap w-full border-t border-border text-subhead font-semibold text-accent active:bg-surface-2"
@@ -160,10 +175,21 @@ function SetRow({
   const done = set.completedAt !== null;
   const dragControls = useDragControls();
   const x = useMotionValue(0);
+  const rowRef = useRef<HTMLLIElement>(null);
+  // The red area grows with the finger; the label stays centred in it.
+  const actionWidth = useTransform(x, (value) => Math.max(DELETE_ACTION_PX, -value));
   // While the delete button is revealed, the wheels ignore touches so the whole row swipes.
   const [rowOpen, setRowOpen] = useState(false);
+  // Past the threshold a release deletes (armed); crossing it gives a haptic tick.
+  const [armed, setArmed] = useState(false);
   useMotionValueEvent(x, 'change', (latest) => {
     setRowOpen(latest < -4);
+    const width = rowRef.current?.clientWidth ?? 360;
+    const nowArmed = latest < -width * FULL_SWIPE_SHARE;
+    if (nowArmed !== armed) {
+      if (nowArmed) hapticTick();
+      setArmed(nowArmed);
+    }
   });
 
   // Suggested values for an empty active row: last ticked set, else last workout.
@@ -198,23 +224,41 @@ function SetRow({
     });
   }
 
-  // The row follows the finger and snaps open to reveal the delete button (no full-swipe
-  // delete: deleting always needs the explicit tap on the button).
+  // Apple-style: the row follows the finger up to the button width, then gets heavier
+  // (rubber band). Released past the threshold it slides out and the set is deleted;
+  // otherwise it snaps open (button) or closed.
   function handleDragEnd(_: unknown, info: PanInfo) {
+    if (armed) {
+      const width = rowRef.current?.clientWidth ?? 360;
+      void animate(x, -width, { ...spring.snappy, onComplete: deleteSet });
+      return;
+    }
     const open = x.get() < -DELETE_ACTION_PX / 3 || info.velocity.x < -300;
     void animate(x, open ? -DELETE_ACTION_PX : 0, spring.snappy);
   }
 
   return (
-    <li className="relative overflow-hidden">
+    <motion.li
+      ref={rowRef}
+      id={`set-${set.id}`}
+      className="relative overflow-hidden"
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={spring.snappy}
+    >
       <div className="absolute inset-0 flex justify-end bg-danger">
-        <button
+        <motion.button
           type="button"
           onClick={deleteSet}
-          className="flex w-22 items-center justify-center text-subhead font-semibold text-text"
+          style={{ width: actionWidth }}
+          className={cn(
+            'flex items-center justify-center text-subhead text-text',
+            armed ? 'font-bold' : 'font-semibold',
+          )}
         >
           Löschen
-        </button>
+        </motion.button>
       </div>
       <motion.div
         style={{ x }}
@@ -235,7 +279,7 @@ function SetRow({
         }}
         dragDirectionLock
         dragMomentum={false}
-        dragElastic={false}
+        dragElastic={{ left: SWIPE_RESISTANCE, right: 0 }}
         dragConstraints={{ left: -DELETE_ACTION_PX, right: 0 }}
         onDragEnd={handleDragEnd}
         className={cn(
@@ -295,7 +339,7 @@ function SetRow({
           ✓
         </motion.button>
       </motion.div>
-    </li>
+    </motion.li>
   );
 }
 

@@ -338,7 +338,11 @@ function Composer({
         </div>
       )}
       {suggestions.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto" role="listbox" aria-label="Erwähnen">
+        <div
+          className="no-scrollbar flex gap-2 overflow-x-auto"
+          role="listbox"
+          aria-label="Erwähnen"
+        >
           {suggestions.map((member) => (
             <button
               key={member.userId}

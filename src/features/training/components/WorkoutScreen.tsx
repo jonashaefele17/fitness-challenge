@@ -154,7 +154,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         />
       )}
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
+      <main className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
         <AnimatePresence mode="wait" initial={false}>
           {active ? (
             <motion.div
@@ -498,7 +498,7 @@ function ExerciseChips({
         items={items.map((item) => item.id)}
         strategy={horizontalListSortingStrategy}
       >
-        <div className="flex shrink-0 gap-2 overflow-x-auto px-gutter py-2">
+        <div className="no-scrollbar flex shrink-0 gap-2 overflow-x-auto px-gutter py-2">
           {items.map((item) => (
             <SortableChip
               key={item.id}

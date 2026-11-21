@@ -111,6 +111,13 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
   mask-image: linear-gradient(to bottom, transparent, black 38%, black 62%, transparent);
 }
+/* Scrollable without a visible scrollbar (chips rows, sheets, lists) – like native iOS. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 /* Toasts sit at the top, below the status bar. */
 @utility top-toast {
   top: calc(env(safe-area-inset-top) + --spacing(3));

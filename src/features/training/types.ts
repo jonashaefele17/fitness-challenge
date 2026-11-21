@@ -120,6 +120,10 @@ export interface WorkoutItem {
 export interface ActiveWorkout {
   id: string;
   startedAt: string;
+  /** Set once finished (edit mode). */
+  endedAt: string | null;
+  /** Duration-type entries; else derived from start, end and pauses. */
+  durationSeconds: number | null;
   pausedAt: string | null;
   pausedSeconds: number;
   trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided' | 'catalog' | 'focusIds'>;
@@ -247,4 +251,30 @@ export interface TemplateDraft {
   focusId: string | null;
   note: string;
   items: TemplateItem[];
+}
+
+/** A finished workout in a few numbers, for cards elsewhere (e.g. the feed). */
+export interface WorkoutCardSummary {
+  id: string;
+  userId: string;
+  trainingType: {
+    id: string;
+    name: string;
+    icon: string;
+    kind: 'exercises' | 'duration';
+    guided: boolean;
+  };
+  focusName: string | null;
+  variant: string | null;
+  locationName: string | null;
+  startedAt: string;
+  durationSeconds: number | null;
+  distanceM: number | null;
+  exerciseCount: number;
+  workingSets: number;
+  volumeKg: number;
+  /** Exercise names in order. */
+  exerciseNames: string[];
+  /** Exercises with a new best set. */
+  recordCount: number;
 }

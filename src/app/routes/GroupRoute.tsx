@@ -1,50 +1,74 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { CommentBubble, CommentThreadSheet } from '@/features/comments';
-import { FeedList } from '@/features/feed';
+import { FeedList, TrainedToday } from '@/features/feed';
 import { useActiveGroup } from '@/features/groups';
 import { NotificationBell, useInvalidateNotifications } from '@/features/notifications';
-import { ReactionButton } from '@/features/reactions';
+import { ReactionBar } from '@/features/reactions';
+import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen } from '@/shared/ui';
+import type { TargetRef } from '@/shared/types/target';
+import { CardWorkouts } from '../feed/CardWorkouts';
 import { targetParams, useOpenTarget } from '../targets';
+
+/** Thread target from the address: a day card, or (older notifications) a feed event. */
+function threadTarget(params: URLSearchParams, groupId: string): TargetRef | null {
+  const card = params.get(targetParams.card);
+  if (card) return { groupId, type: 'feed_day', id: card };
+  const event = params.get(targetParams.feedEvent);
+  if (event) return { groupId, type: 'feed_event', id: event };
+  return null;
+}
 
 export function GroupRoute() {
   const { group } = useActiveGroup();
   const openTarget = useOpenTarget();
   const invalidateNotifications = useInvalidateNotifications();
   const [params, setParams] = useSearchParams();
-  const focusedEventId = params.get(targetParams.feedEvent);
-  const threadOpen = focusedEventId !== null && params.get(targetParams.thread) === '1';
+  const focused = threadTarget(params, group.id);
+  const threadOpen = focused !== null && params.get(targetParams.thread) === '1';
   const focusCommentId = params.get(targetParams.comment);
   // Keep the last thread mounted after closing so the sheet can animate out
   // (state derived during render, as recommended by React).
-  const [threadEventId, setThreadEventId] = useState<string | null>(null);
-  if (threadOpen && focusedEventId !== threadEventId) setThreadEventId(focusedEventId);
+  const [thread, setThread] = useState<TargetRef | null>(null);
+  if (threadOpen && (focused.id !== thread?.id || focused.type !== thread.type)) {
+    setThread(focused);
+  }
+  const [workoutId, setWorkoutId] = useState<string | null>(null);
+  // Linked from a notification: a workout, or an exercise/set of one.
+  const linkedItem = params.get(targetParams.item);
+  const linkedSet = params.get(targetParams.set);
+  const itemWorkout = useWorkoutIdOfItem(linkedItem).data ?? null;
+  const linkedWorkout = params.get(targetParams.workout) ?? itemWorkout;
+  const shownWorkout = workoutId ?? linkedWorkout;
 
   return (
     <Screen title="Gruppe" accessory={<NotificationBell onOpenTarget={openTarget} />}>
-      <p className="-mt-2 mb-4 text-subhead text-text-muted">{group.name}</p>
-      <FeedList
-        groupId={group.id}
-        highlightId={focusedEventId}
-        renderActions={(event) => {
-          const target = { groupId: group.id, type: 'feed_event', id: event.id };
-          return (
-            <>
-              <ReactionButton target={target} />
-              <CommentBubble
-                target={target}
-                onOpen={() => {
-                  setParams({ [targetParams.feedEvent]: event.id, [targetParams.thread]: '1' });
-                }}
-              />
-            </>
-          );
-        }}
-      />
-      {threadEventId && (
+      <div className="flex flex-col gap-4">
+        <TrainedToday groupId={group.id} />
+        <FeedList
+          groupId={group.id}
+          highlightId={focused?.id ?? null}
+          renderBody={(card) => <CardWorkouts card={card} onOpen={setWorkoutId} />}
+          renderActions={(card) => {
+            const target = { groupId: group.id, type: 'feed_day', id: card.id };
+            return (
+              <>
+                <ReactionBar target={target} />
+                <CommentBubble
+                  target={target}
+                  onOpen={() => {
+                    setParams({ [targetParams.card]: card.id, [targetParams.thread]: '1' });
+                  }}
+                />
+              </>
+            );
+          }}
+        />
+      </div>
+      {thread && (
         <CommentThreadSheet
-          target={{ groupId: group.id, type: 'feed_event', id: threadEventId }}
+          target={thread}
           open={threadOpen}
           focusCommentId={threadOpen ? focusCommentId : null}
           onOpenChange={(open) => {
@@ -53,6 +77,18 @@ export function GroupRoute() {
           onRead={() => void invalidateNotifications()}
         />
       )}
+      <WorkoutDetailSheet
+        workoutId={shownWorkout}
+        focus={
+          linkedItem && !workoutId
+            ? { itemId: linkedItem, setIndex: linkedSet === null ? null : Number(linkedSet) }
+            : null
+        }
+        onClose={() => {
+          setWorkoutId(null);
+          if (linkedWorkout) setParams({}, { replace: true });
+        }}
+      />
     </Screen>
   );
 }

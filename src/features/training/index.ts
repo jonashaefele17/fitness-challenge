@@ -54,7 +54,7 @@ export {
   type HistoryCompare,
   type UseHistoryCompare,
 } from './components/history/compare';
-export { workoutsInRangeOptions } from './api/useCalendar';
+export { useWorkoutIdOfItem, workoutsInRangeOptions } from './api/useCalendar';
 export {
   CalendarPeopleContext,
   type CalendarPeople,
@@ -68,3 +68,13 @@ export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailShe
 export { MyExercises } from './components/me/MyExercises';
 export { TrainingSettings } from './components/me/TrainingSettings';
 export { TemplatesView } from './components/templates/TemplatesView';
+export { useWorkoutSummaries } from './api/useWorkoutSummaries';
+export { WorkoutSummaryRow } from './components/WorkoutSummaryRow';
+export { WorkoutSocialContext, type WorkoutSocialSlots } from './components/workout-detail/social';
+export {
+  editKey,
+  useEditableWorkout,
+  WorkoutCacheContext,
+  type LogPastWorkoutInput,
+} from './api/useWorkout';
+export { WorkoutEditContext } from './components/workout-detail/edit';

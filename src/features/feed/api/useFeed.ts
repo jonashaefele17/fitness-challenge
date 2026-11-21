@@ -1,42 +1,100 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { groupKeys } from '@/features/groups';
 import { supabase } from '@/shared/lib/supabase';
-import type { FeedEvent } from '../types';
+import type { Json } from '@/shared/types/database';
+import type { FeedCard, FeedEvent, FeedSort } from '../types';
 
 const PAGE_SIZE = 15;
 
 export const feedKeys = {
-  list: (groupId: string) => [...groupKeys.scope(groupId), 'feed'] as const,
+  all: (groupId: string) => [...groupKeys.scope(groupId), 'feed'] as const,
+  list: (groupId: string, sort: FeedSort) => [...feedKeys.all(groupId), sort] as const,
+  today: (groupId: string) => [...feedKeys.all(groupId), 'today'] as const,
 };
 
-/** Newest first, ~15 cards per page (concept: endless scroll). */
-export function useFeed(groupId: string) {
+interface Cursor {
+  day: string;
+  at: string;
+  id: string;
+}
+
+function toEvents(value: Json): FeedEvent[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((raw) => {
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return [];
+    const text = (key: string) => (typeof raw[key] === 'string' ? raw[key] : null);
+    const id = text('id');
+    const type = text('type');
+    if (!id || !type) return [];
+    return [
+      {
+        id,
+        type,
+        targetType: text('targetType'),
+        targetId: text('targetId'),
+        data: raw.data ?? {},
+        occurredAt: text('occurredAt') ?? '',
+        createdAt: text('createdAt') ?? '',
+      },
+    ];
+  });
+}
+
+/** Day cards, ~15 per page (concept: endless scroll). */
+export function useFeed(groupId: string, sort: FeedSort) {
   return useInfiniteQuery({
-    queryKey: feedKeys.list(groupId),
-    initialPageParam: null as string | null,
-    queryFn: async ({ pageParam }): Promise<FeedEvent[]> => {
-      let query = supabase
-        .from('feed_events')
-        .select('id, group_id, actor_id, type, target_type, target_id, data, created_at')
-        .eq('group_id', groupId)
-        .order('created_at', { ascending: false })
-        .order('id', { ascending: false })
-        .limit(PAGE_SIZE);
-      if (pageParam) query = query.lt('created_at', pageParam);
-      const { data, error } = await query;
+    queryKey: feedKeys.list(groupId, sort),
+    initialPageParam: null as Cursor | null,
+    queryFn: async ({ pageParam }): Promise<FeedCard[]> => {
+      const { data, error } = await supabase.rpc('feed_cards', {
+        p_group_id: groupId,
+        p_sort: sort,
+        p_limit: PAGE_SIZE,
+        ...(pageParam && {
+          p_before_day: pageParam.day,
+          p_before_at: pageParam.at,
+          p_before_id: pageParam.id,
+        }),
+      });
       if (error) throw error;
       return data.map((row) => ({
         id: row.id,
-        groupId: row.group_id,
+        groupId,
         actorId: row.actor_id,
-        type: row.type,
-        targetType: row.target_type,
-        targetId: row.target_id,
-        data: row.data,
-        createdAt: row.created_at,
+        day: row.day,
+        kind: row.kind === 'joined' ? 'joined' : 'day',
+        latestAt: row.latest_at,
+        lastActivityAt: row.last_activity_at,
+        events: toEvents(row.events),
       }));
     },
-    getNextPageParam: (lastPage) =>
-      lastPage.length === PAGE_SIZE ? (lastPage[lastPage.length - 1]?.createdAt ?? null) : null,
+    getNextPageParam: (lastPage): Cursor | null => {
+      const last = lastPage.at(-1);
+      if (!last || lastPage.length < PAGE_SIZE) return null;
+      return {
+        day: last.day,
+        at: sort === 'active' ? last.lastActivityAt : last.latestAt,
+        id: last.id,
+      };
+    },
+  });
+}
+
+/** Who trained today (for the avatar row above the feed). */
+export function useTrainedToday(groupId: string) {
+  return useQuery({
+    queryKey: feedKeys.today(groupId),
+    queryFn: async (): Promise<string[]> => {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from('feed_events')
+        .select('actor_id')
+        .eq('group_id', groupId)
+        .eq('type', 'workout_finished')
+        .gte('occurred_at', start.toISOString());
+      if (error) throw error;
+      return [...new Set(data.map((row) => row.actor_id))];
+    },
   });
 }

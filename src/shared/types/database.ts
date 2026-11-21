@@ -383,6 +383,52 @@ export type Database = {
           },
         ];
       };
+      feed_days: {
+        Row: {
+          actor_id: string;
+          created_at: string;
+          day: string;
+          group_id: string;
+          id: string;
+          kind: string;
+          last_activity_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_id: string;
+          created_at?: string;
+          day: string;
+          group_id: string;
+          id?: string;
+          kind?: string;
+          last_activity_at?: string;
+        };
+        Update: {
+          actor_id?: string;
+          created_at?: string;
+          day?: string;
+          group_id?: string;
+          id?: string;
+          kind?: string;
+          last_activity_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'feed_days_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'feed_days_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       feed_event_types: {
         Row: {
           description: string;
@@ -404,9 +450,11 @@ export type Database = {
           actor_id: string;
           created_at: string;
           data: NonNullable<Json>;
+          feed_day_id: string;
           group_id: string;
           id: string;
           last_activity_at: string;
+          occurred_at: string;
           target_id: string | null;
           target_type: string | null;
           type: string;
@@ -416,9 +464,11 @@ export type Database = {
           actor_id: string;
           created_at?: string;
           data?: NonNullable<Json>;
+          feed_day_id: string;
           group_id: string;
           id?: string;
           last_activity_at?: string;
+          occurred_at: string;
           target_id?: string | null;
           target_type?: string | null;
           type: string;
@@ -427,9 +477,11 @@ export type Database = {
           actor_id?: string;
           created_at?: string;
           data?: NonNullable<Json>;
+          feed_day_id?: string;
           group_id?: string;
           id?: string;
           last_activity_at?: string;
+          occurred_at?: string;
           target_id?: string | null;
           target_type?: string | null;
           type?: string;
@@ -440,6 +492,13 @@ export type Database = {
             columns: ['actor_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'feed_events_feed_day_id_fkey';
+            columns: ['feed_day_id'];
+            isOneToOne: false;
+            referencedRelation: 'feed_days';
             referencedColumns: ['id'];
           },
           {
@@ -1520,6 +1579,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1540,6 +1600,7 @@ export type Database = {
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
+          logged_later?: boolean;
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
@@ -1559,6 +1620,7 @@ export type Database = {
           id?: string;
           intensity?: number | null;
           location_id?: string | null;
+          logged_later?: boolean;
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
@@ -1709,6 +1771,25 @@ export type Database = {
           workout_started_at: string;
         }[];
       };
+      feed_cards: {
+        Args: {
+          p_before_at?: string;
+          p_before_day?: string;
+          p_before_id?: string;
+          p_group_id: string;
+          p_limit?: number;
+          p_sort?: string;
+        };
+        Returns: {
+          actor_id: string;
+          day: string;
+          events: Json;
+          id: string;
+          kind: string;
+          last_activity_at: string;
+          latest_at: string;
+        }[];
+      };
       finish_workout: {
         Args: { p_workout_id: string };
         Returns: {
@@ -1720,6 +1801,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1736,6 +1818,19 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      log_past_workout: {
+        Args: {
+          p_distance_m?: number;
+          p_duration_seconds: number;
+          p_intensity?: number;
+          p_note?: string;
+          p_started_at: string;
+          p_template_id?: string;
+          p_training_type_id: string;
+          p_variant?: string;
+        };
+        Returns: string;
       };
       mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined };
       mark_thread_read: {
@@ -1778,7 +1873,7 @@ export type Database = {
         };
       };
       previous_sets: {
-        Args: { p_device_id?: string; p_exercise_id: string };
+        Args: { p_before?: string; p_device_id?: string; p_exercise_id: string };
         Returns: {
           duration_seconds: number;
           is_warmup: boolean;
@@ -1801,6 +1896,7 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
       save_template: {
         Args: {
           p_focus_id: string;
@@ -1822,6 +1918,16 @@ export type Database = {
         }[];
       };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
+      set_reaction: {
+        Args: {
+          p_group_id: string;
+          p_kind: string;
+          p_target_id: string;
+          p_target_index: number;
+          p_target_type: string;
+        };
+        Returns: undefined;
+      };
       start_workout: {
         Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
         Returns: {
@@ -1833,6 +1939,7 @@ export type Database = {
           id: string;
           intensity: number | null;
           location_id: string | null;
+          logged_later: boolean;
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
@@ -1871,6 +1978,10 @@ export type Database = {
         }[];
       };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      update_workout_time: {
+        Args: { p_duration_seconds: number; p_started_at: string; p_workout_id: string };
+        Returns: undefined;
+      };
       workout_records: {
         Args: { p_workout_id: string };
         Returns: {
@@ -1881,6 +1992,29 @@ export type Database = {
           previous_weight_kg: number;
           reps: number;
           weight_kg: number;
+        }[];
+      };
+      workout_summaries: {
+        Args: { p_workout_ids: string[] };
+        Returns: {
+          distance_m: number;
+          duration_seconds: number;
+          exercise_count: number;
+          exercise_names: string[];
+          focus_name: string;
+          guided: boolean;
+          id: string;
+          location_name: string;
+          record_count: number;
+          started_at: string;
+          training_type_id: string;
+          type_icon: string;
+          type_kind: string;
+          type_name: string;
+          user_id: string;
+          variant: string;
+          volume_kg: number;
+          working_sets: number;
         }[];
       };
     };

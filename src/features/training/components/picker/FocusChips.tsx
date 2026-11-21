@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, TextField } from '@/shared/ui';
+import { Button, FieldGroup, TextField } from '@/shared/ui';
 import { useCreateTrainingFocus, useMuscleGroups, useTrainingFocuses } from '../../api/useCatalog';
 
 const chip =
@@ -99,8 +99,7 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
           setShortName(event.target.value);
         }}
       />
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-subhead text-text-muted">Muskelgruppen</legend>
+      <FieldGroup label="Muskelgruppen">
         <div className="flex flex-wrap gap-2">
           {muscles.map((muscle) => {
             const on = selected.includes(muscle.key);
@@ -126,7 +125,7 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
             );
           })}
         </div>
-      </fieldset>
+      </FieldGroup>
       {create.isError && (
         <p role="alert" className="text-footnote text-danger">
           Speichern hat nicht geklappt.

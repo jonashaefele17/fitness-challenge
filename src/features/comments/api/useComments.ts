@@ -8,6 +8,14 @@ import type { Comment, CommentStats, PostCommentInput } from '../types';
 export const commentKeys = {
   all: (groupId: string) => [...groupKeys.scope(groupId), 'comments'] as const,
   stats: (target: TargetRef) => [...commentKeys.all(target.groupId), 'stats', ...targetKey(target)],
+  /** All stats of one object, whatever the index (prefix of the keys above). */
+  statsOf: (target: TargetRef) => [
+    ...commentKeys.all(target.groupId),
+    'stats',
+    target.groupId,
+    target.type,
+    target.id,
+  ],
   thread: (target: TargetRef) => [
     ...commentKeys.all(target.groupId),
     'thread',
@@ -122,7 +130,7 @@ export function usePostComment(target: TargetRef) {
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: threadKey }),
-        queryClient.invalidateQueries({ queryKey: commentKeys.stats(target) }),
+        queryClient.invalidateQueries({ queryKey: commentKeys.statsOf(target) }),
       ]),
   });
 }
@@ -175,7 +183,7 @@ export function useUpdateComment(target: TargetRef) {
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: threadKey }),
-        queryClient.invalidateQueries({ queryKey: commentKeys.stats(target) }),
+        queryClient.invalidateQueries({ queryKey: commentKeys.statsOf(target) }),
       ]),
   });
 }
@@ -193,6 +201,36 @@ export function useMarkThreadRead(target: TargetRef) {
       });
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: commentKeys.stats(target) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: commentKeys.statsOf(target) }),
+  });
+}
+
+/**
+ * Stats of one object for every index at once (e.g. an exercise and each of its sets),
+ * keyed by index ("" for the object itself).
+ */
+export function useCommentStatsByIndex(target: Omit<TargetRef, 'index'>) {
+  return useQuery({
+    queryKey: [...commentKeys.statsOf(target), 'by-index'],
+    queryFn: async (): Promise<Map<string, CommentStats>> => {
+      const { data, error } = await supabase.rpc('comment_stats', {
+        p_group_id: target.groupId,
+        p_target_type: target.type,
+        p_target_ids: [target.id],
+      });
+      if (error) throw error;
+      return new Map(
+        data.map((row) => [
+          // The generated type marks target_index as non-null, but it is null for the object.
+          String((row.target_index as number | null) ?? ''),
+          {
+            total: row.total,
+            unread: row.unread,
+            lastBody: row.last_body,
+            lastAuthorId: row.last_author_id,
+          },
+        ]),
+      );
+    },
   });
 }

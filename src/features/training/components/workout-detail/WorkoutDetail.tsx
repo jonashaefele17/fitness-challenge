@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { useSetFinishedWorkoutFocus } from '../../api/useCalendar';
@@ -8,6 +8,7 @@ import type { WorkoutDetailData, WorkoutItem } from '../../types';
 import { formatDistance, formatMinutes } from '../calendar/workoutText';
 import { ExerciseHistorySheet, type HistoryTarget } from '../history/ExerciseHistorySheet';
 import { SaveAsTemplate } from '../templates/SaveAsTemplate';
+import { WorkoutSocialContext } from './social';
 
 const when = new Intl.DateTimeFormat('de', {
   weekday: 'long',
@@ -19,12 +20,42 @@ const when = new Intl.DateTimeFormat('de', {
 });
 
 /**
- * A finished workout: key numbers, place and focus, every exercise with its sets.
- * Read-only for now (editing comes with the feed); the focus of my own workouts can be set.
- * Also the base for the feed's workout detail later.
+ * A finished workout: key numbers, place and focus, every exercise with its sets. The
+ * social slots (if plugged in) add reactions and comments to the workout, each exercise
+ * and each set. The focus of my own workouts can be set.
  */
-export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
+export interface WorkoutFocus {
+  itemId: string;
+  /** Set position; null: the exercise itself. */
+  setIndex: number | null;
+}
+
+/** Let the sheet finish sliding in before scrolling inside it. */
+const FOCUS_DELAY_MS = 350;
+
+export function WorkoutDetail({
+  workout,
+  focus,
+}: {
+  workout: WorkoutDetailData;
+  focus: WorkoutFocus | null;
+}) {
   const mine = workout.userId === useUserId();
+  const social = useContext(WorkoutSocialContext);
+  const title = [workout.trainingType.name, workout.focus?.name].filter(Boolean).join(' · ');
+  const focusItemId = focus?.itemId ?? null;
+
+  useEffect(() => {
+    if (!focusItemId) return;
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(`item-${focusItemId}`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, FOCUS_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [focusItemId]);
   const [history, setHistory] = useState<HistoryTarget | null>(null);
   const summary = summarize(workout.items);
   const isDuration = workout.trainingType.kind === 'duration';
@@ -75,6 +106,8 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
         ))}
       </dl>
 
+      {social.Workout && <social.Workout workoutId={workout.id} title={title} />}
+
       {!isDuration && (mine ? <FocusPicker workout={workout} /> : <FocusText workout={workout} />)}
 
       {workout.note && (
@@ -87,6 +120,7 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
             <ExerciseBlock
               key={item.id}
               item={item}
+              focusSet={focus?.itemId === item.id ? (focus.setIndex ?? -1) : null}
               onHistory={
                 mine
                   ? () => {
@@ -122,14 +156,18 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
 
 function ExerciseBlock({
   item,
+  focusSet,
   onHistory,
 }: {
   item: WorkoutItem;
+  /** Marked (from a notification): -1 the exercise, else the set position; null: none. */
+  focusSet: number | null;
   onHistory?: (() => void) | undefined;
 }) {
+  const social = useContext(WorkoutSocialContext);
   let working = 0;
   const header = (
-    <span className="flex items-baseline justify-between gap-3">
+    <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
       <span className="text-subhead font-semibold">{item.exercise.name}</span>
       {item.device && item.device.name !== item.exercise.name && (
         <span className="truncate text-footnote text-text-muted">{item.device.name}</span>
@@ -137,30 +175,60 @@ function ExerciseBlock({
     </span>
   );
   return (
-    <li className="flex flex-col gap-1.5 rounded-card bg-surface-2 px-4 py-3">
-      {onHistory ? (
-        <button
-          type="button"
-          onClick={onHistory}
-          className="text-left"
-          aria-label={`${item.exercise.name}: Verlauf`}
-        >
-          {header}
-        </button>
-      ) : (
-        header
+    <li
+      id={`item-${item.id}`}
+      className={cn(
+        'flex flex-col gap-1.5 rounded-card border bg-surface-2 px-4 py-3',
+        focusSet === -1 ? 'border-accent' : 'border-transparent',
       )}
+    >
+      <div className="flex min-h-tap items-center gap-2">
+        {onHistory ? (
+          <button
+            type="button"
+            onClick={onHistory}
+            className="flex min-w-0 flex-1 text-left"
+            aria-label={`${item.exercise.name}: Verlauf`}
+          >
+            {header}
+          </button>
+        ) : (
+          header
+        )}
+        {social.Exercise && <social.Exercise itemId={item.id} title={item.exercise.name} />}
+      </div>
       <ol className="flex flex-col">
-        {item.sets.map((set) => (
-          <li key={set.id} className="flex gap-3 text-footnote tabular-nums">
-            <span
-              className={cn('w-5 text-center', set.isWarmup ? 'text-warning' : 'text-text-subtle')}
-            >
-              {set.isWarmup ? 'W' : String(++working)}
+        {item.sets.map((set) => {
+          const label = set.isWarmup ? 'W' : String(++working);
+          const row = (
+            <span className="flex gap-3 text-footnote tabular-nums">
+              <span
+                className={cn(
+                  'w-5 text-center',
+                  set.isWarmup ? 'text-warning' : 'text-text-subtle',
+                )}
+              >
+                {label}
+              </span>
+              <span>{formatSet(item.exercise.measure, set)}</span>
             </span>
-            <span>{formatSet(item.exercise.measure, set)}</span>
-          </li>
-        ))}
+          );
+          return (
+            <li key={set.id} className={cn(focusSet === set.position && 'rounded-sm bg-surface-3')}>
+              {social.Set ? (
+                <social.Set
+                  itemId={item.id}
+                  index={set.position}
+                  title={`${item.exercise.name} · ${set.isWarmup ? 'Aufwärmsatz' : `Satz ${label}`}`}
+                >
+                  {row}
+                </social.Set>
+              ) : (
+                row
+              )}
+            </li>
+          );
+        })}
       </ol>
       {item.note && <p className="text-footnote text-text-muted">{item.note}</p>}
     </li>

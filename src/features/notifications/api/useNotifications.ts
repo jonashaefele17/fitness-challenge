@@ -15,10 +15,10 @@ export const notificationKeys = {
   settings: (userId: string) => [...notificationKeys.all(userId), 'settings'] as const,
 };
 
-function readPreview(data: Json): string | null {
+function readText(data: Json, key: string): string | null {
   if (typeof data !== 'object' || data === null || Array.isArray(data)) return null;
-  const preview = data.preview;
-  return typeof preview === 'string' ? preview : null;
+  const value = data[key];
+  return typeof value === 'string' ? value : null;
 }
 
 /** Latest notifications of the signed-in user across all groups. */
@@ -50,7 +50,8 @@ export function useNotifications({ enabled = true }: { enabled?: boolean } = {})
           index: row.target_index,
         },
         commentId: row.comment_id,
-        preview: readPreview(row.data),
+        preview: readText(row.data, 'preview'),
+        emoji: readText(row.data, 'emoji'),
         createdAt: row.created_at,
         readAt: row.read_at,
       }));

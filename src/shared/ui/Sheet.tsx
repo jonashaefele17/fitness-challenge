@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { fade, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
+import { fade, sheetBehind, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
 export interface SheetProps {
@@ -89,13 +89,13 @@ export function Sheet({
                 <motion.div
                   ref={contentRef}
                   className={cn(
-                    'absolute inset-x-0 bottom-0 flex max-h-(--spacing-sheet-max) origin-top flex-col rounded-t-sheet border-t border-border bg-surface pb-safe transition-[min-height] duration-(--duration-base) outline-none',
+                    'absolute inset-x-0 bottom-0 flex max-h-(--spacing-sheet-max) origin-top flex-col rounded-t-sheet border-t border-border bg-surface pb-safe outline-none',
                     stacked && 'max-h-(--spacing-sheet-stacked)',
                     className,
                   )}
-                  // Behind another sheet: full height, shrunk back, its top edge peeking out.
-                  style={covered ? { minHeight: 'var(--spacing-sheet-max)' } : {}}
                   initial={{ y: '100%' }}
+                  // Behind another sheet it stays where it is and only shrinks back a little
+                  // (dimmed by the new sheet's overlay): calm, no height change.
                   animate={{ y: 0, scale: covered ? sheetBehindScale : 1 }}
                   exit={{ y: '100%' }}
                   transition={spring.sheet}
@@ -150,6 +150,15 @@ export function Sheet({
                       {footer}
                     </div>
                   )}
+                  {/* Behind another sheet: dimmed, and lit up again a little slower than the
+                      overlay fades, so you notice it was there all along. */}
+                  <motion.div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-t-sheet bg-overlay"
+                    initial={false}
+                    animate={{ opacity: covered ? 1 : 0 }}
+                    transition={sheetBehind.transition}
+                  />
                 </motion.div>
               </Dialog.Content>
             </div>

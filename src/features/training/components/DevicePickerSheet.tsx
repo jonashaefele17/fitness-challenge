@@ -75,135 +75,157 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
     if (added) choose(added);
   }
 
-  if (step === 'new-type') {
-    return (
-      <NewDeviceTypeForm
-        initialName={query.trim()}
-        pending={add.isPending}
-        error={error}
-        onSubmit={(values) => {
-          setError(null);
-          add.mutate(
-            { typeIds: [], newType: values },
-            {
-              onSuccess: (ids) => void chooseAdded([...ids.values()][0]),
-              onError: () => {
-                setError('Anlegen hat nicht geklappt (gibt es den Typ schon?).');
-              },
-            },
-          );
+  const here = new Set(deviceList.map((device) => device.typeId));
+  const term = query.trim().toLowerCase();
+  const candidates = types
+    .filter((type) => !here.has(type.id))
+    .filter((type) => !term || type.name.toLowerCase().includes(term))
+    .sort(
+      (a, b) =>
+        Number(b.exercises.some((e) => e.id === item.exercise.id)) -
+        Number(a.exercises.some((e) => e.id === item.exercise.id)),
+    );
+  const catalogue = (
+    <div className="flex flex-col gap-3">
+      <p className="text-subhead text-text-muted">Welches Gerät gibt es in {place.name}?</p>
+      <TextField
+        label="Gerät suchen"
+        value={query}
+        autoCorrect="off"
+        onChange={(event) => {
+          setQuery(event.target.value);
         }}
       />
-    );
-  }
-
-  if (step === 'catalogue') {
-    const here = new Set(deviceList.map((device) => device.typeId));
-    const term = query.trim().toLowerCase();
-    const candidates = types
-      .filter((type) => !here.has(type.id))
-      .filter((type) => !term || type.name.toLowerCase().includes(term))
-      .sort(
-        (a, b) =>
-          Number(b.exercises.some((e) => e.id === item.exercise.id)) -
-          Number(a.exercises.some((e) => e.id === item.exercise.id)),
-      );
-    return (
-      <div className="flex flex-col gap-3">
-        <p className="text-subhead text-text-muted">Welches Gerät gibt es in {place.name}?</p>
-        <TextField
-          label="Gerät suchen"
-          value={query}
-          autoCorrect="off"
-          onChange={(event) => {
-            setQuery(event.target.value);
-          }}
-        />
-        <ul className="-mx-gutter flex flex-col">
-          {candidates.map((type) => (
-            <li key={type.id}>
-              <button
-                type="button"
-                disabled={add.isPending}
-                onClick={() => {
-                  add.mutate(
-                    { typeIds: [type.id] },
-                    { onSuccess: (ids) => void chooseAdded(ids.get(type.id)) },
-                  );
-                }}
-                className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
-              >
-                <span className="text-body">{type.name}</span>
-                {type.exercises.some((e) => e.id === item.exercise.id) && (
-                  <span className="text-footnote text-accent">passt zur Übung</span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setStep('new-type');
-          }}
-        >
-          Neuer Gerätetyp
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setStep('here');
-          }}
-        >
-          Zurück
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-2">
-        {sorted.map((device) => {
-          const selected = item.device?.id === device.id;
-          return (
+      <ul className="-mx-gutter flex flex-col">
+        {candidates.map((type) => (
+          <li key={type.id}>
             <button
-              key={device.id}
               type="button"
+              disabled={add.isPending}
               onClick={() => {
-                choose(device);
+                add.mutate(
+                  { typeIds: [type.id] },
+                  { onSuccess: (ids) => void chooseAdded(ids.get(type.id)) },
+                );
               }}
-              className={cn(
-                'flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border bg-surface-2 p-3 text-left active:bg-surface-3',
-                selected ? 'border-accent' : 'border-border',
-              )}
+              className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
             >
-              <span className="text-subhead font-semibold">{device.name}</span>
-              <span className="text-caption text-text-muted">
-                {offers(device) ? 'passt zur Übung' : `${String(device.exercises.length)} Übungen`}
-              </span>
+              <span className="text-body">{type.name}</span>
+              {type.exercises.some((e) => e.id === item.exercise.id) && (
+                <span className="text-footnote text-accent">passt zur Übung</span>
+              )}
             </button>
-          );
-        })}
-      </div>
+          </li>
+        ))}
+      </ul>
       <Button
         variant="secondary"
         onClick={() => {
-          setStep('catalogue');
+          setStep('new-type');
         }}
       >
-        + Weiteres Gerät hier
+        Neuer Gerätetyp
       </Button>
-      {item.device && (
+    </div>
+  );
+
+  const newType = (
+    <NewDeviceTypeForm
+      initialName={query.trim()}
+      pending={add.isPending}
+      error={error}
+      onSubmit={(values) => {
+        setError(null);
+        add.mutate(
+          { typeIds: [], newType: values },
+          {
+            onSuccess: (ids) => void chooseAdded([...ids.values()][0]),
+            onError: () => {
+              setError('Anlegen hat nicht geklappt (gibt es den Typ schon?).');
+            },
+          },
+        );
+      }}
+    />
+  );
+
+  // The catalogue (and a new type) open as a sheet stacked on the list: closing it returns.
+  const [lastStep, setLastStep] = useState<Step>('catalogue');
+  if (step !== 'here' && step !== lastStep) setLastStep(step);
+  const shown = step === 'here' ? lastStep : step;
+
+  return (
+    <>
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-2">
+          {sorted.map((device) => {
+            const selected = item.device?.id === device.id;
+            return (
+              <button
+                key={device.id}
+                type="button"
+                onClick={() => {
+                  choose(device);
+                }}
+                className={cn(
+                  'flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border bg-surface-2 p-3 text-left active:bg-surface-3',
+                  selected ? 'border-accent' : 'border-border',
+                )}
+              >
+                <span className="text-subhead font-semibold">{device.name}</span>
+                <span className="text-caption text-text-muted">
+                  {offers(device)
+                    ? 'passt zur Übung'
+                    : `${String(device.exercises.length)} Übungen`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
         <Button
-          variant="ghost"
+          variant="secondary"
           onClick={() => {
-            choose(null);
+            setStep('catalogue');
           }}
         >
-          Ohne Gerät
+          + Weiteres Gerät hier
         </Button>
-      )}
-    </div>
+        {item.device && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              choose(null);
+            }}
+          >
+            Ohne Gerät
+          </Button>
+        )}
+      </div>
+      <Sheet
+        open={step !== 'here'}
+        onOpenChange={(next) => {
+          if (!next) setStep('here');
+        }}
+        title={shown === 'new-type' ? 'Neuer Gerätetyp' : `Geräte · ${place.name}`}
+        className="min-h-sheet-min"
+      >
+        {shown === 'new-type' ? (
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setStep('catalogue');
+              }}
+              className="-mt-2 min-h-tap self-start text-subhead font-semibold text-accent"
+            >
+              ‹ Zurück
+            </button>
+            {newType}
+          </div>
+        ) : (
+          catalogue
+        )}
+      </Sheet>
+    </>
   );
 }

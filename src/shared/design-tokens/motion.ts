@@ -25,5 +25,13 @@ export const pressScale = 0.97;
 /** A sheet with another sheet on top shrinks back (iOS sheet stack). */
 export const sheetBehindScale = 0.92;
 
+/**
+ * The sheet behind dims itself too and lights up again a little slower than the overlay
+ * fades, so you notice it was there all along.
+ */
+export const sheetBehind = {
+  transition: { duration: 0.45, ease: [0.32, 0.72, 0, 1] },
+} as const satisfies { transition: Transition };
+
 /** Drag distance (px) or velocity (px/s) after which a sheet dismisses. */
 export const sheetDismiss = { offset: 120, velocity: 500 } as const;

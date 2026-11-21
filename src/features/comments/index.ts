@@ -1,6 +1,7 @@
 export {
   commentKeys,
   useCommentStats,
+  useCommentStatsByIndex,
   useMarkThreadRead,
   usePostComment,
   useThread,

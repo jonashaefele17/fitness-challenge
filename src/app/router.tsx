@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router';
 import { AppShell } from './layout/AppShell';
 import { paths } from './paths';
+import { EditWorkoutRoute } from './routes/EditWorkoutRoute';
 import { GroupRoute } from './routes/GroupRoute';
 import { LiveWorkoutRoute } from './routes/LiveWorkoutRoute';
 import { MeRoute } from './routes/MeRoute';
@@ -19,6 +20,7 @@ export const router = createBrowserRouter(
         { path: paths.today, element: <TodayRoute /> },
         { path: paths.training, element: <TrainingRoute /> },
         { path: paths.liveWorkout, element: <LiveWorkoutRoute /> },
+        { path: paths.editWorkout, element: <EditWorkoutRoute /> },
         { path: paths.group, element: <GroupRoute /> },
         { path: paths.me, element: <MeRoute /> },
         { path: '*', element: <Navigate to={paths.today} replace /> },

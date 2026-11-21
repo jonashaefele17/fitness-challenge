@@ -12,7 +12,10 @@ import { RealtimeSync } from './RealtimeSync';
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
-  const fullScreen = location.pathname === paths.liveWorkout;
+  // The workout screen (live or editing) covers everything, navigation included.
+  const fullScreen =
+    location.pathname === paths.liveWorkout ||
+    location.pathname.startsWith(paths.editWorkout.replace(':workoutId', ''));
   const workoutRunning = Boolean(useActiveWorkout().data);
 
   return (

@@ -36,6 +36,10 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] MCP-Server, damit Claude Einträge machen kann (nutzt dieselben RPCs).
 - [ ] Später ggf. Monorepo mit gemeinsamen Paketen für die persönlichen Module.
 
+## Feed / Habits (zu Baustein 6 besprechen)
+
+- [ ] Check-in nicht automatisch in den Feed: Muss der tägliche Check-in überhaupt auf der Tageskarte erscheinen, oder nur Trainings, Wiegetag und Meilensteine? Offen, wenn Baustein 6 (Habits) dran ist, gemeinsam entscheiden.
+
 ## Feinschliff
 
 - [ ] Optional: Einstellung „App-Farbe: Limette / meine Personenfarbe“ (Ich → Einstellungen). Technisch einfach (Akzent-Token zur Laufzeit setzen, Schriftfarbe auf Knöpfen automatisch hell/dunkel, gedrückt/Glas abgeleitet; App-Icon und Ladebildschirm bleiben Limette). Standard bleibt Limette, weil Personenfarben in Gruppenansichten „diese Person“ bedeuten.
@@ -45,6 +49,8 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Prüfen, sobald Seiten lang genug zum Scrollen sind: Gleitet die Tab-Linse nach dem Runterscrollen seitlich (Fix `layoutRoot` vom 21.11.2026) statt von unten einzufliegen?
 
 ## Training
+
+- [ ] „…“-Menü im Training: Nach einer Aktion (Verlauf, Gerät wählen, Notiz …) zurück ins Menü statt ins Training? Vorerst bleibt es wie bei iOS-Aktionsmenüs (Menü schließt sich).
 
 - [ ] Muskelgruppen-Wochenübersicht („Sätze pro Muskelgruppe diese Woche“) unter Ich → Training bzw. im Wochenrückblick
 - [ ] Körper-Grafik (vorne/hinten, Muskeln eingefärbt) wie bei Lyfta – eine Komponente für Übungsdetail und Wochenübersicht

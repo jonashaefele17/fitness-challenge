@@ -4,12 +4,14 @@ export interface AppNotification {
   id: string;
   groupId: string;
   category: string;
-  /** comment | reply | mention | reaction | member_joined */
+  /** comment | reply | mention | reaction | member_joined | workout_finished */
   event: string;
   actorId: string | null;
   target: TargetRef;
   commentId: string | null;
   preview: string | null;
+  /** Reactions: the emoji given. */
+  emoji: string | null;
   createdAt: string;
   readAt: string | null;
 }

@@ -37,5 +37,24 @@ describe('describeNotification', () => {
     expect(describeNotification({ event: 'reaction', category: 'reactions' })).toBe(
       'hat mit 🔥 reagiert',
     );
+    expect(describeNotification({ event: 'reaction', category: 'reactions', emoji: '💪' })).toBe(
+      'hat mit 💪 reagiert',
+    );
+    expect(describeNotification({ event: 'workout_finished', category: 'all_activity' })).toBe(
+      'hat trainiert',
+    );
+  });
+
+  it('names what was commented on', () => {
+    const comment = { event: 'comment', category: 'comments_on_mine' };
+    expect(describeNotification({ ...comment, target: { type: 'workout_item', index: 2 } })).toBe(
+      'hat deinen Satz kommentiert',
+    );
+    expect(describeNotification({ ...comment, target: { type: 'workout_item' } })).toBe(
+      'hat deine Übung kommentiert',
+    );
+    expect(describeNotification({ ...comment, target: { type: 'workout' } })).toBe(
+      'hat dein Training kommentiert',
+    );
   });
 });

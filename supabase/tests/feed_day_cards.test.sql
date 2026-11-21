@@ -57,7 +57,7 @@ select is(
 -- a second workout the same day joins the same card
 insert into public.workouts (id, user_id, training_type_id, status, started_at, ended_at, duration_seconds)
 values ('f0000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111', tests.run(),
-        'finished', now() - interval '20 minutes', now() - interval '10 minutes', 600);
+        'finished', now() - interval '50 minutes', now() - interval '10 minutes', 600);
 select is((select count(*) from public.feed_days where kind = 'day'), 1::bigint, 'a second workout that day joins the card');
 
 -- logged a few days later: on its own day, no notification
@@ -90,13 +90,13 @@ select is(
 -- reactions: one per person, the kind can change
 select lives_ok(
   $$select public.set_reaction('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'feed_day',
-      (select id from public.feed_days where kind = 'day' and day = private.local_day(
-         '11111111-1111-4111-8111-111111111111', now())), null, 'fire')$$,
+      (select feed_day_id from public.feed_events
+        where target_id = 'f0000000-0000-4000-8000-000000000001'), null, 'fire')$$,
   'a2 reacts on the card');
 select lives_ok(
   $$select public.set_reaction('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'feed_day',
-      (select id from public.feed_days where kind = 'day' and day = private.local_day(
-         '11111111-1111-4111-8111-111111111111', now())), null, 'strong')$$,
+      (select feed_day_id from public.feed_events
+        where target_id = 'f0000000-0000-4000-8000-000000000001'), null, 'strong')$$,
   'and changes it');
 select results_eq($$select kind from public.reactions$$, $$values ('strong'::text)$$,
   'still one reaction, now 💪');

@@ -99,8 +99,9 @@ export function WorkoutDetail({ workout }: { workout: WorkoutDetailData }) {
         </ul>
       )}
 
-      {mine && !isDuration && (
+      {!isDuration && (
         <SaveAsTemplate
+          foreign={!mine}
           workoutId={workout.id}
           trainingTypeId={workout.trainingType.id}
           focusId={workout.focus?.id ?? null}

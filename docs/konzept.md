@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 21.11.2026 | 1.23 | Trainings der Gruppe lassen sich als eigene Vorlage speichern; „Als Vorlage speichern“ ist eine einklappbare Zeile; Routinen behalten dabei ihre Einstellungen |
 | 21.11.2026 | 1.22 | Mobility-Routinen wie ein Mitmach-Video: Ablauf (Übungszeit, Pause, Runden) einmal pro Routine, Übungen per Mehrfachauswahl zusammenklicken und am Griff sortieren; Runden laufen die ganze Liste durch; pro Übung „beidseitig“ mit optionaler Pause zum Seitenwechsel; Übungen bearbeitbar (Name, Ausführung, Muskelgruppen; Animation folgt mit dem Bild-Upload) |
 | 21.11.2026 | 1.21 | Eigener Übungskatalog für Mobility; erlaubte Fokusse pro Trainingsart (Mobility: OK, UK, GK); Standard-Trainingsarten als Katalog, jeder blendet aus, was er nicht nutzt; eigene Arten bearbeiten/archivieren |
 | 21.11.2026 | 1.20 | Mobility-Player (3f) umgesetzt: geführte Trainingsart, Routinen als Vorlagen mit Pause und beidseitig |

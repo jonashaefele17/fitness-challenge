@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(14);
 
 insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
 insert into public.profiles (id, display_name, color)
@@ -49,6 +49,22 @@ select is(
   (select catalog from public.exercises where id = 'e0000000-0000-4000-8000-000000000001'),
   'strength', 'new exercises start in the strength catalogue');
 reset role;
+
+-- Saved back as a template, the routine keeps its settings; a both-sides round counts once
+update public.workout_sets set duration_seconds = 45, completed_at = now();
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select lives_ok(
+  $$select public.template_from_workout((select id from public.workouts limit 1), 'Kopie')$$,
+  'a routine workout becomes a template');
+reset role;
+select results_eq(
+  $$select i.sets, i.duration_seconds, i.rest_seconds, i.per_side, i.side_rest_seconds
+      from public.workout_template_items i
+      join public.workout_templates t on t.id = i.template_id
+     where t.name = 'Kopie' order by i.position$$,
+  $$values (2, 45, 15, true, 5), (1, 30, 0, false, 0)$$,
+  'with time, rest, both sides and the switch pause; two rounds, not four');
 
 -- Mobility: own catalogue and only the body-region focuses
 update public.exercises set catalog = 'mobility' where id = 'e0000000-0000-4000-8000-000000000001';

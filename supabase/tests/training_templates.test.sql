@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(19);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -121,6 +121,22 @@ select throws_ok(
   $$select public.start_workout(tests.studio(), null, (select id from tests.ids where key = 't1'))$$,
   '42501', 'template_not_visible', 'and cannot start with them');
 reset role;
+
+-- a1 saves a2's finished workout as an own template; b (other group) cannot
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
+select throws_ok(
+  $$select public.template_from_workout((select id from public.workouts limit 1), 'Fremd')$$,
+  '42501', 'workout_not_visible', 'other groups cannot turn the workout into a template');
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select lives_ok(
+  $$insert into tests.ids values ('t4', public.template_from_workout(
+      (select id from public.workouts limit 1), 'Wie A2'))$$,
+  'a group mate''s workout becomes a template');
+reset role;
+select is(
+  (select user_id from public.workout_templates where id = (select id from tests.ids where key = 't4')),
+  '11111111-1111-4111-8111-111111111111'::uuid, 'which is my own');
 
 -- a1 deletes the template; workouts keep everything but the link
 set local role authenticated;

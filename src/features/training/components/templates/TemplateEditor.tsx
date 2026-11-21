@@ -16,7 +16,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, TextField } from '@/shared/ui';
+import { Button, FieldGroup, TextField } from '@/shared/ui';
 import { useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
 import { useHomeStudio, usePlaces } from '../../api/usePlaces';
 import { useSaveTemplate } from '../../api/useTemplates';
@@ -100,8 +100,7 @@ export function TemplateEditor({
         }}
       />
 
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-subhead text-text-muted">Trainingsart</legend>
+      <FieldGroup label="Trainingsart">
         <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
           {types.map((type) => (
             <button
@@ -134,10 +133,9 @@ export function TemplateEditor({
             </button>
           ))}
         </div>
-      </fieldset>
+      </FieldGroup>
 
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-subhead text-text-muted">Fokus</legend>
+      <FieldGroup label="Fokus">
         <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
           {focuses.map((focus) => {
             const on = draft.focusId === focus.id;
@@ -159,7 +157,7 @@ export function TemplateEditor({
             );
           })}
         </div>
-      </fieldset>
+      </FieldGroup>
 
       {guided ? (
         <RoutineSection

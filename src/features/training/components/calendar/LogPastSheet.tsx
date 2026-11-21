@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, Sheet, TextField } from '@/shared/ui';
+import { Button, FieldGroup, Sheet, TextField } from '@/shared/ui';
 import { useTrainingTypes } from '../../api/useCatalog';
 import { useTemplates } from '../../api/useTemplates';
 import { useLogPastWorkout } from '../../api/useWorkout';
@@ -160,8 +160,7 @@ function LogPastForm({
       )}
 
       {!duration && templates.length > 0 && (
-        <fieldset className="flex min-w-0 flex-col gap-2">
-          <legend className="mb-2 text-subhead text-text-muted">Vorlage (optional)</legend>
+        <FieldGroup label="Vorlage (optional)">
           <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
             {templates.map((template) => {
               const on = templateId === template.id;
@@ -183,7 +182,7 @@ function LogPastForm({
               );
             })}
           </div>
-        </fieldset>
+        </FieldGroup>
       )}
 
       {log.isError && (

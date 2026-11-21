@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, SegmentedControl, Switch, TextField } from '@/shared/ui';
+import { Button, FieldGroup, SegmentedControl, Switch, TextField } from '@/shared/ui';
 import { useCreateTrainingType, useUpdateTrainingType } from '../api/useCatalog';
 import { trainingIconKeys } from '../trainingIcons';
 import type { TrainingType } from '../types';
@@ -60,8 +60,7 @@ export function TrainingTypeForm({
       {kind === 'duration' && (
         <Switch label="Mit Distanz" checked={withDistance} onCheckedChange={setWithDistance} />
       )}
-      <fieldset className="flex min-w-0 flex-col gap-2">
-        <legend className="mb-2 text-subhead text-text-muted">Symbol im Kalender</legend>
+      <FieldGroup label="Symbol im Kalender">
         <div className="grid grid-cols-4 gap-2">
           {trainingIconKeys.map((key) => (
             <button
@@ -83,7 +82,7 @@ export function TrainingTypeForm({
             </button>
           ))}
         </div>
-      </fieldset>
+      </FieldGroup>
       <Button
         type="submit"
         missing={name.trim().length < 2 ? 'Gib der Trainingsart einen Namen.' : null}

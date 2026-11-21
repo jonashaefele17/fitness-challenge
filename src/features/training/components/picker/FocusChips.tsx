@@ -134,7 +134,13 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
       )}
       <Button
         type="submit"
-        disabled={name.trim().length < 2 || selected.length === 0}
+        missing={
+          name.trim().length < 2
+            ? 'Gib dem Fokus einen Namen.'
+            : selected.length === 0
+              ? 'Wähle mindestens eine Muskelgruppe.'
+              : null
+        }
         loading={create.isPending}
       >
         Fokus anlegen

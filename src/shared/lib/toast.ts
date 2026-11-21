@@ -23,6 +23,9 @@ export function dismissToast(id: number) {
 
 /** Shows a short message at the bottom; with an action it doubles as "undo" (rule 11). */
 export function showToast(message: string, action?: Toast['action']): number {
+  // The same hint tapped twice stays one toast.
+  const same = action ? undefined : toasts.find((t) => !t.action && t.message === message);
+  if (same) return same.id;
   const id = nextId++;
   toasts = [...toasts.slice(-2), { id, message, action }];
   emit();

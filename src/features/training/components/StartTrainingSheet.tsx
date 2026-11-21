@@ -350,7 +350,13 @@ function DurationEntryForm({ type, onDone }: { type: TrainingType; onDone: () =>
           Speichern hat nicht geklappt. Läuft vielleicht noch ein Training?
         </p>
       )}
-      <Button type="submit" size="lg" fullWidth disabled={!valid} loading={log.isPending}>
+      <Button
+        type="submit"
+        size="lg"
+        fullWidth
+        missing={valid ? null : 'Trag ein, wie viele Minuten du trainiert hast.'}
+        loading={log.isPending}
+      >
         Training erledigt ✓
       </Button>
     </form>

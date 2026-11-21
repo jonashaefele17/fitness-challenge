@@ -149,7 +149,17 @@ export function NewDeviceTypeForm({
           {error}
         </p>
       )}
-      <Button type="submit" disabled={name.trim().length < 2 || !stepValid} loading={pending}>
+      <Button
+        type="submit"
+        missing={
+          name.trim().length < 2
+            ? 'Gib dem Gerät einen Namen.'
+            : !stepValid
+              ? 'Die Gewichtsschritte müssen eine Zahl über 0 sein.'
+              : null
+        }
+        loading={pending}
+      >
         Anlegen und Übungen zuordnen
       </Button>
     </form>

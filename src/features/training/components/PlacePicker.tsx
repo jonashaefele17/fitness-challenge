@@ -54,7 +54,11 @@ export function PlacePicker({ currentId, allowNone = false, onPick }: PlacePicke
           ]}
         />
         <div className="flex gap-2">
-          <Button type="submit" disabled={query.trim().length < 2} loading={create.isPending}>
+          <Button
+            type="submit"
+            missing={query.trim().length < 2 ? 'Gib dem Ort einen Namen.' : null}
+            loading={create.isPending}
+          >
             Anlegen
           </Button>
           <Button

@@ -92,7 +92,11 @@ export function CreateExerciseForm({
         </div>
       </div>
       <div className="flex gap-2">
-        <Button type="submit" disabled={name.trim().length < 2} loading={create.isPending}>
+        <Button
+          type="submit"
+          missing={name.trim().length < 2 ? 'Gib der Übung einen Namen.' : null}
+          loading={create.isPending}
+        >
           Anlegen
         </Button>
         <Button variant="ghost" onClick={onCancel}>

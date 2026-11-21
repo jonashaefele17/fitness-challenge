@@ -84,7 +84,11 @@ export function TrainingTypeForm({
           ))}
         </div>
       </fieldset>
-      <Button type="submit" disabled={name.trim().length < 2} loading={pending}>
+      <Button
+        type="submit"
+        missing={name.trim().length < 2 ? 'Gib der Trainingsart einen Namen.' : null}
+        loading={pending}
+      >
         {initial ? 'Speichern' : 'Anlegen'}
       </Button>
     </form>

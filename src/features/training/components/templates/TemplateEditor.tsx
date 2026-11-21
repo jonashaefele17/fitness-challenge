@@ -72,7 +72,12 @@ export function TemplateEditor({
     }));
   }
 
-  const valid = draft.name.trim().length >= 2 && draft.items.length > 0;
+  const missing =
+    draft.name.trim().length < 2
+      ? 'Gib der Vorlage einen Namen.'
+      : draft.items.length === 0
+        ? 'Füge mindestens eine Übung hinzu.'
+        : null;
 
   return (
     <form
@@ -199,7 +204,7 @@ export function TemplateEditor({
           Speichern hat nicht geklappt.
         </p>
       )}
-      <Button type="submit" disabled={!valid} loading={save.isPending}>
+      <Button type="submit" missing={missing} loading={save.isPending}>
         Vorlage speichern
       </Button>
 

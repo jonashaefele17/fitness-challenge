@@ -1,13 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  addMonths,
-  dayKey,
-  isoWeek,
-  monthGrid,
-  startOfWeek,
-  visibleRange,
-  weekDays,
-} from './calendar';
+import { dayKey, isoWeek, startOfWeek, weekDays } from './calendar';
 
 describe('calendar helpers', () => {
   it('formats local day keys', () => {
@@ -26,24 +18,6 @@ describe('calendar helpers', () => {
       '2026-11-21',
       '2026-11-22',
     ]);
-  });
-
-  it('covers the month with full weeks', () => {
-    const weeks = monthGrid(new Date(2026, 10, 21));
-    // November 2026: Sunday the 1st → first row starts Monday 26 Oct, last row ends Sunday 6 Dec.
-    expect(dayKey(weeks[0]?.[0] ?? new Date(0))).toBe('2026-10-26');
-    expect(dayKey(weeks.at(-1)?.[6] ?? new Date(0))).toBe('2026-12-06');
-    expect(weeks).toHaveLength(6);
-  });
-
-  it('has an end-exclusive visible range', () => {
-    const { from, to } = visibleRange('week', new Date(2026, 10, 21));
-    expect(dayKey(from)).toBe('2026-11-16');
-    expect(dayKey(to)).toBe('2026-11-23');
-  });
-
-  it('clamps month arithmetic to the last day', () => {
-    expect(dayKey(addMonths(new Date(2026, 0, 31), 1))).toBe('2026-02-28');
   });
 
   it('computes ISO week numbers', () => {

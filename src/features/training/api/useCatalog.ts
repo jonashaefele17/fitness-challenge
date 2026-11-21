@@ -19,7 +19,7 @@ export function useTrainingTypes() {
     queryFn: async (): Promise<TrainingType[]> => {
       const { data, error } = await supabase
         .from('training_types')
-        .select('id, name, kind, with_distance, owner_id, location_mode, variants')
+        .select('id, name, kind, with_distance, owner_id, location_mode, variants, icon')
         .is('archived_at', null)
         .or(`owner_id.is.null,owner_id.eq.${userId}`)
         .order('sort')
@@ -36,6 +36,7 @@ export function useTrainingTypes() {
             ? row.location_mode
             : 'none',
         variants: row.variants,
+        icon: row.icon,
       }));
     },
   });
@@ -49,12 +50,14 @@ export function useCreateTrainingType() {
       name: string;
       kind: TrainingType['kind'];
       withDistance: boolean;
+      icon: string;
     }) => {
       const { error } = await supabase.from('training_types').insert({
         owner_id: userId,
         name: input.name.trim(),
         kind: input.kind,
         with_distance: input.kind === 'duration' && input.withDistance,
+        icon: input.icon,
       });
       if (error) throw error;
     },
@@ -183,6 +186,11 @@ export function usePrimaryMuscleIndex() {
 // ---------------------------------------------------------------------------
 // Training focus (Push, Pull, Beine … and personal ones)
 // ---------------------------------------------------------------------------
+/** The focus's short name, or the first five characters of its name. */
+export function shortNameOf(name: string, shortName: string | null): string {
+  return shortName?.trim() ? shortName.trim() : name.slice(0, 5);
+}
+
 export function useTrainingFocuses() {
   const userId = useUserId();
   return useQuery({
@@ -191,7 +199,7 @@ export function useTrainingFocuses() {
     queryFn: async (): Promise<TrainingFocus[]> => {
       const { data, error } = await supabase
         .from('training_focuses')
-        .select('id, name, muscle_groups, owner_id')
+        .select('id, name, short_name, muscle_groups, owner_id')
         .is('archived_at', null)
         .or(`owner_id.is.null,owner_id.eq.${userId}`)
         .order('sort')
@@ -200,6 +208,7 @@ export function useTrainingFocuses() {
       return data.map((row) => ({
         id: row.id,
         name: row.name,
+        shortName: shortNameOf(row.name, row.short_name),
         muscleGroups: row.muscle_groups,
         ownerId: row.owner_id,
       }));
@@ -211,12 +220,17 @@ export function useCreateTrainingFocus() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
-    mutationFn: async (input: { name: string; muscleGroups: string[] }): Promise<string> => {
+    mutationFn: async (input: {
+      name: string;
+      shortName: string;
+      muscleGroups: string[];
+    }): Promise<string> => {
       const id = crypto.randomUUID();
       const { error } = await supabase.from('training_focuses').insert({
         id,
         owner_id: userId,
         name: input.name.trim(),
+        short_name: input.shortName.trim() || null,
         muscle_groups: input.muscleGroups,
       });
       if (error) throw error;

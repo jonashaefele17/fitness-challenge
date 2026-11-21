@@ -15,6 +15,8 @@ export interface CalendarPeople {
   available: boolean;
   /** My person colour, used while others are shown. */
   myColor: string | null;
+  /** My display name (for my avatar while others are shown). */
+  myName: string | null;
   people: CalendarPerson[];
 }
 
@@ -27,6 +29,11 @@ export type UseCalendarPeople = (
   enabled: boolean,
 ) => CalendarPeople;
 
-const nobody: UseCalendarPeople = () => ({ available: false, myColor: null, people: [] });
+const nobody: UseCalendarPeople = () => ({
+  available: false,
+  myColor: null,
+  myName: null,
+  people: [],
+});
 
 export const CalendarPeopleContext = createContext<UseCalendarPeople>(nobody);

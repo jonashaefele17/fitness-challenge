@@ -12,6 +12,8 @@ export interface TrainingType {
   locationMode: 'home_studio' | 'private' | 'none';
   /** e.g. Outdoor / Laufband */
   variants: string[];
+  /** Key of the line icon (barbell, home_gym, run …). */
+  icon: string;
 }
 
 export interface Place {
@@ -63,6 +65,8 @@ export interface DeviceType {
 export interface TrainingFocus {
   id: string;
   name: string;
+  /** ≤ 5 characters for calendar cells (Push, OK, GK …). */
+  shortName: string;
   muscleGroups: string[];
   /** Personal focus of the signed-in user (null for defaults). */
   ownerId: string | null;
@@ -165,9 +169,9 @@ export interface CalendarWorkout {
   startedAt: string;
   /** Active time (duration workouts: as entered; others: end − start − pauses). */
   durationSeconds: number | null;
-  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind'>;
+  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'icon'>;
   variant: string | null;
-  focus: { id: string; name: string } | null;
+  focus: { id: string; name: string; shortName: string } | null;
   locationName: string | null;
   distanceM: number | null;
   exerciseCount: number;

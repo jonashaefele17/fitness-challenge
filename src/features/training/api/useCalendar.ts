@@ -2,13 +2,14 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type { CalendarWorkout, WorkoutDetailData, WorkoutItem, WorkoutSet } from '../types';
+import { shortNameOf } from './useCatalog';
 import { DEVICE_COLUMNS, toDevice } from './deviceRow';
 import { trainingKeys } from './keys';
 
 const SUMMARY_COLUMNS = `
   id, user_id, started_at, ended_at, paused_seconds, duration_seconds, distance_m, variant,
-  training_types!inner(id, name, kind),
-  training_focuses(id, name),
+  training_types!inner(id, name, kind, icon),
+  training_focuses(id, name, short_name),
   locations(name),
   workout_items(id)
 `;
@@ -22,8 +23,8 @@ interface SummaryRow {
   duration_seconds: number | null;
   distance_m: number | null;
   variant: string | null;
-  training_types: { id: string; name: string; kind: string };
-  training_focuses: { id: string; name: string } | null;
+  training_types: { id: string; name: string; kind: string; icon: string };
+  training_focuses: { id: string; name: string; short_name: string | null } | null;
   locations: { name: string } | null;
   workout_items: { id: string }[];
 }
@@ -47,9 +48,14 @@ function toCalendarWorkout(row: SummaryRow): CalendarWorkout {
       id: row.training_types.id,
       name: row.training_types.name,
       kind: row.training_types.kind === 'duration' ? 'duration' : 'exercises',
+      icon: row.training_types.icon,
     },
     variant: row.variant,
-    focus: row.training_focuses,
+    focus: row.training_focuses && {
+      id: row.training_focuses.id,
+      name: row.training_focuses.name,
+      shortName: shortNameOf(row.training_focuses.name, row.training_focuses.short_name),
+    },
     locationName: row.locations?.name ?? null,
     distanceM: row.distance_m,
     exerciseCount: row.workout_items.length,

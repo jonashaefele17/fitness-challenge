@@ -1114,6 +1114,7 @@ export type Database = {
           muscle_groups: string[];
           name: string;
           owner_id: string | null;
+          short_name: string | null;
           sort: number;
         };
         ComputedFields: never;
@@ -1124,6 +1125,7 @@ export type Database = {
           muscle_groups: string[];
           name: string;
           owner_id?: string | null;
+          short_name?: string | null;
           sort?: number;
         };
         Update: {
@@ -1133,6 +1135,7 @@ export type Database = {
           muscle_groups?: string[];
           name?: string;
           owner_id?: string | null;
+          short_name?: string | null;
           sort?: number;
         };
         Relationships: [];
@@ -1168,6 +1171,7 @@ export type Database = {
         Row: {
           archived_at: string | null;
           created_at: string;
+          icon: string;
           id: string;
           kind: string;
           location_mode: string;
@@ -1181,6 +1185,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null;
           created_at?: string;
+          icon?: string;
           id?: string;
           kind: string;
           location_mode?: string;
@@ -1193,6 +1198,7 @@ export type Database = {
         Update: {
           archived_at?: string | null;
           created_at?: string;
+          icon?: string;
           id?: string;
           kind?: string;
           location_mode?: string;

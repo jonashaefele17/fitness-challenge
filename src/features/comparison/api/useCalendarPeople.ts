@@ -28,6 +28,7 @@ export function useCalendarPeople(
   return {
     available: others.length > 0,
     myColor: me ? personColorVar(me.color) : null,
+    myName: me?.displayName ?? null,
     people: others.map((member, index) => ({
       id: member.userId,
       name: member.displayName,

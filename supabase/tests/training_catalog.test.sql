@@ -153,7 +153,7 @@ delete from public.device_type_exercises
  where device_type_id = '70000000-0000-4000-8000-000000000001';
 select is((select count(*) from public.device_type_exercises), 2::bigint,
   'nobody removes exercise links someone else added');
-select is((select count(*) from public.training_types), 6::bigint,
+select is((select count(*) from public.training_types), 7::bigint,
   'group mates see default and personal training types');
 select is((select count(*) from public.user_device_settings), 0::bigint,
   'device settings stay private');
@@ -195,7 +195,7 @@ select is((select count(*) from public.devices), 1::bigint,
   'devices at private places of other groups are hidden');
 select is((select count(*) from public.training_focuses), 7::bigint,
   'training focuses of other groups are hidden');
-select is((select count(*) from public.training_types), 5::bigint,
+select is((select count(*) from public.training_types), 6::bigint,
   'personal training types of other groups are hidden');
 reset role;
 

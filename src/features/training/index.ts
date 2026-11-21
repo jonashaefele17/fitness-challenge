@@ -61,5 +61,7 @@ export {
   type CalendarPerson,
   type UseCalendarPeople,
 } from './components/calendar/people';
-export { WorkoutCalendar } from './components/calendar/WorkoutCalendar';
+export { WorkoutLog } from './components/calendar/WorkoutLog';
+export { TrainingTypeIcon } from './components/TrainingTypeIcon';
+export { trainingIconKeys } from './trainingIcons';
 export { WorkoutDetailSheet } from './components/workout-detail/WorkoutDetailSheet';

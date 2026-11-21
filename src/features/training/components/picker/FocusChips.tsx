@@ -62,6 +62,7 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
   const muscles = useMuscleGroups().data ?? [];
   const create = useCreateTrainingFocus();
   const [name, setName] = useState('');
+  const [shortName, setShortName] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
 
   return (
@@ -69,7 +70,7 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
-        create.mutate({ name, muscleGroups: selected }, { onSuccess: onCreated });
+        create.mutate({ name, shortName, muscleGroups: selected }, { onSuccess: onCreated });
       }}
     >
       <TextField
@@ -79,6 +80,16 @@ export function NewFocusForm({ onCreated }: { onCreated: (focusId: string) => vo
         maxLength={40}
         onChange={(event) => {
           setName(event.target.value);
+        }}
+      />
+      <TextField
+        label="Kürzel im Kalender"
+        placeholder="z. B. BrBi"
+        hint="Bis zu 5 Zeichen. Leer: die ersten 5 Buchstaben des Namens."
+        value={shortName}
+        maxLength={5}
+        onChange={(event) => {
+          setShortName(event.target.value);
         }}
       />
       <fieldset className="flex flex-col gap-2">

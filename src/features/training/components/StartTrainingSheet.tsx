@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { cn } from '@/shared/lib';
 import { Button, Card, SegmentedControl, Sheet, Switch, TextField } from '@/shared/ui';
 import { useCreateTrainingType, useTrainingTypes } from '../api/useCatalog';
+import { trainingIconKeys } from '../trainingIcons';
+import { TrainingTypeIcon } from './TrainingTypeIcon';
 import { useHomeStudio, useSetHomeStudio } from '../api/usePlaces';
 import { useActiveWorkout, useLogDurationEntry, useStartWorkout } from '../api/useWorkout';
 import { PlacePicker } from './PlacePicker';
@@ -134,6 +137,7 @@ export function StartTrainingSheet({ open, onOpenChange, onOpenWorkout }: StartT
                 }}
                 className="flex min-h-20 flex-col items-start justify-end gap-0.5 rounded-card border border-border bg-surface-2 p-4 text-left active:bg-surface-3 disabled:opacity-50"
               >
+                <TrainingTypeIcon icon={type.icon} className="mb-1 size-6 text-accent" />
                 <span className="text-body font-semibold">{type.name}</span>
                 <span className="text-caption text-text-muted">
                   {type.kind === 'duration'
@@ -263,6 +267,7 @@ function NewTypeForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('');
   const [kind, setKind] = useState<TrainingType['kind']>('duration');
   const [withDistance, setWithDistance] = useState(false);
+  const [icon, setIcon] = useState<string>('generic');
   const create = useCreateTrainingType();
 
   return (
@@ -270,7 +275,7 @@ function NewTypeForm({ onDone }: { onDone: () => void }) {
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
-        create.mutate({ name, kind, withDistance }, { onSuccess: onDone });
+        create.mutate({ name, kind, withDistance, icon }, { onSuccess: onDone });
       }}
     >
       <TextField
@@ -294,6 +299,30 @@ function NewTypeForm({ onDone }: { onDone: () => void }) {
       {kind === 'duration' && (
         <Switch label="Mit Distanz" checked={withDistance} onCheckedChange={setWithDistance} />
       )}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 text-subhead text-text-muted">Symbol im Kalender</legend>
+        <div className="grid grid-cols-4 gap-2">
+          {trainingIconKeys.map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={icon === key}
+              aria-label={key}
+              onClick={() => {
+                setIcon(key);
+              }}
+              className={cn(
+                'flex min-h-tap items-center justify-center rounded-card border py-2',
+                icon === key
+                  ? 'border-accent text-accent'
+                  : 'border-border text-text-muted active:bg-surface-2',
+              )}
+            >
+              <TrainingTypeIcon icon={key} className="size-6" />
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <Button type="submit" disabled={name.trim().length < 2} loading={create.isPending}>
         Anlegen
       </Button>

@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
+import { animate, AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
 import {
   createContext,
   useContext,
@@ -67,27 +67,31 @@ export function Sheet({
   useLayoutEffect(() => {
     const element = contentRef.current;
     if (!element) return;
-    const glide = `min-height ${String(fade.base.duration)}s cubic-bezier(${fade.base.ease.join(',')})`;
     if (covered) {
-      baseHeight.current = element.offsetHeight;
-      element.style.transition = 'none';
-      element.style.minHeight = `${String(element.offsetHeight)}px`;
-      element.getBoundingClientRect(); // apply the start height before gliding
-      element.style.transition = glide;
-      element.style.minHeight = getComputedStyle(element).maxHeight;
-      return;
+      // Same spring as the sheet sliding up on top: both move as one.
+      const from = element.offsetHeight;
+      baseHeight.current = from;
+      const controls = animate(
+        element,
+        { minHeight: [`${String(from)}px`, getComputedStyle(element).maxHeight] },
+        spring.sheet,
+      );
+      return () => {
+        controls.stop();
+      };
     }
     if (baseHeight.current === null) return;
-    element.style.transition = glide;
-    element.style.minHeight = `${String(baseHeight.current)}px`;
+    const controls = animate(
+      element,
+      { minHeight: [`${String(element.offsetHeight)}px`, `${String(baseHeight.current)}px`] },
+      spring.sheet,
+    );
     baseHeight.current = null;
-    const reset = () => {
-      element.style.transition = '';
+    void controls.then(() => {
       element.style.minHeight = '';
-    };
-    element.addEventListener('transitionend', reset, { once: true });
+    });
     return () => {
-      element.removeEventListener('transitionend', reset);
+      controls.stop();
     };
   }, [covered]);
 

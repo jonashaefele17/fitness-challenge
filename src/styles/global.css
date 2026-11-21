@@ -126,3 +126,8 @@
 @utility pb-nav-clearance {
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8));
 }
+/* For a list that reaches the screen edge and scrolls behind the navigation itself:
+   cancels the page's nav clearance so the page does not scroll as well. */
+@utility pull-nav-clearance {
+  margin-bottom: calc(-1 * (env(safe-area-inset-bottom) + var(--spacing-nav) + --spacing(8)));
+}

@@ -6,7 +6,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 
 ## Status und Änderungen
 
-- **Version:** 1.4 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
+- **Version:** 1.5 (Grundkonzept nach drei Prototyp-Runden, mehrgruppenfähiges Datenmodell, getrennte persönliche und soziale Module)
 - **Prototyp:** [Fitness-App Prototyp](https://claude.ai/artifact/7vZXnQ2NEBQz1bKFdpwDZq) (Handy v3 + PC-Dashboard)
 - **Regel:** Jede Änderung bekommt eine Zeile im Protokoll und, wenn sie eine Grundsatzfrage betrifft, einen Eintrag unter „Entscheidungen“.
 
@@ -16,6 +16,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.1 | Datenmodell mehrgruppenfähig (siehe Entscheidungen) |
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
+| 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
 | 21.11.2026 | 1.4 | Training: kein Satzpause-Timer; Messart pro Übung (Gewicht × Wdh., nur Wdh., Dauer); eigene Trainingsarten; Übungskatalog startet leer; Muskelgruppen pro Übung; Mobility-Player als eigene Etappe |
 
 ## Vision und Kernschleife
@@ -329,6 +330,9 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Messart hängt an der Übung (Gewicht × Wdh., nur Wdh., Dauer), nicht an der Trainingsart; Trainingsarten sind „mit Übungen“ oder „nur Dauer (± Distanz)“ und pro Person frei anlegbar. Vorgegeben: Studio, Home Gym, Laufen, Fußball |
 | 21.11.2026 | Übungskatalog startet leer und wächst nur aus tatsächlich gemachten Übungen (Suche vor Anlegen, Aliase); Übungen haben Muskelgruppen und ein Bild (PNG/WebP mit Transparenz) |
 | 21.11.2026 | Mobility-Routinen als geführter Player (Übung, Bild, Countdown, automatisches Weiterschalten) in eigener Etappe nach dem Trainingskern |
+| 21.11.2026 | Ort kommt aus der Trainingsart: Studio → Heimstudio, Home Gym → eigener privater Ort, Laufen/Fußball → kein Ort; ändern nur bei Bedarf über „…“ im Training |
+| 21.11.2026 | Geräte sind Maschinen (Verlauf nur am selben Gerät) oder „überall vergleichbar“ (Kurzhanteln, Bank, Klimmzugstange: ein Verlauf über alle Orte) |
+| 21.11.2026 | Trainingsarten können Varianten haben (Laufen: Outdoor/Laufband, Radfahren: Outdoor/Indoor); Radfahren ist Standardart |
 
 **Offen (zu zweit klären)**
 

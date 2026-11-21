@@ -8,6 +8,14 @@ create extension if not exists pgtap with schema extensions;
 
 select plan(27);
 
+-- Start from an empty catalogue (seed migrations add a starter catalogue).
+delete from public.device_exercises;
+delete from public.devices;
+delete from public.locations;
+delete from public.exercise_aliases;
+delete from public.exercise_muscles;
+delete from public.exercises;
+
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
   ('22222222-2222-4222-8222-222222222222', 'a2@test.local'),
@@ -107,7 +115,7 @@ set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222",
 select is((select count(*) from public.locations), 2::bigint,
   'group mates see public studios and each other''s private places');
 select is((select count(*) from public.devices), 2::bigint, 'and their devices');
-select is((select count(*) from public.training_types), 5::bigint,
+select is((select count(*) from public.training_types), 6::bigint,
   'group mates see default and personal training types');
 select is((select count(*) from public.user_device_settings), 0::bigint,
   'device settings stay private');
@@ -134,7 +142,7 @@ select is((select count(*) from public.locations), 1::bigint,
   'only public studios are visible to other groups');
 select is((select count(*) from public.devices), 1::bigint,
   'devices at private places of other groups are hidden');
-select is((select count(*) from public.training_types), 4::bigint,
+select is((select count(*) from public.training_types), 5::bigint,
   'personal training types of other groups are hidden');
 reset role;
 

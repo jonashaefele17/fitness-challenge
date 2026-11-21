@@ -1,0 +1,101 @@
+-- Default places per training type and device-aware history.
+
+begin;
+create extension if not exists pgtap with schema extensions;
+
+select plan(9);
+
+insert into auth.users (id, email) values ('11111111-1111-4111-8111-111111111111', 'a@test.local');
+insert into public.profiles (id, display_name, color)
+values ('11111111-1111-4111-8111-111111111111', 'A', 'person-1');
+
+insert into public.locations (id, name) values
+  ('10000000-0000-4000-8000-000000000001', 'Studio Eins'),
+  ('10000000-0000-4000-8000-000000000002', 'Studio Zwei');
+insert into public.exercises (id, name, measure) values
+  ('e0000000-0000-4000-8000-000000000001', 'Test-Beinpresse', 'weight_reps'),
+  ('e0000000-0000-4000-8000-000000000002', 'Test-Kurzhantel', 'weight_reps');
+insert into public.devices (id, location_id, name, comparable) values
+  ('d0000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Presse 1', false),
+  ('d0000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'Presse 2', false),
+  ('d0000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', 'Hanteln 1', true),
+  ('d0000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000002', 'Hanteln 2', true);
+insert into public.training_prefs (user_id, home_location_id)
+values ('11111111-1111-4111-8111-111111111111', '10000000-0000-4000-8000-000000000001');
+
+create schema tests;
+grant usage on schema tests to authenticated;
+create function tests.type_id(p_name text) returns uuid language sql stable as $$
+  select id from public.training_types where name = p_name and owner_id is null
+$$;
+grant execute on function tests.type_id(text) to authenticated;
+
+-- History fixtures: a finished workout at each studio with both exercises.
+create function tests.past_workout(p_location uuid, p_press uuid, p_bells uuid, p_kg numeric)
+returns void language plpgsql as $$
+declare w uuid := gen_random_uuid(); i1 uuid := gen_random_uuid(); i2 uuid := gen_random_uuid();
+begin
+  insert into public.workouts (id, user_id, training_type_id, location_id, status, started_at, ended_at)
+  values (w, '11111111-1111-4111-8111-111111111111', tests.type_id('Studio'), p_location,
+          'finished', now() - (p_kg || ' minutes')::interval, now());
+  insert into public.workout_items (id, workout_id, exercise_id, device_id, position) values
+    (i1, w, 'e0000000-0000-4000-8000-000000000001', p_press, 0),
+    (i2, w, 'e0000000-0000-4000-8000-000000000002', p_bells, 1);
+  insert into public.workout_sets (item_id, position, weight_kg, reps, completed_at) values
+    (i1, 0, p_kg, 10, now()), (i2, 0, p_kg / 10, 10, now());
+end $$;
+-- Older workout at studio 1 (100 kg), newer at studio 2 (60 kg).
+select tests.past_workout('10000000-0000-4000-8000-000000000001',
+  'd0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000003', 100);
+select tests.past_workout('10000000-0000-4000-8000-000000000002',
+  'd0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000004', 60);
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+
+-- Default places
+select is((select location_id from public.start_workout(tests.type_id('Studio'))),
+  '10000000-0000-4000-8000-000000000001'::uuid, 'Studio starts at the home studio');
+select public.finish_workout((select id from public.workouts where status = 'active'));
+select isnt((select location_id from public.start_workout(tests.type_id('Home Gym'))),
+  null, 'Home Gym starts at a private place');
+select is((select owner_id from public.locations l join public.workouts w on w.location_id = l.id
+            where w.status = 'active'),
+  '11111111-1111-4111-8111-111111111111'::uuid, 'the private place is created on first use');
+select public.finish_workout((select id from public.workouts where status = 'active'));
+select is((select location_id from public.start_workout(tests.type_id('Laufen'))),
+  null, 'Laufen has no place');
+select lives_ok($$update public.workouts set variant = 'Laufband' where status = 'active'$$,
+  'workouts record a variant');
+
+-- Device-aware history
+select results_eq(
+  $$select weight_kg, same_device from public.previous_sets(
+      'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001')$$,
+  $$values (100.00::numeric, true)$$,
+  'a machine compares with itself, even if another studio was used more recently');
+select results_eq(
+  $$select weight_kg, same_device from public.previous_sets(
+      'e0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000003')$$,
+  $$values (6.00::numeric, true)$$,
+  'comparable devices share one history across studios (latest wins)');
+select results_eq(
+  $$select count(*) from public.exercise_trend(
+      'e0000000-0000-4000-8000-000000000001', 6, 'd0000000-0000-4000-8000-000000000002')$$,
+  $$values (1::bigint)$$,
+  'the trend of a machine only includes that machine');
+reset role;
+
+insert into public.devices (id, location_id, name)
+values ('d0000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000001', 'Neue Presse');
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select results_eq(
+  $$select same_device from public.previous_sets(
+      'e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000009') limit 1$$,
+  $$values (false)$$,
+  'a new machine falls back to other devices, marked as "other device"');
+reset role;
+
+select * from finish();
+rollback;

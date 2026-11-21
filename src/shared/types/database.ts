@@ -159,6 +159,7 @@ export type Database = {
       };
       devices: {
         Row: {
+          comparable: boolean;
           created_at: string;
           created_by: string | null;
           id: string;
@@ -171,6 +172,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          comparable?: boolean;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -182,6 +184,7 @@ export type Database = {
           weight_step?: number | null;
         };
         Update: {
+          comparable?: boolean;
           created_at?: string;
           created_by?: string | null;
           id?: string;
@@ -1061,9 +1064,11 @@ export type Database = {
           created_at: string;
           id: string;
           kind: string;
+          location_mode: string;
           name: string;
           owner_id: string | null;
           sort: number;
+          variants: string[];
           with_distance: boolean;
         };
         ComputedFields: never;
@@ -1072,9 +1077,11 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind: string;
+          location_mode?: string;
           name: string;
           owner_id?: string | null;
           sort?: number;
+          variants?: string[];
           with_distance?: boolean;
         };
         Update: {
@@ -1082,9 +1089,11 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind?: string;
+          location_mode?: string;
           name?: string;
           owner_id?: string | null;
           sort?: number;
+          variants?: string[];
           with_distance?: boolean;
         };
         Relationships: [];
@@ -1243,6 +1252,7 @@ export type Database = {
           status: Database['public']['Enums']['workout_status'];
           training_type_id: string;
           user_id: string;
+          variant: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -1260,6 +1270,7 @@ export type Database = {
           status?: Database['public']['Enums']['workout_status'];
           training_type_id: string;
           user_id?: string;
+          variant?: string | null;
         };
         Update: {
           created_at?: string;
@@ -1276,6 +1287,7 @@ export type Database = {
           status?: Database['public']['Enums']['workout_status'];
           training_type_id?: string;
           user_id?: string;
+          variant?: string | null;
         };
         Relationships: [
           {
@@ -1329,7 +1341,7 @@ export type Database = {
         }[];
       };
       exercise_trend: {
-        Args: { p_exercise_id: string; p_limit?: number };
+        Args: { p_device_id?: string; p_exercise_id: string; p_limit?: number };
         Returns: {
           value: number;
           workout_started_at: string;
@@ -1352,6 +1364,7 @@ export type Database = {
           status: Database['public']['Enums']['workout_status'];
           training_type_id: string;
           user_id: string;
+          variant: string | null;
         };
         SetofOptions: {
           from: '*';
@@ -1401,11 +1414,12 @@ export type Database = {
         };
       };
       previous_sets: {
-        Args: { p_exercise_id: string };
+        Args: { p_device_id?: string; p_exercise_id: string };
         Returns: {
           duration_seconds: number;
           is_warmup: boolean;
           reps: number;
+          same_device: boolean;
           set_position: number;
           weight_kg: number;
           workout_started_at: string;
@@ -1449,6 +1463,7 @@ export type Database = {
           status: Database['public']['Enums']['workout_status'];
           training_type_id: string;
           user_id: string;
+          variant: string | null;
         };
         SetofOptions: {
           from: '*';

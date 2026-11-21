@@ -112,9 +112,10 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
   }
 
   return (
-    <div className="flex min-h-dvh flex-col pt-safe pb-safe">
+    // Fixed frame: header, chips and the bottom bar never move; only the exercise scrolls.
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-bg pt-safe pb-safe">
       {/* Equal-width side buttons keep the title exactly centred. */}
-      <header className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
+      <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-gutter pt-3 pb-2">
         <button
           type="button"
           aria-label="Minimieren"
@@ -153,7 +154,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
         />
       )}
 
-      <main className="flex-1 px-gutter pt-3 pb-4">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-3 pb-4">
         <AnimatePresence mode="wait" initial={false}>
           {active ? (
             <motion.div
@@ -192,7 +193,7 @@ export function WorkoutScreen({ workout, onMinimize, onClose }: WorkoutScreenPro
       </main>
 
       {items.length > 0 && (
-        <nav className="mx-gutter mb-3 flex items-center justify-between rounded-pill glass p-1">
+        <nav className="mx-gutter mb-3 flex shrink-0 items-center justify-between rounded-pill glass p-1">
           <Button
             variant="ghost"
             aria-label="Vorherige Übung"
@@ -497,7 +498,7 @@ function ExerciseChips({
         items={items.map((item) => item.id)}
         strategy={horizontalListSortingStrategy}
       >
-        <div className="flex gap-2 overflow-x-auto px-gutter py-2">
+        <div className="flex shrink-0 gap-2 overflow-x-auto px-gutter py-2">
           {items.map((item) => (
             <SortableChip
               key={item.id}

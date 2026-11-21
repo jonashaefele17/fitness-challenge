@@ -38,6 +38,7 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 ## Feinschliff
 
+- [ ] Optional: Einstellung „App-Farbe: Limette / meine Personenfarbe“ (Ich → Einstellungen). Technisch einfach (Akzent-Token zur Laufzeit setzen, Schriftfarbe auf Knöpfen automatisch hell/dunkel, gedrückt/Glas abgeleitet; App-Icon und Ladebildschirm bleiben Limette). Standard bleibt Limette, weil Personenfarben in Gruppenansichten „diese Person“ bedeuten.
 - [ ] Sync-Wolke: kleines Wolken-Symbol (z. B. oben rechts), das zeigt, ob alles gespeichert und die Live-Verbindung (Realtime) steht: Haken = synchron, drehend = speichert gerade (offene Änderungen in der Warteschlange), durchgestrichen = keine Verbindung. Antippen stößt einen Abgleich an (alle Daten neu laden, Realtime neu verbinden). Kein Offline-Modus (siehe Konzept-Entscheidung), nur Anzeige und manueller Anstoß.
 - [ ] Pillen-Navigation wie iOS 26: beim Runterscrollen zu einer kompakten Pille zusammenschrumpfen (nur Symbole bzw. aktiver Tab), beim Hochscrollen oder Antippen wieder aufklappen; mit Federanimation, „Bewegung reduzieren“ respektieren. Erst mit echtem langem Inhalt (Feed, Kalender) abstimmen.
 - [ ] Bundle nach Tabs aufteilen (Code-Splitting), aktuell ~290 kB gzip.

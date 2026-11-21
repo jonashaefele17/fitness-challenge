@@ -8,17 +8,15 @@ import { DayMarks } from './DayMarks';
 import { ACCENT, byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
 import { CalendarPeopleContext } from './people';
 
-/** Weeks loaded before today's week at first, and added each time the top is reached. */
-const PAST_STEP = 26;
-/** Weeks after today's week (planned appointments appear there). */
-const FUTURE_WEEKS = 12;
+/** Weeks added before/after the loaded ones each time the top/bottom is reached. */
+const STEP_WEEKS = 26;
 /** Load older weeks when the list is scrolled this close to its top (px). */
 const LOAD_MARGIN_PX = 400;
 const GRID = 'grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] gap-x-0.5';
 
 /**
  * The group's weeks like the iOS calendar: today's week at the top, scroll up into the
- * past and down into the future, one row per person (avatar, type icon, focus). Fills the
+ * past and down into the future (both load more on the way), one row per person (avatar, type icon, focus). Fills the
  * rest of the screen, scrolls behind the navigation without a visible scroll bar.
  */
 export function GroupWeeks({
@@ -33,7 +31,9 @@ export function GroupWeeks({
   headerEnd: ReactNode;
   onOpen: (workoutId: string) => void;
 }) {
-  const [past, setPast] = useState(PAST_STEP);
+  const [past, setPast] = useState(STEP_WEEKS);
+  // Future weeks: planned appointments and season dates appear there.
+  const [future, setFuture] = useState(STEP_WEEKS);
   const [visibleMonth, setVisibleMonth] = useState(today);
   const [day, setDay] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -42,10 +42,10 @@ export function GroupWeeks({
 
   const thisMonday = startOfWeek(today);
   const first = addDays(thisMonday, -7 * past);
-  const mondays = Array.from({ length: past + FUTURE_WEEKS + 1 }, (_, index) =>
+  const mondays = Array.from({ length: past + future + 1 }, (_, index) =>
     addDays(first, 7 * index),
   );
-  const range = { from: first, to: addDays(thisMonday, 7 * (FUTURE_WEEKS + 1)) };
+  const range = { from: first, to: addDays(thisMonday, 7 * (future + 1)) };
   const mine = useWorkoutsInRange(range).data ?? [];
   const usePeople = useContext(CalendarPeopleContext);
   const others = usePeople(range, true);
@@ -94,7 +94,11 @@ export function GroupWeeks({
     const element = event.currentTarget;
     if (element.scrollTop < LOAD_MARGIN_PX && heightBeforeLoad.current === null) {
       heightBeforeLoad.current = element.scrollHeight;
-      setPast((count) => count + PAST_STEP);
+      setPast((count) => count + STEP_WEEKS);
+    }
+    // Near the bottom: append later weeks (nothing above moves, so no correction needed).
+    if (element.scrollTop + element.clientHeight > element.scrollHeight - LOAD_MARGIN_PX) {
+      setFuture((count) => count + STEP_WEEKS);
     }
     // The month shown in the header is the one of the topmost visible week.
     const weeks = element.querySelectorAll<HTMLElement>('[data-week]');

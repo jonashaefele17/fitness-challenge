@@ -54,6 +54,11 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 - [ ] Laufentwicklung (nach hinten gestellt): Lauf-Fokus als Daten wie der Trainingsfokus (Easy Run, Long Run, Tempo, Intervalle …), daraus Pace pro Lauf-Art, km pro Woche, Bestzeiten; unter Ich → Training neben der Kraftentwicklung. Datenmodell offen halten (Distanz, Dauer, Variante sind schon da).
 - [ ] Habits direkt vergleichen (nicht nur Erfüllungsquote), wenn beide dieselbe Vorlage nutzen und „mit Werten“ teilen (z. B. Schritte) – zu Baustein 6 klären.
 
+- [ ] Trainingsdaten für Claude (Pläne erstellen, Schwächen erkennen), in dieser Reihenfolge:
+  1. **Export „Für KI“** unter Ich → Einstellungen: kompakter Textbericht (letzte 8–12 Wochen: Trainings pro Woche, pro Übung Verlauf des besten Satzes, Volumen pro Muskelgruppe, Fokus-Verteilung, Vorlagen) zum Kopieren in Claude. Volle Kontrolle, keine Kosten.
+  2. **MCP-Server** (siehe Life-App): Claude fragt die Daten mit dem eigenen Zugang direkt ab (RLS gilt), optional Schreibrecht für Vorlagen/Termine.
+  3. Später ggf. **„Analyse“ in der App** über die Claude-API (Kosten pro Nutzung, Daten über unseren Server) – erst wenn 1/2 sich bewährt haben.
+
 ### Studio-Ketten (zusammen mit dem Bild-Upload bauen)
 
 - [ ] Tabelle `chains` (Name, Logo); Studios bekommen optional eine Kette (`locations.chain_id`). Beim Anlegen eines Studios Kette auswählen oder neu anlegen; Studios ohne Kette (Home Gym, kleines Studio) bleiben möglich.

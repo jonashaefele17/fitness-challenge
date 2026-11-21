@@ -1,7 +1,7 @@
 import { motion, type PanInfo } from 'motion/react';
 import { useState } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
-import { cn, showToast } from '@/shared/lib';
+import { cn, hapticTick, showToast } from '@/shared/lib';
 import { Card } from '@/shared/ui';
 import { formatSettingValues, useDeviceSetting } from '../api/usePlaces';
 import {
@@ -167,6 +167,7 @@ function SetRow({
       change({ completedAt: null });
       return;
     }
+    hapticTick();
     change({ ...suggestion, completedAt: new Date().toISOString() });
   }
 
@@ -319,7 +320,7 @@ function parseDuration(text: string): number {
 }
 
 /** Pixels of vertical swipe per step. */
-const SWIPE_STEP_PX = 14;
+const SWIPE_STEP_PX = 32;
 
 /**
  * Number you can swipe: drag up/down on it to change it in fixed steps (device weight steps),
@@ -386,7 +387,10 @@ function Stepper({
         if (!drag) return;
         const steps = Math.round((drag.startY - event.clientY) / SWIPE_STEP_PX);
         const next = clamp(drag.base + steps * step);
-        if (next !== drag.value) setDrag({ ...drag, value: next });
+        if (next !== drag.value) {
+          hapticTick();
+          setDrag({ ...drag, value: next });
+        }
       }}
       onPointerUp={(event) => {
         if (!drag) return;

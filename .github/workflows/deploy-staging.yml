@@ -52,7 +52,7 @@ jobs:
           echo "PROJECT_REF=${host%%.*}" >> "$GITHUB_ENV"
       - name: Function secrets
         run: >-
-          npx supabase secrets set --remote="$PROJECT_REF"
+          npx supabase secrets set --remote="$PROJECT_REF" --yes
           VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY"
           VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY"
           VAPID_SUBJECT="$VAPID_SUBJECT"
@@ -63,7 +63,7 @@ jobs:
           VAPID_SUBJECT: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
       - name: Deploy send-push
-        run: npx supabase functions deploy send-push --remote="$PROJECT_REF" --no-verify-jwt --use-api
+        run: npx supabase functions deploy send-push --remote="$PROJECT_REF" --no-verify-jwt --use-api --yes
       # pg_cron reads the function URL and the shared secret from Vault.
       - name: Vault values for the push schedule
         run: |

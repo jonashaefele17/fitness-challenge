@@ -14,6 +14,18 @@ Branch: `feat/planning`. Grundlage: Konzept, Abschnitt „Planung, Kalender und 
 
 Noch zu tun für 5a: Staging-Test durch Jonas, Feedback einarbeiten.
 
+### Feedback zu 5a (22.11.2026, noch nicht gebaut)
+
+- [ ] **Fokus bei geplanten Trainings angeben** (Push, Pull, Beine, OK …). Der Fokus ist das, was man in der Übersicht sehen will: im Kalender als Kürzel unter dem Umriss-Icon, wie bei erledigten Trainings.
+- [ ] **Vorlage passend zum Fokus:** Beim Planen nur die Vorlagen anbieten, die zum gewählten Fokus passen (bzw. diese zuerst).
+- [ ] **Vorlage in einer Serie wechselbar:** Eine Serie soll nicht auf eine Vorlage festgelegt sein (z. B. Mo Push, Do Pull oder abwechselnd).
+- [ ] **Mehrfachauswahl** von Vorlagen bzw. Fokus für eine Serie prüfen.
+
+Vor dem Bau klären (Vorschlag mit Empfehlung vorlegen):
+- Wie wechselt die Vorlage in einer Serie: pro Wochentag fest (Mo = Push, Do = Pull), der Reihe nach rotierend (Push → Pull → Beine → …) oder pro einzelnem Termin wählbar?
+- Was bedeutet Mehrfachauswahl genau: mehrere Vorlagen, aus denen beim Start gewählt wird, oder eine feste Reihenfolge?
+- Wird der Fokus aus der Vorlage übernommen, oder wählt man den Fokus und die Vorlage passt sich an?
+
 ## Offen
 
 ### 5b – Einladungen (soziales Modul `invitations`)

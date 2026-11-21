@@ -17,6 +17,7 @@ import { DeviceDetails } from './picker/DeviceDetails';
 import { FocusChips, NewFocusForm } from './picker/FocusChips';
 import { lastDoneText } from './picker/historyText';
 import { PickerTile } from './picker/PickerTile';
+import { useLinkUndo } from './picker/useLinkUndo';
 
 export interface ExercisePickerSheetProps {
   open: boolean;
@@ -414,6 +415,7 @@ function LinkExercise({
   const [query, setQuery] = useState('');
   const search = useExerciseSearch(query);
   const link = useLinkExercise();
+  const announce = useLinkUndo();
   const linked = new Set(device.exercises.map((exercise) => exercise.id));
   const results = (search.data ?? []).filter((exercise) => !linked.has(exercise.id));
 
@@ -437,7 +439,15 @@ function LinkExercise({
               type="button"
               disabled={link.isPending}
               onClick={() => {
-                link.mutate({ device, exerciseId: exercise.id }, { onSuccess: onLinked });
+                link.mutate(
+                  { device, exerciseId: exercise.id },
+                  {
+                    onSuccess: (isNew) => {
+                      announce(isNew, exercise, device);
+                      onLinked();
+                    },
+                  },
+                );
               }}
               className="flex min-h-tap w-full items-center justify-between gap-3 px-gutter py-2.5 text-left active:bg-surface-2"
             >
@@ -473,6 +483,7 @@ function NewExerciseForDevice({
   onCreated: (exercise: ExerciseSummary) => void;
 }) {
   const link = useLinkExercise();
+  const announce = useLinkUndo();
   return (
     <CreateExerciseForm
       initialName={initialName}
@@ -482,6 +493,9 @@ function NewExerciseForDevice({
           link.mutate(
             { device, exerciseId: exercise.id },
             {
+              onSuccess: (isNew) => {
+                announce(isNew, exercise, device);
+              },
               onSettled: () => {
                 onCreated(exercise);
               },

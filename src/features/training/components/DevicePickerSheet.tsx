@@ -5,6 +5,7 @@ import { linkExerciseToType, useAddDevices, useDevicesAt, useDeviceTypes } from 
 import { useSetItemDevice } from '../api/useWorkout';
 import type { Device, Place, WorkoutItem } from '../types';
 import { NewDeviceTypeForm } from './picker/AddDevices';
+import { useLinkUndo } from './picker/useLinkUndo';
 
 export interface DevicePickerSheetProps {
   item: WorkoutItem | null;
@@ -41,6 +42,7 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
   const devices = useDevicesAt(place.id);
   const types = useDeviceTypes().data ?? [];
   const setDevice = useSetItemDevice();
+  const announce = useLinkUndo();
   const add = useAddDevices(place.id);
   const [step, setStep] = useState<Step>('here');
   const [query, setQuery] = useState('');
@@ -54,7 +56,15 @@ function Picker({ item, place, onDone }: { item: WorkoutItem; place: Place; onDo
 
   function choose(device: Device | null) {
     setDevice.mutate({ itemId: item.id, device });
-    if (device) void linkExerciseToType(device.typeId, item.exercise.id);
+    if (device) {
+      // Choosing a device also teaches its type this exercise; a mis-tap can be undone.
+      linkExerciseToType(device.typeId, item.exercise.id).then(
+        (isNew) => {
+          announce(isNew, item.exercise, device);
+        },
+        () => undefined,
+      );
+    }
     onDone();
   }
 

@@ -111,7 +111,7 @@ export function useDevicesAt(locationId: string | null) {
       const { data, error } = await supabase
         .from('devices')
         .select(
-          `${DEVICE_COLUMNS}, links:device_types!inner(device_type_exercises(exercises!inner(id, name, measure))), device_hidden_exercises(exercise_id)`,
+          `${DEVICE_COLUMNS}, links:device_types!inner(device_type_exercises(added_by, exercises!inner(id, name, measure))), device_hidden_exercises(exercise_id)`,
         )
         .eq('location_id', locationId);
       if (error) throw error;
@@ -125,6 +125,9 @@ export function useDevicesAt(locationId: string | null) {
             ...toDevice(row),
             exercises: all.filter((exercise) => !hidden.has(exercise.id)),
             hiddenExercises: all.filter((exercise) => hidden.has(exercise.id)),
+            ownLinks: row.links.device_type_exercises
+              .filter((link) => link.added_by === userId)
+              .map((link) => link.exercises.id),
           };
         })
         .sort(byName);
@@ -346,11 +349,17 @@ export function useAddDevices(locationId: string) {
   });
 }
 
-/** Adds an exercise to a device type (best effort; it becomes available at every place). */
-export async function linkExerciseToType(typeId: string, exerciseId: string) {
-  await supabase
+/**
+ * Adds an exercise to a device type (it becomes available at every place). Resolves to
+ * true when the link is new (so it can be undone), false when it already existed.
+ */
+export async function linkExerciseToType(typeId: string, exerciseId: string): Promise<boolean> {
+  const { error } = await supabase
     .from('device_type_exercises')
-    .upsert({ device_type_id: typeId, exercise_id: exerciseId }, { ignoreDuplicates: true });
+    .insert({ device_type_id: typeId, exercise_id: exerciseId });
+  if (!error) return true;
+  if (error.code === '23505') return false;
+  throw error;
 }
 
 /** Adds an exercise to a device's type (e.g. Kabelturm + Face Pulls) and offers it here. */
@@ -358,20 +367,38 @@ export function useLinkExercise() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
-    mutationFn: async ({ device, exerciseId }: { device: Device; exerciseId: string }) => {
+    mutationFn: async ({
+      device,
+      exerciseId,
+    }: {
+      device: Device;
+      exerciseId: string;
+    }): Promise<boolean> => {
+      const isNew = await linkExerciseToType(device.typeId, exerciseId);
       const { error } = await supabase
-        .from('device_type_exercises')
-        .upsert(
-          { device_type_id: device.typeId, exercise_id: exerciseId },
-          { ignoreDuplicates: true },
-        );
-      if (error) throw error;
-      const { error: unhideError } = await supabase
         .from('device_hidden_exercises')
         .delete()
         .eq('device_id', device.id)
         .eq('exercise_id', exerciseId);
-      if (unhideError) throw unhideError;
+      if (error) throw error;
+      return isNew;
+    },
+    onSettled: () => invalidateDevices(queryClient, userId),
+  });
+}
+
+/** Removes an exercise link I added (e.g. a mis-tap); history stays with the exercise. */
+export function useUnlinkExercise() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async ({ typeId, exerciseId }: { typeId: string; exerciseId: string }) => {
+      const { error } = await supabase
+        .from('device_type_exercises')
+        .delete()
+        .eq('device_type_id', typeId)
+        .eq('exercise_id', exerciseId);
+      if (error) throw error;
     },
     onSettled: () => invalidateDevices(queryClient, userId),
   });

@@ -8,7 +8,12 @@ import {
   usePrimaryMuscleIndex,
   type ExerciseHistory,
 } from '../../api/useCatalog';
-import { useExercisePopularity, useSetExerciseHidden } from '../../api/usePlaces';
+import {
+  useExercisePopularity,
+  useLinkExercise,
+  useSetExerciseHidden,
+  useUnlinkExercise,
+} from '../../api/usePlaces';
 import type { DeviceWithExercises, ExerciseSummary, TrainingFocus } from '../../types';
 import { lastDoneText, longAgoText } from './historyText';
 import { PickerTile, SectionTitle } from './PickerTile';
@@ -42,6 +47,9 @@ export function DeviceDetails({
   const popularity = useExercisePopularity().data;
   const muscles = usePrimaryMuscleIndex();
   const setHidden = useSetExerciseHidden(placeId);
+  const unlink = useUnlinkExercise();
+  const relink = useLinkExercise();
+  const own = new Set(device.ownLinks);
   const [editing, setEditing] = useState(false);
   const [ignoreFocus, setIgnoreFocus] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
@@ -81,6 +89,17 @@ export function DeviceDetails({
     });
   }
 
+  /** My own link (e.g. a mis-tap) goes away entirely; others' links are only hidden here. */
+  function remove(exercise: ExerciseSummary) {
+    unlink.mutate({ typeId: device.typeId, exerciseId: exercise.id });
+    showToast(`${exercise.name} ist nicht mehr bei ${device.name}.`, {
+      label: 'Rückgängig',
+      onAction: () => {
+        relink.mutate({ device, exerciseId: exercise.id });
+      },
+    });
+  }
+
   function section(title: string, list: Entry[], subtitle: (entry: Entry) => string) {
     if (list.length === 0) return null;
     return (
@@ -91,11 +110,18 @@ export function DeviceDetails({
             <PickerTile
               key={entry.exercise.id}
               title={entry.exercise.name}
-              subtitle={editing ? 'Tippen zum Ausblenden' : subtitle(entry)}
+              subtitle={
+                editing
+                  ? own.has(entry.exercise.id)
+                    ? 'Tippen zum Entfernen'
+                    : 'Tippen zum Ausblenden'
+                  : subtitle(entry)
+              }
               trend={editing ? undefined : entry.history?.trend}
               muted={editing}
               onClick={() => {
-                if (editing) hide(entry.exercise);
+                if (editing && own.has(entry.exercise.id)) remove(entry.exercise);
+                else if (editing) hide(entry.exercise);
                 else onPick(entry.exercise);
               }}
             />
@@ -127,7 +153,8 @@ export function DeviceDetails({
       )}
       {editing && (
         <p className="text-subhead text-text-muted">
-          Tipp auf Übungen, die es hier nicht gibt. Sie verschwinden nur an diesem Gerät.
+          Tipp auf Übungen, die es hier nicht gibt: Sie verschwinden nur an diesem Gerät. Was du
+          selbst zugeordnet hast, wird ganz entfernt.
         </p>
       )}
 
@@ -202,7 +229,7 @@ export function DeviceDetails({
             setEditing((on) => !on);
           }}
         >
-          {editing ? 'Fertig' : 'Übungen ausblenden'}
+          {editing ? 'Fertig' : 'Übungen bearbeiten'}
         </Button>
       )}
     </div>

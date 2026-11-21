@@ -45,6 +45,8 @@ export interface DeviceWithExercises extends Device {
   exercises: ExerciseSummary[];
   /** Exercises of the type this place does not offer ("nicht verfügbar"). */
   hiddenExercises: ExerciseSummary[];
+  /** Exercises I linked to the type myself (I may remove those links again). */
+  ownLinks: string[];
 }
 
 /** Global device class with its exercises (catalogue for setting up a place). */

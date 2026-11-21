@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(41);
+select plan(42);
 
 -- Start from an empty catalogue (seed migrations add a starter catalogue).
 delete from public.devices;
@@ -152,7 +152,7 @@ select is((select name from public.training_focuses where id = 'f0000000-0000-40
 delete from public.device_type_exercises
  where device_type_id = '70000000-0000-4000-8000-000000000001';
 select is((select count(*) from public.device_type_exercises), 2::bigint,
-  'members hide instead of removing exercises from a type');
+  'nobody removes exercise links someone else added');
 select is((select count(*) from public.training_types), 6::bigint,
   'group mates see default and personal training types');
 select is((select count(*) from public.user_device_settings), 0::bigint,
@@ -209,6 +209,14 @@ update public.exercises set name = 'Bankdrücken (Langhantel)'
 reset role;
 select is((select name from public.exercises where id = 'e0000000-0000-4000-8000-000000000001'),
   'Bankdrücken (Langhantel)', 'the super admin can correct catalogue entries');
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+delete from public.device_type_exercises
+ where device_type_id = '70000000-0000-4000-8000-000000000001';
+reset role;
+select is((select count(*) from public.device_type_exercises), 1::bigint,
+  'people remove exercise links they added themselves (e.g. a mis-tap)');
 
 select * from finish();
 rollback;

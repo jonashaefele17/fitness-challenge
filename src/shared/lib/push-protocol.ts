@@ -16,6 +16,8 @@ export interface PushPayload {
   target: PushTarget;
   /** Open the comment thread at the target. */
   thread: boolean;
+  /** Comment to scroll to inside the thread. */
+  commentId: string | null;
   /** Unread count for the app icon badge. */
   unread: number;
 }
@@ -30,4 +32,5 @@ export const PUSH_TARGET_MESSAGE = 'push-target';
 export interface PendingPushTarget {
   target: PushTarget;
   thread: boolean;
+  commentId?: string | null;
 }

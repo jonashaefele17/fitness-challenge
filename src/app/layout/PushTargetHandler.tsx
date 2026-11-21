@@ -13,7 +13,9 @@ export function PushTargetHandler() {
     let cancelled = false;
     const consume = () => {
       void takePendingPushTarget().then((pending) => {
-        if (!cancelled && pending) openTarget(pending.target, { thread: pending.thread });
+        if (!cancelled && pending) {
+          openTarget(pending.target, { thread: pending.thread, commentId: pending.commentId });
+        }
       });
     };
     const onVisible = () => {

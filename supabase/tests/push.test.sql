@@ -4,7 +4,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(27);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -155,6 +155,11 @@ select ok(
   (select subscriptions @> '[{"endpoint": "https://push.example/shared"}]'::jsonb from claimed
     where user_id = '22222222-2222-4222-8222-222222222222'),
   'the delivery carries the person''s devices');
+
+select ok(
+  (select notifications -> 0 ? 'commentId' from claimed
+    where user_id = '22222222-2222-4222-8222-222222222222'),
+  'push items carry the comment id for jumping to the comment');
 
 -- A new notification for A2 right after a push waits for the bundle window …
 insert into public.notifications (recipient_id, group_id, category, event, actor_id, target_type, target_id)

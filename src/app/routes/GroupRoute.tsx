@@ -15,6 +15,7 @@ export function GroupRoute() {
   const [params, setParams] = useSearchParams();
   const focusedEventId = params.get(targetParams.feedEvent);
   const threadOpen = focusedEventId !== null && params.get(targetParams.thread) === '1';
+  const focusCommentId = params.get(targetParams.comment);
   // Keep the last thread mounted after closing so the sheet can animate out
   // (state derived during render, as recommended by React).
   const [threadEventId, setThreadEventId] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export function GroupRoute() {
         <CommentThreadSheet
           target={{ groupId: group.id, type: 'feed_event', id: threadEventId }}
           open={threadOpen}
+          focusCommentId={threadOpen ? focusCommentId : null}
           onOpenChange={(open) => {
             if (!open) setParams({}, { replace: true });
           }}

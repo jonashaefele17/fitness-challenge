@@ -18,6 +18,8 @@ import type { AppNotification } from '../types';
 export interface OpenTargetOptions {
   /** Open the comment thread at the target. */
   thread: boolean;
+  /** Comment to scroll to inside the thread. */
+  commentId?: string | null;
 }
 
 export interface NotificationBellProps {
@@ -113,7 +115,10 @@ function NotificationsSheet({
                 notification={notification}
                 onOpen={() => {
                   if (notification.readAt === null) markRead.mutate(notification.id);
-                  onOpenTarget(notification.target, { thread: notification.commentId !== null });
+                  onOpenTarget(notification.target, {
+                    thread: notification.commentId !== null,
+                    commentId: notification.commentId,
+                  });
                 }}
               />
             </li>

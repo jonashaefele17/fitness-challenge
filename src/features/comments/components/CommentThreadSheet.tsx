@@ -16,7 +16,13 @@ export interface CommentThreadSheetProps {
   title?: string;
   /** Called after the thread was marked as read (e.g. to refresh the bell). */
   onRead?: () => void;
+  /** Comment to scroll to and highlight (e.g. after tapping a notification). */
+  focusCommentId?: string | null | undefined;
 }
+
+/** Let the sheet finish sliding in before scrolling inside it. */
+const FOCUS_DELAY_MS = 350;
+const HIGHLIGHT_MS = 2500;
 
 export function CommentThreadSheet({
   target,
@@ -24,6 +30,7 @@ export function CommentThreadSheet({
   onOpenChange,
   title = 'Kommentare',
   onRead,
+  focusCommentId,
 }: CommentThreadSheetProps) {
   const thread = useThread(target, { live: open });
   const members = useGroupMembers(target.groupId);
@@ -38,6 +45,27 @@ export function CommentThreadSheet({
     if (!open || thread.isPending) return;
     markThreadRead(undefined, { onSuccess: () => onRead?.() });
   }, [open, thread.isPending, savedCount, markThreadRead, onRead]);
+
+  // Scroll to the focused comment once it is loaded, then fade out its highlight.
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const focusLoaded =
+    open && !!focusCommentId && comments.some((comment) => comment.id === focusCommentId);
+  useEffect(() => {
+    if (!focusLoaded || !focusCommentId) return;
+    const scroll = setTimeout(() => {
+      document
+        .getElementById(`comment-${focusCommentId}`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      setHighlightId(focusCommentId);
+    }, FOCUS_DELAY_MS);
+    const fade = setTimeout(() => {
+      setHighlightId(null);
+    }, FOCUS_DELAY_MS + HIGHLIGHT_MS);
+    return () => {
+      clearTimeout(scroll);
+      clearTimeout(fade);
+    };
+  }, [focusLoaded, focusCommentId]);
 
   const memberList = members.data ?? [];
   const byId = new Map(memberList.map((member) => [member.userId, member]));
@@ -82,6 +110,7 @@ export function CommentThreadSheet({
                 comment={root}
                 target={target}
                 members={byId}
+                highlighted={root.id === highlightId}
                 onReply={() => {
                   setReplyTo(root);
                 }}
@@ -94,6 +123,7 @@ export function CommentThreadSheet({
                         comment={reply}
                         target={target}
                         members={byId}
+                        highlighted={reply.id === highlightId}
                         onReply={() => {
                           setReplyTo(root);
                         }}
@@ -114,11 +144,13 @@ function CommentItem({
   comment,
   target,
   members,
+  highlighted,
   onReply,
 }: {
   comment: Comment;
   target: TargetRef;
   members: Map<string, GroupMember>;
+  highlighted: boolean;
   onReply: () => void;
 }) {
   const userId = useUserId();
@@ -130,7 +162,7 @@ function CommentItem({
 
   if (comment.deletedAt) {
     return (
-      <p className="text-footnote text-text-subtle italic">
+      <p id={`comment-${comment.id}`} className="text-footnote text-text-subtle italic">
         {mine ? 'Du hast diesen Kommentar gelöscht.' : 'Kommentar gelöscht.'}{' '}
         {mine && (
           <button
@@ -150,7 +182,14 @@ function CommentItem({
   const names = [...members.values()].map((member) => member.displayName);
 
   return (
-    <div className={cn('flex gap-3', comment.pending && 'opacity-60')}>
+    <div
+      id={`comment-${comment.id}`}
+      className={cn(
+        '-mx-2 flex gap-3 rounded-md px-2 py-1 transition-colors duration-(--duration-base)',
+        comment.pending && 'opacity-60',
+        highlighted && 'bg-accent/15',
+      )}
+    >
       {author ? <Avatar profile={author} size="sm" /> : <span className="size-8 shrink-0" />}
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="text-footnote text-text-subtle">

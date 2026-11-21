@@ -40,7 +40,11 @@ self.addEventListener('push', (event) => {
   const payload = readPayload(event);
   if (!payload) return;
 
-  const data: PendingPushTarget = { target: payload.target, thread: payload.thread };
+  const data: PendingPushTarget = {
+    target: payload.target,
+    thread: payload.thread,
+    commentId: payload.commentId,
+  };
   const tasks: Promise<unknown>[] = [
     self.registration.showNotification(payload.title, {
       body: payload.body,

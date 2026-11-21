@@ -12,6 +12,12 @@ describe('targetPath', () => {
     expect(targetPath(event, { thread: true })).toBe('/gruppe?beitrag=e1&thread=1');
   });
 
+  it('adds the comment to scroll to', () => {
+    expect(targetPath(event, { thread: true, commentId: 'c1' })).toBe(
+      '/gruppe?beitrag=e1&thread=1&kommentar=c1',
+    );
+  });
+
   it('falls back to the group tab for unknown types', () => {
     expect(targetPath({ ...event, type: 'unknown' }, { thread: true })).toBe('/gruppe');
   });

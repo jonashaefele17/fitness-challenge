@@ -11,6 +11,7 @@ interface PushItem {
   preview: string | null;
   target: { groupId: string; type: string; id: string; index: number | null };
   thread: boolean;
+  commentId: string | null;
 }
 
 interface Delivery {
@@ -53,6 +54,7 @@ export function buildPayload(items: PushItem[], unread: number) {
       tag: `${latest.target.type}:${latest.target.id}`,
       target: latest.target,
       thread: latest.thread,
+      commentId: latest.commentId,
       unread,
     };
   }
@@ -63,6 +65,7 @@ export function buildPayload(items: PushItem[], unread: number) {
     tag: 'bundle',
     target: latest.target,
     thread: latest.thread,
+    commentId: latest.commentId,
     unread,
   };
 }

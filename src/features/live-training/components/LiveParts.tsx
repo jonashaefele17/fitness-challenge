@@ -3,7 +3,7 @@ import { Avatar } from '@/features/profile';
 import { formatSet } from '@/features/training';
 import { personColorVar } from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
-import { useLiveSession, useLiveSync, usePeerSets } from '../api/useLive';
+import { useLiveChannel, useLiveSession, useLiveSync, usePeerSets } from '../api/useLive';
 import type { PeerSets } from '../types';
 
 function useMember() {
@@ -13,12 +13,13 @@ function useMember() {
 }
 
 /**
- * Slot under the timer: "mit Grazon" (done ones faded). Also keeps my exercises in step
- * with what the others add, remove and move while it is shown.
+ * Slot under the timer: "mit Grazon" (done ones faded). While it is shown it also listens
+ * to the session and keeps my exercises in step with what the others add, remove and move.
  */
 export function TrainingAlong({ workoutId }: { workoutId: string }) {
   useLiveSync(workoutId);
   const session = useLiveSession(workoutId).data;
+  useLiveChannel(session?.sessionId ?? null);
   const member = useMember();
   const others = (session?.others ?? []).flatMap((o) => {
     const m = member(o.userId);

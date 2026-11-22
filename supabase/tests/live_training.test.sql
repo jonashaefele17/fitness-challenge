@@ -7,7 +7,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(22);
+select plan(27);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -158,6 +158,28 @@ select public.finish_workout(tests.workout('11111111-1111-4111-8111-111111111111
 reset role;
 select is((select count(*) from public.live_sessions where ended_at is null), 0::bigint,
   'and ends when everyone is done');
+
+-- real time: changes are signalled to the session's channel, only its people may listen
+select ok((select count(*) from realtime.messages
+            where topic = 'live:' || (select id from public.live_sessions)::text) > 0,
+  'changes in a session are signalled to its channel');
+set local role authenticated;
+select set_config('realtime.topic', 'live:' || (select id from public.live_sessions)::text, true);
+set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
+select ok((select count(*) from realtime.messages) > 0, 'people in the session may listen');
+set local request.jwt.claims to '{"sub": "44444444-4444-4444-8444-444444444444", "role": "authenticated"}';
+select is((select count(*) from realtime.messages), 0::bigint, 'a group mate not in it may not');
+set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
+select is((select count(*) from realtime.messages), 0::bigint, 'nor another group');
+-- training alone sends nothing
+set local request.jwt.claims to '{"sub": "44444444-4444-4444-8444-444444444444", "role": "authenticated"}';
+select public.start_workout((select id from public.training_types where name = 'Studio' and owner_id is null));
+insert into public.workout_items (workout_id, exercise_id, position)
+values (tests.workout('44444444-4444-4444-8444-444444444444'), 'e0000000-0000-4000-8000-00000000000a', 0);
+reset role;
+select is((select count(*) from realtime.messages
+            where payload ->> 'workout_id' = tests.workout('44444444-4444-4444-8444-444444444444')::text),
+  0::bigint, 'a workout trained alone sends nothing');
 
 select * from finish();
 rollback;

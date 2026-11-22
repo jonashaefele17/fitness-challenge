@@ -2,11 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 import { useUserId } from '@/features/auth';
 import { trainingKeys, type ActiveWorkout } from '@/features/training';
-import { supabase } from '@/shared/lib/supabase';
+import { REALTIME_SUBSCRIBE_STATES, supabase } from '@/shared/lib/supabase';
 import type { LiveToday, PeerSets } from '../types';
 
-/** How often a session is re-read while training (seconds matter, not milliseconds). */
-const POLL_MS = 4000;
+/**
+ * Changes arrive through the session's channel (useLiveChannel); re-reading now and then
+ * only catches what was missed (app in the background, connection lost).
+ */
+const POLL_MS = 30_000;
 
 export const liveKeys = {
   all: (userId: string) => ['live', userId] as const,
@@ -49,6 +52,28 @@ export function useLiveSession(workoutId: string) {
       };
     },
   });
+}
+
+/**
+ * Listens to the session's private channel: every change to a workout in it re-reads the
+ * session (my list, the others' sets). Also re-reads after (re)connecting.
+ */
+export function useLiveChannel(sessionId: string | null) {
+  const userId = useUserId();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!sessionId) return;
+    const refresh = () => void queryClient.invalidateQueries({ queryKey: liveKeys.all(userId) });
+    const channel = supabase
+      .channel(`live:${sessionId}`, { config: { private: true } })
+      .on('broadcast', { event: 'changed' }, refresh)
+      .subscribe((status) => {
+        if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) refresh();
+      });
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [sessionId, userId, queryClient]);
 }
 
 /** Slot: whether a workout is trained together. */

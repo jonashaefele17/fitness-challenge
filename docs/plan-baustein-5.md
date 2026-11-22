@@ -53,7 +53,7 @@ Beim Staging-Test prüfen: Nach „Übernehmen“ zeigt das offene Termin-Detail
 - [x] Start aus einem heutigen Termin mit Teilnehmenden: wer startet, startet ein gemeinsames Training
 - [x] Kein Push „beitreten?“ (entschieden); im Heute-Tab „Heute mit anderen“: „Mitmachen“, solange jemand trainiert, sonst „Starten“ (auch als Eingeladene/r)
 - [x] Gemeinsame Übungsliste; jede Person trägt nur ihre eigenen Sätze ein
-- [x] Die Sätze der anderen live über der Übungskarte (alle paar Sekunden aktualisiert)
+- [x] Die Sätze der anderen live über der Übungskarte (in Echtzeit über einen privaten Kanal pro gemeinsamem Training; alle 30 Sekunden zusätzlich nachgeladen, falls etwas verpasst wurde)
 - [x] Jede Person darf Übungen ergänzen; Schalter „Für alle“ im Übungs-Picker (aus = nur für mich)
 - [x] Löschen und Sortieren wirken für alle; gelöscht wird bei den anderen nur, wer noch keine abgehakten Sätze darin hat; „Rückgängig“ bringt die Übung bei allen zurück
 - [x] Am Ende hat jede Person ihr eigenes Training; im Feed steht „mit …“ unter dem Training
@@ -62,7 +62,7 @@ Beim Staging-Test prüfen: Nach „Übernehmen“ zeigt das offene Termin-Detail
 Entschieden (Jonas): Löschen und Sortieren gelten für alle (nicht nur für einen selbst).
 
 Beim Staging-Test prüfen:
-- Zu zweit gleichzeitig trainieren: neue, gelöschte und verschobene Übungen kommen nach wenigen Sekunden beim anderen an
+- Zu zweit gleichzeitig trainieren: neue, gelöschte und verschobene Übungen und Sätze kommen sofort beim anderen an (auch nach App im Hintergrund)
 - Feed-Karte „mit …“ (im Browser noch nicht geprüft)
 - Eigene Trainingsarten des Besitzers: Mitmachen geht nur bei Standard-Trainingsarten (Studio, Laufen …)
 

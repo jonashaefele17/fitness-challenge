@@ -300,14 +300,13 @@ export function useTogglePause() {
 // ---------------------------------------------------------------------------
 // Exercises in the workout
 // ---------------------------------------------------------------------------
-async function savePositions(items: WorkoutItem[]) {
-  const results = await Promise.all(
-    items.map((item, position) =>
-      supabase.from('workout_items').update({ position }).eq('id', item.id),
-    ),
-  );
-  const failed = results.find((result) => result.error);
-  if (failed?.error) throw failed.error;
+/** The order of the exercises, saved at once. */
+async function savePositions(workoutId: string, items: WorkoutItem[]) {
+  const { error } = await supabase.rpc('set_item_positions', {
+    p_workout_id: workoutId,
+    p_item_ids: items.map((item) => item.id),
+  });
+  if (error) throw error;
 }
 
 /** Inserts an exercise right after the given item (or at the end) with one empty set. */
@@ -345,7 +344,7 @@ export function useAddExercise(workoutId: string) {
       if (setError) throw setError;
       const reordered = [...items];
       reordered.splice(index, 0, { id: itemId } as WorkoutItem);
-      await savePositions(reordered);
+      await savePositions(workoutId, reordered);
     },
     (workout, { itemId, setId, exercise, device, afterItemId }) => {
       const index = afterItemId
@@ -381,9 +380,9 @@ export function useAddExercise(workoutId: string) {
   );
 }
 
-export function useReorderItems() {
+export function useReorderItems(workoutId: string) {
   return useActiveMutation(
-    async (items: WorkoutItem[]) => savePositions(items),
+    async (items: WorkoutItem[]) => savePositions(workoutId, items),
     (workout, items) => ({
       ...workout,
       items: items.map((item, position) => ({ ...item, position })),
@@ -575,7 +574,7 @@ export function useRestoreItem(workoutId: string) {
       }
       const restored = [...items.filter((other) => other.id !== item.id)];
       restored.splice(item.position, 0, item);
-      await savePositions(restored);
+      await savePositions(workoutId, restored);
     },
     (workout, { item }) => {
       const items = workout.items.filter((other) => other.id !== item.id);

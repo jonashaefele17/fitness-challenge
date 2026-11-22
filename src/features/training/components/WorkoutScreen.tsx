@@ -119,7 +119,7 @@ export function WorkoutScreen({
   >(null);
 
   const addExercise = useAddExercise(workout.id);
-  const reorder = useReorderItems();
+  const reorder = useReorderItems(workout.id);
   const removeItem = useRemoveItem();
   const restoreItem = useRestoreItem(workout.id);
   const swap = useSwapExercise();

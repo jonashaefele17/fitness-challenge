@@ -665,6 +665,152 @@ export type Database = {
           },
         ];
       };
+      live_items: {
+        Row: {
+          item_id: string;
+          key: string;
+          session_id: string;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          item_id: string;
+          key: string;
+          session_id: string;
+          workout_id: string;
+        };
+        Update: {
+          item_id?: string;
+          key?: string;
+          session_id?: string;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_items_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'live_sessions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      live_members: {
+        Row: {
+          joined_at: string;
+          session_id: string;
+          user_id: string;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          joined_at?: string;
+          session_id: string;
+          user_id: string;
+          workout_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          session_id?: string;
+          user_id?: string;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_members_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'live_sessions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_members_workout_id_fkey';
+            columns: ['workout_id'];
+            isOneToOne: true;
+            referencedRelation: 'workouts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      live_private_items: {
+        Row: {
+          created_at: string;
+          item_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          item_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          item_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      live_sessions: {
+        Row: {
+          created_at: string;
+          ended_at: string | null;
+          group_id: string;
+          id: string;
+          plan_id: string;
+          plan_on: string;
+          started_by: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          ended_at?: string | null;
+          group_id: string;
+          id?: string;
+          plan_id: string;
+          plan_on: string;
+          started_by: string;
+        };
+        Update: {
+          created_at?: string;
+          ended_at?: string | null;
+          group_id?: string;
+          id?: string;
+          plan_id?: string;
+          plan_on?: string;
+          started_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_sessions_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_started_by_fkey';
+            columns: ['started_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       locations: {
         Row: {
           created_at: string;
@@ -2112,6 +2258,35 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      live_keep_private: { Args: { p_item_id: string }; Returns: undefined };
+      live_peer_sets: {
+        Args: { p_workout_id: string };
+        Returns: {
+          item_id: string;
+          sets: Json;
+          user_id: string;
+        }[];
+      };
+      live_start: {
+        Args: { p_plan_id: string; p_plan_on: string; p_template_id?: string };
+        Returns: string;
+      };
+      live_today: {
+        Args: { p_today: string };
+        Returns: {
+          focus_name: string;
+          member_ids: string[];
+          my_workout_id: string;
+          owner_id: string;
+          plan_id: string;
+          plan_on: string;
+          session_id: string;
+          start_time: string;
+          training_type_id: string;
+          type_icon: string;
+          type_name: string;
+        }[];
+      };
       log_past_workout: {
         Args: {
           p_distance_m?: number;
@@ -2252,6 +2427,10 @@ export type Database = {
           measure: Database['public']['Enums']['exercise_measure'];
           name: string;
         }[];
+      };
+      set_item_positions: {
+        Args: { p_item_ids: string[]; p_workout_id: string };
+        Returns: undefined;
       };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
       set_plan_participants: {

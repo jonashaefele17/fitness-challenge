@@ -2,11 +2,11 @@ import { useContext, useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { Button, Sheet, TextField } from '@/shared/ui';
 import { useChangePlanDate, useDeletePlan, usePlan, useSkipPlanDate } from '../../api/usePlans';
-import { useTemplates } from '../../api/useTemplates';
 import type { PlanDraft, PlanOccurrence } from '../../types';
 import { CalendarExport } from './CalendarExport';
 import { PlanForm } from './PlanForm';
 import { PlanStartButton } from './PlanStartButton';
+import { PlanTemplates } from './PlanTemplates';
 import { PlanTargetPicker, type PlanTarget } from './PlanTargetPicker';
 import { planTitle, repeatText } from './planText';
 import { PlanSocialContext } from './social';
@@ -33,10 +33,6 @@ export function PlanDetailSheet({
   const [step, setStep] = useState<Step>('detail');
   const mine = plan?.userId === useUserId();
   const draft = usePlan(plan && mine ? plan.planId : null).data ?? null;
-  const templates = useTemplates().data ?? [];
-  const templateNames = (plan?.templateIds ?? []).flatMap(
-    (id) => templates.find((t) => t.id === id)?.name ?? [],
-  );
   const skip = useSkipPlanDate();
   const change = useChangePlanDate();
   const remove = useDeletePlan();
@@ -76,16 +72,13 @@ export function PlanDetailSheet({
               {plan.startTime ? ` · ${plan.startTime} Uhr` : ''}
             </span>
             {plan.focus && <span>Fokus: {plan.focus.name}</span>}
-            {templateNames.length > 0 && (
-              <span>
-                {templateNames.length === 1 ? 'Vorlage' : 'Vorlagen'}: {templateNames.join(', ')}
-              </span>
-            )}
             {plan.recurring && draft && <span>{repeatText(draft)}</span>}
             {plan.changed && <span>Nur dieser Termin geändert</span>}
             {plan.status === 'cancelled' && <span className="text-danger">Abgesagt</span>}
             {plan.note && <span className="text-text">{plan.note}</span>}
           </div>
+
+          <PlanTemplates templateIds={plan.templateIds} />
 
           {Detail && plan.status !== 'done' && <Detail plan={plan} />}
 

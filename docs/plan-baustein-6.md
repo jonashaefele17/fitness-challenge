@@ -19,7 +19,15 @@ Beim Staging-Test prüfen:
 - Schlaf über Mitternacht (z. B. ins Bett 00:20) wird richtig bewertet
 - Eingaben auf dem iPhone (Zahlenfelder, Uhrzeit) angenehm genug?
 
-## Offen
+## Heute-Seite neu (Feedback 22.11.2026, gebaut)
+
+- [x] Kopf: Datum, „Hallo Jonas“, Glocke (keine Flamme, Serien gibt es noch nicht)
+- [x] Hauptkarte: alle heutigen Termine (eigene und eingeladene) nach Uhrzeit; der nächste groß mit „Details ›“, allen Beteiligten samt Status („Grazon kommt · deine Antwort fehlt“) und kompaktem „Starten“; weitere als Zeilen. Sonst „Läuft gerade · Öffnen“ bzw. „Lust auf Training? · Starten“
+- [x] Termin-Detail zeigt die ausgewählte Vorlage mit Übungen, Sätzen und Wiederholungsbereich – auch fremde Vorlagen
+- [x] Check-in-Karte wie im Prototyp: ruhige Kacheln (wischbar), „x von y“, dunkler Knopf „Check-in starten“; Zeit per Rad, „‹ Zurück“, feste Höhe
+- [x] „Diese Woche“: erledigt gefüllt, geplant als Umriss, Wochenziele (Sport 3/4)
+- [x] „Neu für dich“: ungelesene Mitteilungen, „Alle ›“ öffnet die Glocke
+
 
 ### 6b – Auswertung (Ich → Habits)
 - [ ] Heatmap (Ja/Nein), Linie mit Zielband (Zahl, Dauer), Rhythmus (Uhrzeiten), Erfüllungsquote (Checkliste)

@@ -86,6 +86,7 @@ export {
   PlanSocialContext,
   type PlanAnswer,
   type PlanPerson,
+  type PlanRef,
   type PlanSocialSlots,
 } from './components/plans/social';
 export { PlanAnswerMark, PlanPeopleAvatars } from './components/plans/PlanPeople';

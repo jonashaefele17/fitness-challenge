@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
-import type { PlanAnswer, PlanOccurrence, PlanPerson } from '@/features/training';
+import type { PlanAnswer, PlanOccurrence, PlanPerson, PlanRef } from '@/features/training';
 import { supabase } from '@/shared/lib/supabase';
 import type { DateResponse, Participant, Participation } from '../types';
 
@@ -72,7 +72,7 @@ export function answerFor(
 }
 
 /** Slot: who takes part in which date (the owner first), for calendar and day sheet. */
-export function usePlanPeople(plans: PlanOccurrence[]): (plan: PlanOccurrence) => PlanPerson[] {
+export function usePlanPeople(plans: PlanRef[]): (plan: PlanRef) => PlanPerson[] {
   const { group } = useActiveGroup();
   const members = useGroupMembers(group.id).data ?? [];
   const data = useParticipation(plans.map((plan) => plan.planId)).data ?? empty;

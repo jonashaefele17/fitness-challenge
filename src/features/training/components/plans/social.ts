@@ -2,6 +2,9 @@ import { createContext, type ComponentType } from 'react';
 import type { PersonColorKey } from '@/shared/design-tokens';
 import type { PlanOccurrence } from '../../types';
 
+/** A plan date as far as the social layer needs it: which plan, whose, which date. */
+export type PlanRef = Pick<PlanOccurrence, 'planId' | 'userId' | 'planDate'>;
+
 /** How someone stands to one date of a plan. */
 export type PlanAnswer = 'accepted' | 'maybe' | 'open' | 'proposed' | 'declined';
 
@@ -23,7 +26,7 @@ export interface PlanSocialSlots {
   /** Other people's plan dates I take part in, for my own calendar (range as for plans). */
   useJoinedPlans: (range: { from: Date; to: Date }) => PlanOccurrence[];
   /** Who takes part in the given plan dates; returns a lookup per date. */
-  usePlanPeople: (plans: PlanOccurrence[]) => (plan: PlanOccurrence) => PlanPerson[];
+  usePlanPeople: (plans: PlanRef[]) => (plan: PlanRef) => PlanPerson[];
   /** In a date's detail: who takes part, answers, inviting, "Ich komm mit". */
   Detail: ComponentType<{ plan: PlanOccurrence }> | null;
   /** In the form of a new plan: whom to invite. */

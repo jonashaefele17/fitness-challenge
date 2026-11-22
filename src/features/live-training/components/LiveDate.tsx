@@ -46,26 +46,21 @@ function People({ people }: { people: GroupMember[] }) {
   );
 }
 
-/** A date of someone else as the main entry of Heute's card: big title, compact start. */
-export function LiveDateMain({ date, onStarted }: { date: LiveToday; onStarted: () => void }) {
+/** The start button of a date of someone else: start, join (someone trains) or open. */
+export function LiveDateButton({
+  date,
+  onStarted,
+  variant = 'primary',
+}: {
+  date: LiveToday;
+  onStarted: () => void;
+  variant?: 'primary' | 'tinted';
+}) {
   const d = useDate(date, onStarted);
   return (
-    <>
-      <div className="flex items-center gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent">
-          <TrainingTypeIcon icon={date.typeIcon} className="size-6" />
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-title-3 font-bold">
-            {[date.typeName, date.focusName].filter(Boolean).join(' · ')}
-          </span>
-          <span className="truncate text-subhead text-text-muted">{d.subtitle}</span>
-        </span>
-        <Button loading={d.loading} onClick={d.go}>
-          {d.label}
-        </Button>
-      </div>
-    </>
+    <Button variant={variant} loading={d.loading} onClick={d.go}>
+      {d.label}
+    </Button>
   );
 }
 

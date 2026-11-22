@@ -51,7 +51,8 @@ Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten
 ### 6d – Gruppe
 6d-1 Teilen und Vergleich
 - [x] Teilen pro Habit: privat (Standard) / nur erledigt / mit Werten; im Editor „Wer sieht das?“
-- [x] Gruppe-Tab „Feed · Habits“: nach Habit gruppiert (gleiche Vorlage oder vom selben übernommen), pro Person letzte 7 Tage, 4-Wochen-Quote, bei „mit Werten“ der Durchschnitt
+- [x] Gruppe-Tab „Feed · Habits“: Matrix – Zeile pro Habit (gleiche Vorlage oder vom selben übernommen), Spalte pro Person, 4-Wochen-Quote mit Balken in Personenfarbe; bis 5 Personen ohne Scrollen
+- [x] Antippen: Detailvergleich (Kennzahlen nebeneinander, Verlauf je Person in ihrer Farbe); derselbe im Habit-Detail auf der Ich-Seite über „Vergleichen mit …“
 - [x] Datenbank-Tests: privat sieht niemand, „nur erledigt“ ohne Werte, andere Gruppen nichts
 
 6d-2 Ein Katalog
@@ -59,6 +60,7 @@ Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten
 - [x] Super-Admin: „Als Standard übernehmen“ – Original und Kopien hängen danach an der Vorlage, alle Werte bleiben
 
 6d-3 Feed
-- [ ] Wochenzusammenfassung montags (nur geteilte Habits), Meilensteine; kein täglicher Check-in
+- [x] Wochenrückblick montags ab 7 Uhr auf der Tageskarte (nur geteilte Habits, Zahlen live gerechnet)
+- [x] Meilensteine 7/30/100/365 Tage bzw. 4/12/26/52 Wochen, je Habit einmal; kein täglicher Check-in
 
 Nicht in Version 1: Habit-Challenges (Wettbewerb über Saisons, Baustein 8) – siehe Ideenliste

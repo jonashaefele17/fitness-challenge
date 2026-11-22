@@ -11,6 +11,6 @@ export const liveWorkoutSlots: LiveWorkoutSlots = {
 };
 
 export { useTrainedAlong } from './api/useLive';
-export { LiveDateButton, LiveDateRow } from './components/LiveDate';
+export { LiveDateButton } from './components/LiveDate';
 export { useLiveTodayDates } from './api/useLiveTodayDates';
 export type { LiveToday } from './types';

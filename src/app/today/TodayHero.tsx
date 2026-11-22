@@ -1,12 +1,8 @@
-import { useContext, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useContext, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import { useUserId } from '@/features/auth';
-import {
-  LiveDateButton,
-  LiveDateRow,
-  useLiveTodayDates,
-  type LiveToday,
-} from '@/features/live-training';
+import { LiveDateButton, useLiveTodayDates } from '@/features/live-training';
 import {
   answerText,
   elapsedSeconds,
@@ -23,22 +19,31 @@ import {
   type PlanOccurrence,
   type PlanPerson,
 } from '@/features/training';
+import { spring } from '@/shared/design-tokens';
+import { cn } from '@/shared/lib';
 import { Button } from '@/shared/ui';
-import type { ReactNode } from 'react';
 import { paths } from '../paths';
 
 const card = 'flex flex-col gap-4 rounded-card border border-accent/40 bg-surface-2 p-4';
 const label = 'text-footnote font-semibold text-accent';
 
-/** Today's dates in one list: mine and those of others I take part in, by time. */
-type Entry =
-  | { key: string; time: string | null; own: PlanOccurrence }
-  | { key: string; time: string | null; live: LiveToday };
+/** One of today's dates, mine or someone else's I take part in, ready to show. */
+interface DateView {
+  key: string;
+  planId: string;
+  title: string;
+  time: string | null;
+  icon: (className: string) => ReactNode;
+  people: PlanPerson[];
+  /** Start (or join, open) – green when open, quiet in a closed row. */
+  action: (variant: 'primary' | 'tinted') => ReactNode;
+}
 
 /**
  * The one big card on Heute, always what matters now: a running training, else today's
- * dates (mine and those I am invited to, by time: the next one big with start, the others
- * as rows), else an invitation to train.
+ * dates (mine and those I am invited to, by time), else an invitation to train.
+ * The dates are an accordion: one is open (everyone taking part, start, "Details ›"); a tap
+ * on a closed one opens it and closes the other. Each keeps its own start button.
  */
 export function TodayHero() {
   const navigate = useNavigate();
@@ -51,18 +56,55 @@ export function TodayHero() {
   const active = useActiveWorkout().data;
   const plans = (usePlanOccurrences(range).data ?? []).filter((p) => p.status === 'planned');
   const liveDates = useLiveTodayDates();
+  const liveRefs = liveDates.map((d) => ({
+    planId: d.planId,
+    userId: d.ownerId,
+    planDate: d.planOn,
+  }));
   // Who takes part: in my dates and in those of others I am invited to.
-  const peopleOf = useContext(PlanSocialContext).usePlanPeople([
-    ...plans,
-    ...liveDates.map((d) => ({ planId: d.planId, userId: d.ownerId, planDate: d.planOn })),
-  ]);
+  const peopleOf = useContext(PlanSocialContext).usePlanPeople([...plans, ...liveRefs]);
   const [starting, setStarting] = useState(false);
-  const openLive = () => void navigate(paths.liveWorkout);
+  const [openKey, setOpenKey] = useState<string | null>(null);
   // A date's detail opens right here, as a sheet (no switch to the training tab).
   const [detailId, setDetailId] = useState<string | null>(null);
-  const openPlan = (plan: PlanOccurrence) => {
-    setDetailId(plan.planId);
-  };
+  const openLive = () => void navigate(paths.liveWorkout);
+
+  const views: DateView[] = [
+    ...plans
+      // The date running right now is shown as the running training.
+      .filter((p) => !(active?.plan?.id === p.planId && active.plan.onDate === p.planDate))
+      .map((plan): DateView => ({
+        key: `own:${plan.planId}`,
+        planId: plan.planId,
+        title: [planTitle(plan), plan.focus?.name].filter(Boolean).join(' · '),
+        time: plan.startTime,
+        icon: (className) => <PlanIcon plan={plan} className={className} />,
+        people: peopleOf(plan),
+        action: (variant) =>
+          plan.kind === 'training' && plan.trainingType ? (
+            <PlanStartButton plan={plan} variant={variant} />
+          ) : null,
+      })),
+    ...liveDates
+      .filter((d) => !(active && d.myWorkoutId === active.id))
+      .map((date, index): DateView => ({
+        key: `live:${date.planId}`,
+        planId: date.planId,
+        title: [date.typeName, date.focusName].filter(Boolean).join(' · '),
+        time: date.startTime,
+        icon: (className) => <TrainingTypeIcon icon={date.typeIcon} className={className} />,
+        people: liveRefs[index] ? peopleOf(liveRefs[index]) : [],
+        action: (variant) => <LiveDateButton date={date} onStarted={openLive} variant={variant} />,
+      })),
+  ].sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99'));
+
+  // Open: the one tapped, else (nothing running) the next date.
+  const openOne = views.some((v) => v.key === openKey)
+    ? openKey
+    : active
+      ? null
+      : (views[0]?.key ?? null);
+
   const detail = (
     <LinkedPlanSheet
       planId={detailId}
@@ -71,33 +113,23 @@ export function TodayHero() {
       }}
     />
   );
-  const withOthers = (plan: PlanOccurrence) => peopleOf(plan).filter((p) => p.id !== userId);
-
-  const entries: Entry[] = [
-    ...plans.map((own) => ({ key: `own:${own.planId}`, time: own.startTime, own })),
-    ...liveDates.map((live) => ({ key: `live:${live.planId}`, time: live.startTime, live })),
-  ]
-    // The date running right now is shown as the running training.
-    .filter((e) =>
-      'own' in e
-        ? !(active?.plan?.id === e.own.planId && active.plan.onDate === e.own.planDate)
-        : !(active && e.live.myWorkoutId === active.id),
-    )
-    .sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99'));
-  const [next, ...later] = entries;
-  const rest = active ? entries : later;
-
-  const rows =
-    rest.length > 0 ? (
-      <ul className="flex flex-col gap-2 border-t border-border pt-3">
-        {rest.map((e) => (
-          <li key={e.key}>
-            {'own' in e ? (
-              <PlanRow plan={e.own} people={withOthers(e.own)} onOpen={openPlan} />
-            ) : (
-              <LiveDateRow date={e.live} onStarted={openLive} />
-            )}
-          </li>
+  const dates =
+    views.length > 0 ? (
+      <ul className={cn('flex flex-col', active && 'border-t border-border pt-1')}>
+        {views.map((view, index) => (
+          <DateEntry
+            key={view.key}
+            view={view}
+            open={view.key === openOne}
+            first={index === 0}
+            userId={userId}
+            onOpen={() => {
+              setOpenKey(view.key);
+            }}
+            onDetails={() => {
+              setDetailId(view.planId);
+            }}
+          />
         ))}
       </ul>
     ) : null;
@@ -121,49 +153,17 @@ export function TodayHero() {
           </span>
           <Button onClick={openLive}>Öffnen</Button>
         </div>
-        {rows}
+        {dates}
         {detail}
       </section>
     );
   }
 
-  if (next) {
-    const ref =
-      'own' in next
-        ? next.own
-        : { planId: next.live.planId, userId: next.live.ownerId, planDate: next.live.planOn };
+  if (dates) {
     return (
-      <section className={card}>
-        <MainEntry
-          title={
-            'own' in next
-              ? [planTitle(next.own), next.own.focus?.name].filter(Boolean).join(' · ')
-              : [next.live.typeName, next.live.focusName].filter(Boolean).join(' · ')
-          }
-          time={'own' in next ? next.own.startTime : next.live.startTime}
-          icon={
-            'own' in next ? (
-              <PlanIcon plan={next.own} className="size-6" />
-            ) : (
-              <TrainingTypeIcon icon={next.live.typeIcon} className="size-6" />
-            )
-          }
-          people={peopleOf(ref)}
-          userId={userId}
-          onDetails={() => {
-            setDetailId(ref.planId);
-          }}
-          action={
-            'own' in next ? (
-              next.own.kind === 'training' && next.own.trainingType ? (
-                <PlanStartButton plan={next.own} />
-              ) : null
-            ) : (
-              <LiveDateButton date={next.live} onStarted={openLive} />
-            )
-          }
-        />
-        {rows}
+      <section className={cn(card, 'gap-1')}>
+        <span className={label}>Heute geplant</span>
+        {dates}
         {detail}
       </section>
     );
@@ -192,15 +192,6 @@ export function TodayHero() {
   );
 }
 
-function subtitle(plan: PlanOccurrence, people: PlanPerson[]): string {
-  return [
-    plan.startTime ? `${plan.startTime} Uhr` : null,
-    people.length > 0 ? `mit ${people.map((p) => p.displayName).join(', ')}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-}
-
 function PlanIcon({ plan, className }: { plan: PlanOccurrence; className: string }) {
   return plan.kind === 'event' ? (
     <span aria-hidden>★</span>
@@ -227,102 +218,113 @@ function peopleSentence(people: PlanPerson[], userId: string): string {
   return parts.join(' · ');
 }
 
+/** Closed: "18:00 Uhr · mit Grazon". */
+function closedLine(view: DateView, userId: string): string {
+  const others = view.people.filter((p) => p.id !== userId);
+  return [
+    view.time ? `${view.time} Uhr` : 'Heute',
+    others.length > 0 ? `mit ${others.map((p) => p.displayName).join(', ')}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 /**
- * The next date: label and "Details ›", title and time, then everyone taking part (with
- * their answer) and the start.
+ * One date in the accordion. Closed: a compact row (tap opens it; its start works as it
+ * is). Open: big title with "Details ›", everyone taking part, and the green start.
  */
-function MainEntry({
-  title,
-  time,
-  icon,
-  people,
+function DateEntry({
+  view,
+  open,
+  first,
   userId,
+  onOpen,
   onDetails,
-  action,
 }: {
-  title: string;
-  time: string | null;
-  icon: ReactNode;
-  people: PlanPerson[];
+  view: DateView;
+  open: boolean;
+  first: boolean;
   userId: string;
+  onOpen: () => void;
   onDetails: () => void;
-  action: ReactNode;
 }) {
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : spring.snappy;
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <span className={label}>Heute geplant</span>
+    <motion.li
+      layout={!reduceMotion}
+      transition={transition}
+      className={cn('flex flex-col', !first && 'border-t border-border')}
+    >
+      <div className="flex items-center gap-3 py-3">
         <button
           type="button"
-          onClick={onDetails}
-          className="-my-2 min-h-tap px-1 text-subhead font-semibold text-accent"
-        >
-          Details ›
-        </button>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onDetails}
+          aria-expanded={open}
+          onClick={open ? onDetails : onOpen}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent">
-            {icon}
+          <span
+            className={cn(
+              'flex shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent',
+              open ? 'size-12' : 'size-9',
+            )}
+          >
+            {view.icon(open ? 'size-6' : 'size-5')}
           </span>
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-title-3 font-bold">{title}</span>
-            <span className="truncate text-subhead text-text-muted">
-              {time ? `${time} Uhr` : 'Heute'}
+            <span
+              className={cn(
+                'truncate font-bold',
+                open ? 'text-title-3' : 'text-subhead font-semibold',
+              )}
+            >
+              {view.title}
+            </span>
+            <span
+              className={cn('truncate text-text-muted', open ? 'text-subhead' : 'text-footnote')}
+            >
+              {open ? (view.time ? `${view.time} Uhr` : 'Heute') : closedLine(view, userId)}
             </span>
           </span>
         </button>
-        {people.length === 0 && action}
+        {open ? (
+          <button
+            type="button"
+            onClick={onDetails}
+            className="min-h-tap shrink-0 self-start px-1 text-subhead font-semibold text-accent"
+          >
+            Details ›
+          </button>
+        ) : (
+          view.action('tinted')
+        )}
       </div>
-      {people.length > 0 && (
-        <div className="flex items-center gap-3">
-          <PlanPeopleAvatars people={people} />
-          <span className="min-w-0 flex-1 text-footnote text-text-muted">
-            {peopleSentence(people, userId)}
-          </span>
-          {action}
-        </div>
-      )}
-    </>
-  );
-}
-
-/** A further date of mine today: one compact row with its own start. */
-function PlanRow({
-  plan,
-  people,
-  onOpen,
-}: {
-  plan: PlanOccurrence;
-  people: PlanPerson[];
-  onOpen: (plan: PlanOccurrence) => void;
-}) {
-  return (
-    <div className="flex min-h-tap items-center gap-3">
-      <button
-        type="button"
-        onClick={() => {
-          onOpen(plan);
-        }}
-        className="flex min-w-0 flex-1 items-center gap-3 text-left"
-      >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent">
-          <PlanIcon plan={plan} className="size-5" />
-        </span>
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate text-subhead font-semibold">
-            {[planTitle(plan), plan.focus?.name].filter(Boolean).join(' · ')}
-          </span>
-          <span className="truncate text-footnote text-text-muted">{subtitle(plan, people)}</span>
-        </span>
-      </button>
-      {plan.kind === 'training' && plan.trainingType && (
-        <PlanStartButton plan={plan} variant="tinted" />
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="open"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={transition}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center gap-3 pb-3">
+              {view.people.length > 0 ? (
+                <>
+                  <PlanPeopleAvatars people={view.people} />
+                  <span className="min-w-0 flex-1 text-footnote text-text-muted">
+                    {peopleSentence(view.people, userId)}
+                  </span>
+                </>
+              ) : (
+                <span className="flex-1 text-footnote text-text-muted">Nur du</span>
+              )}
+              {view.action('primary')}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.li>
   );
 }

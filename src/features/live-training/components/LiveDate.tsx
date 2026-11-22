@@ -1,6 +1,4 @@
-import { useActiveGroup, useGroupMembers, type GroupMember } from '@/features/groups';
-import { Avatar } from '@/features/profile';
-import { TrainingTypeIcon } from '@/features/training';
+import { useActiveGroup, useGroupMembers } from '@/features/groups';
 import { Button } from '@/shared/ui';
 import { useLiveStart } from '../api/useLive';
 import type { LiveToday } from '../types';
@@ -35,17 +33,6 @@ function useDate(date: LiveToday, onStarted: () => void) {
   };
 }
 
-function People({ people }: { people: GroupMember[] }) {
-  if (people.length === 0) return null;
-  return (
-    <span className="flex shrink-0 -space-x-1.5">
-      {people.slice(0, 2).map((m) => (
-        <Avatar key={m.userId} profile={m} size="sm" />
-      ))}
-    </span>
-  );
-}
-
 /** The start button of a date of someone else: start, join (someone trains) or open. */
 export function LiveDateButton({
   date,
@@ -61,27 +48,5 @@ export function LiveDateButton({
     <Button variant={variant} loading={d.loading} onClick={d.go}>
       {d.label}
     </Button>
-  );
-}
-
-/** A further date of someone else today: one compact row with its own button. */
-export function LiveDateRow({ date, onStarted }: { date: LiveToday; onStarted: () => void }) {
-  const d = useDate(date, onStarted);
-  return (
-    <div className="flex min-h-tap items-center gap-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent">
-        <TrainingTypeIcon icon={date.typeIcon} className="size-5" />
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-subhead font-semibold">
-          {[date.typeName, date.focusName].filter(Boolean).join(' · ')}
-        </span>
-        <span className="truncate text-footnote text-text-muted">{d.subtitle}</span>
-      </span>
-      {date.running && <People people={d.training} />}
-      <Button variant="tinted" loading={d.loading} onClick={d.go}>
-        {d.label}
-      </Button>
-    </div>
   );
 }

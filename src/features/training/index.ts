@@ -78,3 +78,16 @@ export {
   type LogPastWorkoutInput,
 } from './api/useWorkout';
 export { WorkoutEditContext } from './components/workout-detail/edit';
+export { planOccurrencesOptions, usePlanOccurrences } from './api/usePlans';
+export { OpenLiveWorkoutContext } from './components/plans/open-live';
+export { TodayPlans } from './components/plans/TodayPlans';
+export {
+  answerText,
+  PlanSocialContext,
+  type PlanAnswer,
+  type PlanPerson,
+  type PlanSocialSlots,
+} from './components/plans/social';
+export { PlanAnswerMark, PlanPeopleAvatars } from './components/plans/PlanPeople';
+export { LinkedPlanSheet } from './components/plans/LinkedPlanSheet';
+export { LiveWorkoutContext, type LiveWorkoutSlots } from './components/live';

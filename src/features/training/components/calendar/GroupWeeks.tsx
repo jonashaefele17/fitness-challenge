@@ -1,11 +1,14 @@
 import { useContext, useLayoutEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { useWorkoutsInRange } from '../../api/useCalendar';
+import { usePlanOccurrences } from '../../api/usePlans';
 import { addDays, dayKey, startOfWeek } from '../../calendar';
-import type { CalendarWorkout } from '../../types';
+import type { CalendarWorkout, PlanOccurrence } from '../../types';
+import { PlanSocialContext, type PlanPerson } from '../plans/social';
 import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
-import { ACCENT, byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
+import { ACCENT, byDay, dayTitle, monthTitle, plansByDay, WEEKDAYS, type LogRow } from './logData';
 import { CalendarPeopleContext } from './people';
 
 /** Weeks added before/after the loaded ones each time the top/bottom is reached. */
@@ -49,6 +52,7 @@ export function GroupWeeks({
   );
   const range = { from: first, to: addDays(thisMonday, 7 * (future + 1)) };
   const mine = useWorkoutsInRange(range).data ?? [];
+  const myPlans = usePlanOccurrences({ from: range.from, to: addDays(range.to, -1) }).data ?? [];
   const usePeople = useContext(CalendarPeopleContext);
   const others = usePeople(range, true);
 
@@ -59,6 +63,7 @@ export function GroupWeeks({
       name: 'Du',
       color: others.ready ? (others.myColor ?? ACCENT) : PLACEHOLDER,
       workouts: mine,
+      plans: myPlans,
     },
     // Until the group is known, hold the remembered rows' place so the weeks keep their
     // height (otherwise the list jumps when the others arrive after a cold start).
@@ -71,6 +76,7 @@ export function GroupWeeks({
             name: person.name,
             color: person.color,
             workouts: person.workouts,
+            plans: person.plans,
           }))
       : shownIds.map((id) => ({
           id,
@@ -81,6 +87,23 @@ export function GroupWeeks({
         }))),
   ];
   const rowDays = rows.map((row) => byDay(row.workouts));
+  const userId = useUserId();
+  const social = useContext(PlanSocialContext);
+  const ownPlans = rows.flatMap((row) => row.plans ?? []);
+  const peopleOf = social.usePlanPeople(ownPlans);
+  const personOf = (row: LogRow) => (row.id === 'me' ? userId : row.id);
+  // A shared date shows in the line of everyone taking part (the day sheet lists it once).
+  const rowPlans = rows.map((row) =>
+    plansByDay([
+      ...(row.plans ?? []),
+      ...ownPlans.filter(
+        (plan) =>
+          plan.userId !== personOf(row) &&
+          peopleOf(plan).some((p) => p.id === personOf(row) && p.answer !== 'declined'),
+      ),
+    ]),
+  );
+  const ownPlansByRow = rows.map((row) => plansByDay(row.plans));
 
   // Reach down to the screen edge and run on behind the (translucent) navigation like any
   // iOS list; the bottom padding lets the last week scroll clear of it. Start at today's week.
@@ -132,6 +155,11 @@ export function GroupWeeks({
   const dayEntries = day
     ? rows.flatMap((row, index) =>
         (rowDays[index]?.get(day) ?? []).map((workout) => ({ row, workout })),
+      )
+    : [];
+  const dayPlans = day
+    ? rows.flatMap((row, index) =>
+        (ownPlansByRow[index]?.get(day) ?? []).map((plan) => ({ row, plan })),
       )
     : [];
 
@@ -229,6 +257,9 @@ export function GroupWeeks({
                     row={row}
                     days={days}
                     map={rowDays[rowIndex] ?? new Map<string, CalendarWorkout[]>()}
+                    planMap={rowPlans[rowIndex] ?? new Map<string, PlanOccurrence[]>()}
+                    personId={personOf(row)}
+                    peopleOf={peopleOf}
                     onOpen={onOpen}
                     onDay={setDay}
                   />
@@ -242,7 +273,9 @@ export function GroupWeeks({
       <DaySheet
         day={day}
         entries={dayEntries}
+        plans={dayPlans}
         showNames
+        peopleOf={peopleOf}
         onClose={() => {
           setDay(null);
         }}
@@ -255,12 +288,18 @@ function PersonWeek({
   row,
   days,
   map,
+  planMap,
+  personId,
+  peopleOf,
   onOpen,
   onDay,
 }: {
   row: LogRow;
   days: Date[];
   map: Map<string, CalendarWorkout[]>;
+  planMap: Map<string, PlanOccurrence[]>;
+  personId: string;
+  peopleOf: (plan: PlanOccurrence) => PlanPerson[];
   onOpen: (workoutId: string) => void;
   onDay: (key: string) => void;
 }) {
@@ -276,22 +315,42 @@ function PersonWeek({
       {days.map((date) => {
         const key = dayKey(date);
         const workouts = map.get(key) ?? [];
+        const plans = planMap.get(key) ?? [];
         const first = workouts[0];
-        if (!first) return <span key={key} className="min-h-tap" />;
+        // Empty: the whole cell opens the day (like the date above), e.g. to plan.
+        if (!first && plans.length === 0) {
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-label={`${row.name}, ${dayTitle.format(date)}`}
+              onClick={() => {
+                onDay(key);
+              }}
+              className="min-h-tap rounded-sm active:bg-surface-3"
+            />
+          );
+        }
         return (
           <button
             key={key}
             type="button"
             aria-label={`${row.name}, ${dayTitle.format(date)}`}
             onClick={() => {
-              // One workout opens it; several show the day.
-              if (workouts.length === 1) onOpen(first.id);
+              // One workout opens it; several (or plans) show the day.
+              if (first && workouts.length === 1 && plans.length === 0) onOpen(first.id);
               else onDay(key);
             }}
             className="flex min-h-tap min-w-0 items-center justify-center rounded-sm active:bg-surface-3"
             style={{ color: row.color }}
           >
-            <DayMarks workouts={workouts} />
+            <DayMarks
+              workouts={workouts}
+              plans={plans}
+              tinted
+              personId={personId}
+              peopleOf={peopleOf}
+            />
           </button>
         );
       })}

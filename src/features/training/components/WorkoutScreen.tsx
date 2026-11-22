@@ -15,10 +15,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { fade } from '@/shared/design-tokens';
 import { cn, showToast } from '@/shared/lib';
-import { Button, Card, Chip, ChevronDownIcon, Sheet, TextField } from '@/shared/ui';
+import { Button, Card, Chip, ChevronDownIcon, Sheet, Switch, TextField } from '@/shared/ui';
 import {
   useAddExercise,
   PreviousBeforeContext,
@@ -50,6 +50,7 @@ import {
 } from '../format';
 import type { ActiveWorkout, Device, ExerciseSummary, WorkoutItem } from '../types';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
+import { LiveWorkoutContext } from './live';
 import { DevicePickerSheet } from './DevicePickerSheet';
 import { DeviceSheet } from './DeviceSheet';
 import { PlacePicker } from './PlacePicker';
@@ -119,7 +120,12 @@ export function WorkoutScreen({
   >(null);
 
   const addExercise = useAddExercise(workout.id);
-  const reorder = useReorderItems();
+  // Training together: new exercises go to everyone unless "Für alle" is off.
+  const live = useContext(LiveWorkoutContext);
+  const isLive = live.useIsLive(workout.id) && !editing;
+  const keepPrivate = live.useKeepPrivate();
+  const [forAll, setForAll] = useState(true);
+  const reorder = useReorderItems(workout.id);
   const removeItem = useRemoveItem();
   const restoreItem = useRestoreItem(workout.id);
   const swap = useSwapExercise();
@@ -216,6 +222,7 @@ export function WorkoutScreen({
             ) : (
               <ElapsedTime workout={workout} />
             )}
+            {isLive && live.Along && <live.Along workoutId={workout.id} />}
           </div>
           <button
             type="button"
@@ -261,6 +268,11 @@ export function WorkoutScreen({
                     exit={{ opacity: 0, x: -16 }}
                     transition={fade.fast}
                   >
+                    {isLive && live.Peers && (
+                      <div className="mb-2">
+                        <live.Peers workoutId={workout.id} itemId={active.id} />
+                      </div>
+                    )}
                     <ExerciseCard
                       item={active}
                       onDevice={() => {
@@ -344,6 +356,16 @@ export function WorkoutScreen({
           onFocusChange={(focusId) => {
             setFocus.mutate(focusId);
           }}
+          header={
+            isLive ? (
+              <Switch
+                label="Für alle"
+                description={forAll ? 'Kommt bei allen ins Training' : 'Nur in deinem Training'}
+                checked={forAll}
+                onCheckedChange={setForAll}
+              />
+            ) : undefined
+          }
           onPick={(exercise, device) => {
             const itemId = crypto.randomUUID();
             addExercise.mutate({
@@ -353,6 +375,7 @@ export function WorkoutScreen({
               device,
               afterItemId: active?.id ?? null,
               items,
+              beforeInsert: isLive && !forAll ? () => keepPrivate(itemId) : undefined,
             });
             setActiveId(itemId);
           }}

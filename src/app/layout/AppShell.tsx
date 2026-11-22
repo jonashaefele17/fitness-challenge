@@ -6,6 +6,7 @@ import { fade } from '@/shared/design-tokens';
 import { Toaster } from '@/shared/ui';
 import { paths } from '../paths';
 import { PillNav } from './PillNav';
+import { ActiveWorkoutSync } from './ActiveWorkoutSync';
 import { PushTargetHandler } from './PushTargetHandler';
 import { RealtimeSync } from './RealtimeSync';
 
@@ -46,6 +47,7 @@ export function AppShell() {
       <AppBadgeSync />
       <RealtimeSync />
       <PushTargetHandler />
+      <ActiveWorkoutSync />
     </div>
   );
 }

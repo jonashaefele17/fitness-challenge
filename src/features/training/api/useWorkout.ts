@@ -19,7 +19,7 @@ import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
   id, user_id, started_at, ended_at, duration_seconds, paused_at, paused_seconds, focus_id,
-  template_id,
+  template_id, plan_id, plan_on,
   training_types!inner(id, name, kind, guided, catalog, focus_ids),
   locations(id, name, owner_id),
   workout_items(
@@ -53,6 +53,7 @@ function toActiveWorkout(data: WorkoutRow): ActiveWorkout {
     pausedSeconds: data.paused_seconds,
     focusId: data.focus_id,
     templateId: data.template_id,
+    plan: data.plan_id && data.plan_on ? { id: data.plan_id, onDate: data.plan_on } : null,
     location: data.locations
       ? {
           id: data.locations.id,
@@ -176,14 +177,18 @@ export function useStartWorkout() {
     mutationFn: async ({
       trainingTypeId,
       templateId,
+      plan,
     }: {
       trainingTypeId: string;
       /** Start with a template (mine or a group mate's). */
       templateId?: string | undefined;
+      /** Started from a plan: that date counts as done once finished. */
+      plan?: { id: string; onDate: string } | undefined;
     }) => {
       const { error } = await supabase.rpc('start_workout', {
         p_training_type_id: trainingTypeId,
         ...(templateId && { p_template_id: templateId }),
+        ...(plan && { p_plan_id: plan.id, p_plan_on: plan.onDate }),
       });
       if (error) throw error;
     },
@@ -296,14 +301,13 @@ export function useTogglePause() {
 // ---------------------------------------------------------------------------
 // Exercises in the workout
 // ---------------------------------------------------------------------------
-async function savePositions(items: WorkoutItem[]) {
-  const results = await Promise.all(
-    items.map((item, position) =>
-      supabase.from('workout_items').update({ position }).eq('id', item.id),
-    ),
-  );
-  const failed = results.find((result) => result.error);
-  if (failed?.error) throw failed.error;
+/** The order of the exercises, saved at once. */
+async function savePositions(workoutId: string, items: WorkoutItem[]) {
+  const { error } = await supabase.rpc('set_item_positions', {
+    p_workout_id: workoutId,
+    p_item_ids: items.map((item) => item.id),
+  });
+  if (error) throw error;
 }
 
 /** Inserts an exercise right after the given item (or at the end) with one empty set. */
@@ -316,6 +320,7 @@ export function useAddExercise(workoutId: string) {
       device,
       afterItemId,
       items,
+      beforeInsert,
     }: {
       itemId: string;
       setId: string;
@@ -323,7 +328,10 @@ export function useAddExercise(workoutId: string) {
       device: Device | null;
       afterItemId: string | null;
       items: WorkoutItem[];
+      /** Runs before the exercise is saved (e.g. keep it out of a shared list). */
+      beforeInsert?: (() => Promise<void>) | undefined;
     }) => {
+      await beforeInsert?.();
       const index = afterItemId
         ? items.findIndex((item) => item.id === afterItemId) + 1
         : items.length;
@@ -341,7 +349,7 @@ export function useAddExercise(workoutId: string) {
       if (setError) throw setError;
       const reordered = [...items];
       reordered.splice(index, 0, { id: itemId } as WorkoutItem);
-      await savePositions(reordered);
+      await savePositions(workoutId, reordered);
     },
     (workout, { itemId, setId, exercise, device, afterItemId }) => {
       const index = afterItemId
@@ -377,9 +385,9 @@ export function useAddExercise(workoutId: string) {
   );
 }
 
-export function useReorderItems() {
+export function useReorderItems(workoutId: string) {
   return useActiveMutation(
-    async (items: WorkoutItem[]) => savePositions(items),
+    async (items: WorkoutItem[]) => savePositions(workoutId, items),
     (workout, items) => ({
       ...workout,
       items: items.map((item, position) => ({ ...item, position })),
@@ -571,7 +579,7 @@ export function useRestoreItem(workoutId: string) {
       }
       const restored = [...items.filter((other) => other.id !== item.id)];
       restored.splice(item.position, 0, item);
-      await savePositions(restored);
+      await savePositions(workoutId, restored);
     },
     (workout, { item }) => {
       const items = workout.items.filter((other) => other.id !== item.id);

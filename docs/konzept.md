@@ -17,6 +17,13 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
+| 23.11.2026 | 1.35 | Gemeinsames Training nach erstem Test: Starten gilt für alle mit Zusage (Info-Push statt Frage), ein Studio für alle (Wechsel gilt für alle), gemeinsame Übungen samt Gerät und Satzstruktur, Beenden jede Person für sich; Glocke in allen Tabs |
+| 23.11.2026 | 1.34 | Gemeinsames Live-Training: Start aus einem Termin mit Teilnehmenden, Mitmachen über „Heute mit anderen“ (kein Push), gemeinsame Übungsliste mit „Für alle“-Schalter, Löschen und Sortieren für alle (Übungen mit abgehakten Sätzen bleiben), Sätze der anderen live, „mit …“ im Feed; Reihenfolge in Baustein 5: Live-Training vor .ics-Export |
+| 23.11.2026 | 1.33 | Einladungen zu Terminen: Einladung gilt für die ganze Serie, Antwort pro Serie oder pro Termin (Zusage, Vielleicht, Absage, andere Zeit), Vorschlag mit einem Tap übernehmen, „Ich komm mit“ mit Freigabe durch den Besitzer; Änderungen des Besitzers setzen die Antworten zurück |
+| 23.11.2026 | 1.32 | Planung: Fokus und mehrere Vorlagen pro Termin (Auswahl beim Start), Serie mit Fokus/Vorlagen pro Wochentag, „Nur diesen Termin ändern“ (Tag, Uhrzeit, Fokus, Vorlagen); im Kalender steht beim geplanten Termin das Fokus-Kürzel |
+| 22.11.2026 | 1.31 | Kalender-Zustände: erledigt = gefülltes Icon in der Personenfarbe, geplant = Umriss-Icon leicht verblasst mit Uhrzeit, abgesagt = grau (in der Gruppenansicht mit einem Hauch der Personenfarbe); gefüllte Varianten für alle Trainings-Icons; Mobility-Icon neu als Yoga-„Baum“ (vorher zu nah an Laufen) |
+| 22.11.2026 | 1.30 | Planung (5a): Termine als Training oder Event, einmalig oder wöchentlich an gewählten Tagen (optional bis Datum); im Kalender blass mit Uhrzeit, Event mit Stern; Tages-Sheet „+“ = Planen (Zukunft), Nachtragen (Vergangenheit), heute beides; Termin-Detail: Training starten (heute), Bearbeiten (Serie als Ganzes), Absagen (einzelner Termin, grau), Nachholen, Löschen; „Heute geplant“ im Heute-Tab mit „Starten“; die Gruppe sieht die Termine in der Gruppenansicht |
 | 21.11.2026 | 1.29 | Bearbeiten: „Fertig“ statt Minimieren-Pfeil; „Änderungen verwerfen“ (mit Rückfrage) setzt das Training auf den Stand vor dem Bearbeiten zurück, Übungen und Sätze behalten ihre Kommentare; wird ein Training, eine Übung, ein Satz oder eine Tageskarte gelöscht, verschwinden auch Kommentare, Reaktionen und Mitteilungen daran |
 | 21.11.2026 | 1.28 | Feed (4d): eigene Trainings bearbeiten (derselbe Trainingsbildschirm im Bearbeiten-Modus: Sätze, Übungen, Tag/Uhrzeit/Dauer, Ort, löschen mit Rückfrage) und nachtragen (Tag-Sheet „+“: Art, Uhrzeit, Dauer, optional Vorlage; Übungs-Arten öffnen danach den Bearbeiten-Modus); nachgetragen ist ausdrücklich markiert und benachrichtigt nie; verschobene Trainings wandern auf die Karte ihres neuen Tages |
 | 21.11.2026 | 1.27 | Feed: Beitritt als eigene kleine Karte (nicht Teil der Tageskarte); Sortierung als kompakter Umschalter „Neueste | Zuletzt aktiv“ |
@@ -355,7 +362,7 @@ Version 1 enthält alles in diesem Dokument und geht erst live, wenn sie steht; 
 2. **Generische Kerne:** Objekt-Referenzen, Kommentare, Reaktionen, Feed-Events, Benachrichtigungs-Engine mit Push.
 3. **Training:** Katalog (Orte, Geräte, Übungen, Stufen, Einstellungen), Trainingsarten, Vorlagen, Trainingsablauf, Light-Eintrag, Progression, Zusammenfassung.
 4. **Feed:** Tageskarten, Detail, Kommentare bis Satzebene, Glocke, Sprung an die Stelle.
-5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, .ics, gemeinsames Live-Training.
+5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, gemeinsames Live-Training, .ics.
 6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Veröffentlichen, Habit-Challenges.
 7. **Körper:** Wiegetag, Gewicht in %, Maße, Fortschrittsfotos.
 8. **Ziele & Saisons:** Ziel-Engine, Saison-Lebenszyklus, Vergleich, Rückblicke, Archiv.
@@ -418,9 +425,12 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Jedes abgeschlossene Training erscheint automatisch im Feed (kein Ausblenden pro Training) |
 | 21.11.2026 | Reaktionen als feste Auswahl wie bei iMessage (Daten in reaction_kinds), eine Reaktion pro Person und Stelle |
 | 21.11.2026 | Bearbeiten speichert sofort (wie live); „Änderungen verwerfen“ ist die erlaubte Ausnahme mit Rückfrage. Kommentare und Reaktionen werden mit ihrem Objekt gelöscht, nichts zeigt ins Leere |
+| 22.11.2026 | Termine (Baustein 5): wiederkehrende Termine gehören zu Version 1; auch allein geplante Termine sieht die Gruppe (Grundlage für „Ich komm mit“) |
+| 22.11.2026 | Gemeinsames Live-Training: kein Push „beitreten?“ beim Trainingsstart (man ist dann schon im Studio). Beitreten über den Termin bzw. selbst aktiv |
 
 **Offen (zu zweit klären)**
 
+- [ ] Gemeinsames Live-Training (5d): gemeinsame Übungsliste, aber auch eigene Übungen nur für sich hinzufügen können – Mechanismus vor 5d festlegen.
 - [ ] Ruhetage und Habit-Bewertung nochmal durchdenken: Eine Woche ganz ohne Sport darf nicht über Ruhetage positiv zählen (z. B. Ruhetage nur als Ausnahme, wenn das Wochenziel trotzdem erreicht ist, oder höchstens n pro Woche). Spätestens mit Baustein 6 (Habits) entscheiden.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?

@@ -1,7 +1,11 @@
 import { useQueries } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
-import { workoutsInRangeOptions, type CalendarPeople } from '@/features/training';
+import {
+  planOccurrencesOptions,
+  workoutsInRangeOptions,
+  type CalendarPeople,
+} from '@/features/training';
 import { personColorVar } from '@/shared/design-tokens';
 
 /**
@@ -24,6 +28,14 @@ export function useCalendarPeople(
       enabled,
     })),
   });
+  // Their plans (the range ends the day after its last day).
+  const planRange = { from: range.from, to: new Date(range.to.getTime() - 24 * 60 * 60 * 1000) };
+  const plans = useQueries({
+    queries: others.map((member) => ({
+      ...planOccurrencesOptions(userId, planRange, member.userId),
+      enabled,
+    })),
+  });
   const me = members.find((member) => member.userId === userId);
 
   return {
@@ -36,6 +48,7 @@ export function useCalendarPeople(
       name: member.displayName,
       color: personColorVar(member.color),
       workouts: results[index]?.data ?? [],
+      plans: plans[index]?.data ?? [],
     })),
   };
 }

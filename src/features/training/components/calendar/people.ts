@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { CalendarWorkout } from '../../types';
+import type { CalendarWorkout, PlanOccurrence } from '../../types';
 
 /** Another person's finished workouts in the visible range. */
 export interface CalendarPerson {
@@ -8,6 +8,8 @@ export interface CalendarPerson {
   /** CSS colour (their person colour). */
   color: string;
   workouts: CalendarWorkout[];
+  /** Their planned dates in the range. */
+  plans: PlanOccurrence[];
 }
 
 export interface CalendarPeople {

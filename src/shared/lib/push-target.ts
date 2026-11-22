@@ -19,13 +19,20 @@ export async function takePendingPushTarget(): Promise<PendingPushTarget | null>
   }
 }
 
-/** Calls back whenever the service worker reports a tapped notification. */
-export function onPushTargetMessage(callback: () => void): () => void {
+/**
+ * Calls back whenever the service worker reports a tapped notification, with its target
+ * when the message carries it.
+ */
+export function onPushTargetMessage(
+  callback: (pending: PendingPushTarget | null) => void,
+): () => void {
   if (!('serviceWorker' in navigator)) return () => undefined;
   const handler = (event: MessageEvent<unknown>) => {
     const data = event.data;
     if (typeof data === 'object' && data !== null && 'type' in data) {
-      if (data.type === PUSH_TARGET_MESSAGE) callback();
+      if (data.type !== PUSH_TARGET_MESSAGE) return;
+      const pending = 'pending' in data ? (data.pending as PendingPushTarget | undefined) : null;
+      callback(pending ?? null);
     }
   };
   navigator.serviceWorker.addEventListener('message', handler);

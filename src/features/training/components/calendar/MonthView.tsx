@@ -1,8 +1,12 @@
-import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useContext, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/shared/ui';
 import { useWorkoutsInRange } from '../../api/useCalendar';
+import { usePlanOccurrences } from '../../api/usePlans';
+import type { PlanOccurrence } from '../../types';
 import { addDays, addMonths, dayKey, monthWeeks, startOfMonth } from '../../calendar';
+import { PlanSocialContext } from '../plans/social';
 import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
 import { byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
@@ -37,6 +41,18 @@ export function MonthView({
   const range = { from: mondays[0] ?? month, to: addDays(mondays.at(-1) ?? month, 7) };
   const workouts = useWorkoutsInRange(range).data ?? [];
   const days = byDay(workouts);
+  // The range ends the day after the last week; plans are asked up to its last day.
+  const planRange = { from: range.from, to: addDays(range.to, -1) };
+  const social = useContext(PlanSocialContext);
+  const userId = useUserId();
+  const joined = social.useJoinedPlans(planRange);
+  const plans = [...(usePlanOccurrences(planRange).data ?? []), ...joined];
+  const peopleOf = social.usePlanPeople(plans);
+  const plansByDay = new Map<string, PlanOccurrence[]>();
+  for (const plan of plans) {
+    if (plan.status === 'done') continue;
+    plansByDay.set(plan.onDate, [...(plansByDay.get(plan.onDate) ?? []), plan]);
+  }
   const me: LogRow = { id: 'me', initial: '', name: 'Du', color, workouts };
   const todayKey = dayKey(today);
 
@@ -153,7 +169,13 @@ export function MonthView({
                   >
                     {day.getDate()}
                   </span>
-                  <DayMarks workouts={list} />
+                  <DayMarks
+                    workouts={list}
+                    plans={plansByDay.get(key)}
+                    peopleOf={peopleOf}
+                    personId={userId}
+                    dots
+                  />
                 </button>
               );
             })}
@@ -164,7 +186,9 @@ export function MonthView({
       <DaySheet
         day={day}
         entries={(days.get(day ?? '') ?? []).map((workout) => ({ row: me, workout }))}
+        plans={(plansByDay.get(day ?? '') ?? []).map((plan) => ({ row: me, plan }))}
         showNames={false}
+        peopleOf={peopleOf}
         onClose={() => {
           setDay(null);
         }}

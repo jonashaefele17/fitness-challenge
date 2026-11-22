@@ -32,7 +32,11 @@ export function DayList({
               className="flex size-9 shrink-0 items-center justify-center rounded-pill bg-surface-3"
               style={{ color: row.color }}
             >
-              <TrainingTypeIcon icon={workout.trainingType.icon} className="size-5" />
+              <TrainingTypeIcon
+                icon={workout.trainingType.icon}
+                variant="filled"
+                className="size-5"
+              />
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-subhead font-semibold">

@@ -665,6 +665,162 @@ export type Database = {
           },
         ];
       };
+      live_items: {
+        Row: {
+          item_id: string;
+          key: string;
+          session_id: string;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          item_id: string;
+          key: string;
+          session_id: string;
+          workout_id: string;
+        };
+        Update: {
+          item_id?: string;
+          key?: string;
+          session_id?: string;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_items_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'live_sessions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      live_members: {
+        Row: {
+          joined_at: string;
+          session_id: string;
+          user_id: string;
+          workout_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          joined_at?: string;
+          session_id: string;
+          user_id: string;
+          workout_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          session_id?: string;
+          user_id?: string;
+          workout_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_members_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'live_sessions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_members_workout_id_fkey';
+            columns: ['workout_id'];
+            isOneToOne: true;
+            referencedRelation: 'workouts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      live_private_items: {
+        Row: {
+          created_at: string;
+          item_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          item_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          item_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      live_sessions: {
+        Row: {
+          created_at: string;
+          ended_at: string | null;
+          group_id: string;
+          id: string;
+          location_id: string | null;
+          plan_id: string;
+          plan_on: string;
+          started_by: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          ended_at?: string | null;
+          group_id: string;
+          id?: string;
+          location_id?: string | null;
+          plan_id: string;
+          plan_on: string;
+          started_by: string;
+        };
+        Update: {
+          created_at?: string;
+          ended_at?: string | null;
+          group_id?: string;
+          id?: string;
+          location_id?: string | null;
+          plan_id?: string;
+          plan_on?: string;
+          started_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_sessions_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_started_by_fkey';
+            columns: ['started_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       locations: {
         Row: {
           created_at: string;
@@ -911,6 +1067,276 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'target_types';
             referencedColumns: ['key'];
+          },
+        ];
+      };
+      plan_changes: {
+        Row: {
+          clear_time: boolean;
+          focus_id: string | null;
+          moved_to: string | null;
+          on_date: string;
+          plan_id: string;
+          start_time: string | null;
+          template_ids: string[] | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          clear_time?: boolean;
+          focus_id?: string | null;
+          moved_to?: string | null;
+          on_date: string;
+          plan_id: string;
+          start_time?: string | null;
+          template_ids?: string[] | null;
+        };
+        Update: {
+          clear_time?: boolean;
+          focus_id?: string | null;
+          moved_to?: string | null;
+          on_date?: string;
+          plan_id?: string;
+          start_time?: string | null;
+          template_ids?: string[] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_changes_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_changes_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_days: {
+        Row: {
+          focus_id: string | null;
+          plan_id: string;
+          template_ids: string[];
+          weekday: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          focus_id?: string | null;
+          plan_id: string;
+          template_ids?: string[];
+          weekday: number;
+        };
+        Update: {
+          focus_id?: string | null;
+          plan_id?: string;
+          template_ids?: string[];
+          weekday?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_days_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_days_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_participants: {
+        Row: {
+          created_at: string;
+          group_id: string;
+          plan_id: string;
+          responded_at: string | null;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          group_id: string;
+          plan_id: string;
+          responded_at?: string | null;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          group_id?: string;
+          plan_id?: string;
+          responded_at?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_participants_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_participants_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_participants_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_responses: {
+        Row: {
+          created_at: string;
+          on_date: string;
+          plan_id: string;
+          proposed_date: string | null;
+          proposed_time: string | null;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          on_date: string;
+          plan_id: string;
+          proposed_date?: string | null;
+          proposed_time?: string | null;
+          status: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          on_date?: string;
+          plan_id?: string;
+          proposed_date?: string | null;
+          proposed_time?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_responses_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_responses_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_skips: {
+        Row: {
+          created_at: string;
+          on_date: string;
+          plan_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          on_date: string;
+          plan_id: string;
+        };
+        Update: {
+          created_at?: string;
+          on_date?: string;
+          plan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_skips_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plans: {
+        Row: {
+          created_at: string;
+          focus_id: string | null;
+          id: string;
+          kind: string;
+          note: string | null;
+          repeat_until: string | null;
+          repeat_weekdays: number[];
+          start_time: string | null;
+          starts_on: string;
+          template_ids: string[];
+          title: string | null;
+          training_type_id: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          kind: string;
+          note?: string | null;
+          repeat_until?: string | null;
+          repeat_weekdays?: number[];
+          start_time?: string | null;
+          starts_on: string;
+          template_ids?: string[];
+          title?: string | null;
+          training_type_id?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          focus_id?: string | null;
+          id?: string;
+          kind?: string;
+          note?: string | null;
+          repeat_until?: string | null;
+          repeat_weekdays?: number[];
+          start_time?: string | null;
+          starts_on?: string;
+          template_ids?: string[];
+          title?: string | null;
+          training_type_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plans_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plans_training_type_id_fkey';
+            columns: ['training_type_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_types';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1583,6 +2009,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;
@@ -1604,6 +2032,8 @@ export type Database = {
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
+          plan_id?: string | null;
+          plan_on?: string | null;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
           template_id?: string | null;
@@ -1624,6 +2054,8 @@ export type Database = {
           note?: string | null;
           paused_at?: string | null;
           paused_seconds?: number;
+          plan_id?: string | null;
+          plan_on?: string | null;
           started_at?: string;
           status?: Database['public']['Enums']['workout_status'];
           template_id?: string | null;
@@ -1647,6 +2079,13 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'workouts_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'workouts_template_id_fkey';
             columns: ['template_id'];
             isOneToOne: false;
@@ -1667,6 +2106,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_plan_proposal: {
+        Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
+        Returns: undefined;
+      };
+      answer_join_request: {
+        Args: { p_accept: boolean; p_plan_id: string; p_user_id: string };
+        Returns: undefined;
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -1805,6 +2252,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;
@@ -1818,6 +2267,35 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      live_keep_private: { Args: { p_item_id: string }; Returns: undefined };
+      live_peer_sets: {
+        Args: { p_workout_id: string };
+        Returns: {
+          item_id: string;
+          sets: Json;
+          user_id: string;
+        }[];
+      };
+      live_start: {
+        Args: { p_plan_id: string; p_plan_on: string; p_template_id?: string };
+        Returns: string;
+      };
+      live_today: {
+        Args: { p_today: string };
+        Returns: {
+          focus_name: string;
+          member_ids: string[];
+          my_workout_id: string;
+          owner_id: string;
+          plan_id: string;
+          plan_on: string;
+          session_id: string;
+          start_time: string;
+          training_type_id: string;
+          type_icon: string;
+          type_name: string;
+        }[];
       };
       log_past_workout: {
         Args: {
@@ -1841,6 +2319,38 @@ export type Database = {
           p_target_type: string;
         };
         Returns: undefined;
+      };
+      my_joined_plans: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          owner_id: string;
+          plan_id: string;
+          status: string;
+        }[];
+      };
+      plan_occurrences: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          changed: boolean;
+          focus_id: string;
+          focus_name: string;
+          focus_short: string;
+          kind: string;
+          note: string;
+          on_date: string;
+          plan_date: string;
+          plan_id: string;
+          recurring: boolean;
+          start_time: string;
+          status: string;
+          template_ids: string[];
+          title: string;
+          training_type_id: string;
+          type_icon: string;
+          type_name: string;
+          user_id: string;
+          workout_id: string;
+        }[];
       };
       post_comment: {
         Args: {
@@ -1896,6 +2406,17 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      request_to_join_plan: { Args: { p_group_id: string; p_plan_id: string }; Returns: undefined };
+      respond_to_plan: {
+        Args: {
+          p_on_date: string;
+          p_plan_id: string;
+          p_proposed_date?: string;
+          p_proposed_time?: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
       restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
       save_template: {
         Args: {
@@ -1917,7 +2438,15 @@ export type Database = {
           name: string;
         }[];
       };
+      set_item_positions: {
+        Args: { p_item_ids: string[]; p_workout_id: string };
+        Returns: undefined;
+      };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
+      set_plan_participants: {
+        Args: { p_group_id: string; p_plan_id: string; p_user_ids: string[] };
+        Returns: undefined;
+      };
       set_reaction: {
         Args: {
           p_group_id: string;
@@ -1929,7 +2458,13 @@ export type Database = {
         Returns: undefined;
       };
       start_workout: {
-        Args: { p_location_id?: string; p_template_id?: string; p_training_type_id: string };
+        Args: {
+          p_location_id?: string;
+          p_plan_id?: string;
+          p_plan_on?: string;
+          p_template_id?: string;
+          p_training_type_id: string;
+        };
         Returns: {
           created_at: string;
           distance_m: number | null;
@@ -1943,6 +2478,8 @@ export type Database = {
           note: string | null;
           paused_at: string | null;
           paused_seconds: number;
+          plan_id: string | null;
+          plan_on: string | null;
           started_at: string;
           status: Database['public']['Enums']['workout_status'];
           template_id: string | null;

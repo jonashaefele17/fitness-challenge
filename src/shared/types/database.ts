@@ -863,6 +863,7 @@ export type Database = {
           archived_at: string | null;
           created_at: string;
           id: string;
+          share_level: string;
           sort: number;
           template_id: string | null;
           user_id: string;
@@ -872,6 +873,7 @@ export type Database = {
           archived_at?: string | null;
           created_at?: string;
           id?: string;
+          share_level?: string;
           sort?: number;
           template_id?: string | null;
           user_id?: string;
@@ -880,6 +882,7 @@ export type Database = {
           archived_at?: string | null;
           created_at?: string;
           id?: string;
+          share_level?: string;
           sort?: number;
           template_id?: string | null;
           user_id?: string;

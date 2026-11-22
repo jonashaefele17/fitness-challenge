@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { HabitComparison } from '@/features/comparison';
 import { CommentBubble, CommentThreadSheet } from '@/features/comments';
 import { FeedList, TrainedToday } from '@/features/feed';
 import { useActiveGroup } from '@/features/groups';
 import { NotificationBell, useInvalidateNotifications } from '@/features/notifications';
 import { ReactionBar } from '@/features/reactions';
 import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
-import { Screen } from '@/shared/ui';
+import { Screen, SegmentedControl } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
 import { CardWorkouts } from '../feed/CardWorkouts';
 import { targetParams, useOpenTarget } from '../targets';
@@ -34,6 +35,7 @@ export function GroupRoute() {
   if (threadOpen && (focused.id !== thread?.id || focused.type !== thread.type)) {
     setThread(focused);
   }
+  const [view, setView] = useState<'feed' | 'compare'>('feed');
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   // Linked from a notification: a workout, or an exercise/set of one.
   const linkedItem = params.get(targetParams.item);
@@ -45,26 +47,41 @@ export function GroupRoute() {
   return (
     <Screen title="Gruppe" accessory={<NotificationBell onOpenTarget={openTarget} />}>
       <div className="flex flex-col gap-4">
-        <TrainedToday groupId={group.id} />
-        <FeedList
-          groupId={group.id}
-          highlightId={focused?.id ?? null}
-          renderBody={(card) => <CardWorkouts card={card} onOpen={setWorkoutId} />}
-          renderActions={(card) => {
-            const target = { groupId: group.id, type: 'feed_day', id: card.id };
-            return (
-              <>
-                <ReactionBar target={target} />
-                <CommentBubble
-                  target={target}
-                  onOpen={() => {
-                    setParams({ [targetParams.card]: card.id, [targetParams.thread]: '1' });
-                  }}
-                />
-              </>
-            );
-          }}
+        <SegmentedControl
+          label="Ansicht"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'feed', label: 'Feed' },
+            { value: 'compare', label: 'Habits' },
+          ]}
         />
+        {view === 'compare' ? (
+          <HabitComparison />
+        ) : (
+          <>
+            <TrainedToday groupId={group.id} />
+            <FeedList
+              groupId={group.id}
+              highlightId={focused?.id ?? null}
+              renderBody={(card) => <CardWorkouts card={card} onOpen={setWorkoutId} />}
+              renderActions={(card) => {
+                const target = { groupId: group.id, type: 'feed_day', id: card.id };
+                return (
+                  <>
+                    <ReactionBar target={target} />
+                    <CommentBubble
+                      target={target}
+                      onOpen={() => {
+                        setParams({ [targetParams.card]: card.id, [targetParams.thread]: '1' });
+                      }}
+                    />
+                  </>
+                );
+              }}
+            />
+          </>
+        )}
       </div>
       {thread && (
         <CommentThreadSheet

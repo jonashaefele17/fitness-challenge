@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button, SegmentedControl, Sheet, TextField } from '@/shared/ui';
 import {
   fitsFocus,
@@ -47,6 +47,8 @@ export interface ExercisePickerSheetProps {
    */
   selectedIds?: string[] | undefined;
   onUnpick?: ((exercise: ExerciseSummary) => void) | undefined;
+  /** Above the search (e.g. "Für alle" while training together). */
+  header?: ReactNode;
 }
 
 type Tab = 'devices' | 'exercises';
@@ -78,6 +80,7 @@ export function ExercisePickerSheet({
   onPick,
   selectedIds,
   onUnpick,
+  header,
 }: ExercisePickerSheetProps) {
   const multiple = selectedIds !== undefined;
   // Mobility has no devices: the picker is only the mobility catalogue.
@@ -199,6 +202,7 @@ export function ExercisePickerSheet({
     >
       {
         <div className="flex flex-col gap-4">
+          {header}
           <TextField
             label={activeTab === 'devices' ? 'Gerät oder Übung suchen' : 'Übung suchen'}
             value={query}

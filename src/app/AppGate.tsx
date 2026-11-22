@@ -5,11 +5,13 @@ import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
 import {
   CalendarPeopleContext,
   HistoryCompareContext,
+  LiveWorkoutContext,
   OpenLiveWorkoutContext,
   PlanSocialContext,
   WorkoutEditContext,
 } from '@/features/training';
 import { planSocialSlots, useInvitationsRealtime } from '@/features/invitations';
+import { liveWorkoutSlots } from '@/features/live-training';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
 import { WorkoutSocialProvider } from './feed/WorkoutSocial';
@@ -62,8 +64,11 @@ export function AppGate() {
               <OpenLiveWorkoutContext.Provider value={openLiveWorkout}>
                 {/* Invitations plug into plans (who comes along, answers, "Ich komm mit"). */}
                 <PlanSocialContext.Provider value={planSocialSlots}>
-                  <InvitationsSync />
-                  <RouterProvider router={router} />
+                  {/* Training together: shared exercises, the others' sets. */}
+                  <LiveWorkoutContext.Provider value={liveWorkoutSlots}>
+                    <InvitationsSync />
+                    <RouterProvider router={router} />
+                  </LiveWorkoutContext.Provider>
                 </PlanSocialContext.Provider>
               </OpenLiveWorkoutContext.Provider>
             </WorkoutEditContext.Provider>

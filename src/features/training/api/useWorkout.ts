@@ -319,6 +319,7 @@ export function useAddExercise(workoutId: string) {
       device,
       afterItemId,
       items,
+      beforeInsert,
     }: {
       itemId: string;
       setId: string;
@@ -326,7 +327,10 @@ export function useAddExercise(workoutId: string) {
       device: Device | null;
       afterItemId: string | null;
       items: WorkoutItem[];
+      /** Runs before the exercise is saved (e.g. keep it out of a shared list). */
+      beforeInsert?: (() => Promise<void>) | undefined;
     }) => {
+      await beforeInsert?.();
       const index = afterItemId
         ? items.findIndex((item) => item.id === afterItemId) + 1
         : items.length;

@@ -90,3 +90,4 @@ export {
 } from './components/plans/social';
 export { PlanAnswerMark, PlanPeopleAvatars } from './components/plans/PlanPeople';
 export { LinkedPlanSheet } from './components/plans/LinkedPlanSheet';
+export { LiveWorkoutContext, type LiveWorkoutSlots } from './components/live';

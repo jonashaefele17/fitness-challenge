@@ -78,7 +78,7 @@ set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222",
 select lives_ok(
   $$select public.respond_to_plan('c0000000-0000-4000-8000-000000000001', null, 'accepted')$$,
   'the invitee says yes to the series');
-select is(tests.notes('11111111-1111-4111-8111-111111111111', 'plan_response'), 1::bigint,
+select is(tests.notes('11111111-1111-4111-8111-111111111111', 'plan_accepted'), 1::bigint,
   'the owner is told');
 select is((select count(*) from public.my_joined_plans()), 2::bigint, 'the plans are in the invitee''s calendar');
 select throws_ok(

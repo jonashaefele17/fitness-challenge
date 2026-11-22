@@ -60,6 +60,26 @@ export function describeNotification(
       return 'hat trainiert';
     case 'member_joined':
       return 'ist der Gruppe beigetreten';
+    case 'plan_invite':
+      return 'lädt dich zu einem Termin ein';
+    case 'plan_accepted':
+      return 'hat zugesagt';
+    case 'plan_maybe':
+      return 'kommt vielleicht';
+    case 'plan_declined':
+      return 'hat abgesagt';
+    case 'plan_proposed':
+      return 'schlägt eine andere Zeit vor';
+    case 'plan_request':
+      return 'möchte mitkommen';
+    case 'plan_request_accepted':
+      return 'nimmt dich mit';
+    case 'plan_request_declined':
+      return 'nimmt diesmal niemanden mit';
+    case 'plan_changed':
+      return 'hat einen Termin geändert – bitte neu zusagen';
+    case 'plan_cancelled':
+      return 'hat einen Termin abgesagt';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

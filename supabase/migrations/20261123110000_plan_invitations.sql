@@ -212,7 +212,8 @@ begin
   select p.user_id into v_owner from public.plans p where p.id = p_plan_id;
   perform private.notify_plan(array[v_owner], v_part.group_id, p_plan_id,
     coalesce(p_on_date, (select starts_on from public.plans where id = p_plan_id)),
-    'plan_response', jsonb_build_object('status', p_status));
+    -- plan_accepted | plan_maybe | plan_declined | plan_proposed
+    'plan_' || p_status);
 end;
 $$;
 
@@ -245,7 +246,7 @@ begin
      where id = p_plan_id;
   else
     insert into public.plan_changes (plan_id, on_date, moved_to, start_time)
-    values (p_plan_id, p_on_date, v_resp.proposed_date, v_resp.proposed_time)
+    values (p_plan_id, p_on_date, nullif(v_resp.proposed_date, p_on_date), v_resp.proposed_time)
     on conflict (plan_id, on_date) do update
       set moved_to = excluded.moved_to,
           start_time = coalesce(excluded.start_time, public.plan_changes.start_time),

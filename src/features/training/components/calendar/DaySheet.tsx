@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { Button, ChevronRightIcon, PlusIcon, Sheet } from '@/shared/ui';
 import type { CalendarWorkout, PlanOccurrence } from '../../types';
 import { PlanDetailSheet } from '../plans/PlanDetailSheet';
 import { PlanForm } from '../plans/PlanForm';
 import { emptyPlan } from '../plans/planDraft';
+import { PlanPeopleAvatars } from '../plans/PlanPeople';
 import { planTitle } from '../plans/planText';
+import type { PlanPerson } from '../plans/social';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
 import { WorkoutDetailSheet } from '../workout-detail/WorkoutDetailSheet';
 import { DayList } from './DayList';
@@ -29,6 +32,7 @@ export function DaySheet({
   entries,
   plans = [],
   showNames,
+  peopleOf,
   onClose,
 }: {
   /** Day key ("2026-11-21") or null when closed. */
@@ -36,6 +40,8 @@ export function DaySheet({
   entries: { row: LogRow; workout: CalendarWorkout }[];
   plans?: { row: LogRow; plan: PlanOccurrence }[];
   showNames: boolean;
+  /** Who takes part in a date (from the social slot). */
+  peopleOf?: (plan: PlanOccurrence) => PlanPerson[];
   onClose: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -44,6 +50,7 @@ export function DaySheet({
   // A fresh form each time it opens.
   const [round, setRound] = useState(0);
   const [today] = useState(todayKey);
+  const userId = useUserId();
   // Done plans show as their workout.
   const shownPlans = plans.filter((entry) => entry.plan.status !== 'done');
 
@@ -130,6 +137,9 @@ export function DaySheet({
                         .join(' · ')}
                     </span>
                   </span>
+                  <PlanPeopleAvatars
+                    people={(peopleOf?.(plan) ?? []).filter((person) => person.id !== userId)}
+                  />
                   <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
                 </button>
               </li>

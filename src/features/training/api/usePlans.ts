@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
-import { dayKey } from '../calendar';
+import { addDays, dayKey } from '../calendar';
 import type { PlanChange, PlanDraft, PlanOccurrence } from '../types';
 import { trainingKeys } from './keys';
 
@@ -152,6 +152,7 @@ export function useSavePlan() {
         );
         if (dayError) throw dayError;
       }
+      return planId;
     },
     onSettled: () => invalidate(queryClient, userId),
   });
@@ -218,5 +219,33 @@ export function useChangePlanDate() {
       if (error) throw error;
     },
     onSettled: () => invalidate(queryClient, userId),
+  });
+}
+
+/** The next date of a plan from today on (or its last one), e.g. to open from a link. */
+export function useNextPlanDate(planId: string | null) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...planKeys.all(userId), 'next', planId],
+    enabled: planId !== null,
+    queryFn: async (): Promise<PlanOccurrence | null> => {
+      if (!planId) return null;
+      const { data: plan, error } = await supabase
+        .from('plans')
+        .select('user_id')
+        .eq('id', planId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!plan) return null;
+      const today = new Date();
+      const options = planOccurrencesOptions(
+        userId,
+        { from: addDays(today, -60), to: addDays(today, 180) },
+        plan.user_id,
+      );
+      const dates = (await options.queryFn()).filter((o) => o.planId === planId);
+      const todayKey = dayKey(today);
+      return dates.find((o) => o.onDate >= todayKey) ?? dates.at(-1) ?? null;
+    },
   });
 }

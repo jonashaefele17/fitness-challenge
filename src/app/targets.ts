@@ -18,6 +18,8 @@ export const targetParams = {
   thread: 'thread',
   /** Comment to scroll to inside the open thread. */
   comment: 'kommentar',
+  /** Plan whose next date to open (training tab). */
+  plan: 'termin',
 } as const;
 
 export interface OpenTargetOptions {
@@ -53,6 +55,8 @@ export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetO
       if (thread && commentId) params.set(targetParams.comment, commentId);
       return `${paths.group}?${params.toString()}`;
     }
+    case 'plan':
+      return `${paths.training}?${new URLSearchParams({ [targetParams.plan]: target.id }).toString()}`;
     default:
       return paths.group;
   }

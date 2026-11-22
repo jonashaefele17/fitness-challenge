@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { cn } from '@/shared/lib';
 import {
   Button,
@@ -15,6 +15,7 @@ import type { PlanDay, PlanDraft } from '../../types';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
 import { isoWeekday, WEEKDAY_NAMES, WEEKDAY_SHORT } from './planDraft';
 import { PlanTargetPicker } from './PlanTargetPicker';
+import { PlanSocialContext } from './social';
 
 const chip =
   'flex min-h-tap shrink-0 items-center gap-2 rounded-pill border px-4 text-subhead font-semibold';
@@ -33,6 +34,11 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
   const types = useTrainingTypes().data ?? [];
   const focuses = useTrainingFocuses().data ?? [];
   const save = useSavePlan();
+  // Whom to invite (a new plan; later changes happen in the detail).
+  const [invitees, setInvitees] = useState<string[]>([]);
+  const social = useContext(PlanSocialContext);
+  const invite = social.useInvite();
+  const InviteField = draft.id ? null : social.InviteField;
   const repeats = draft.repeatWeekdays.length > 0;
   const training = draft.kind === 'training';
   const missing =
@@ -80,7 +86,12 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
       className="flex flex-col gap-6 pt-1"
       onSubmit={(event) => {
         event.preventDefault();
-        save.mutate(draft, { onSuccess: onSaved });
+        save.mutate(draft, {
+          onSuccess: (planId) => {
+            if (invitees.length > 0) void invite(planId, invitees);
+            onSaved();
+          },
+        });
       }}
     >
       <SegmentedControl
@@ -233,6 +244,8 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
           </>
         )}
       </div>
+
+      {InviteField && <InviteField value={invitees} onChange={setInvitees} />}
 
       <TextField
         label="Notiz (optional)"

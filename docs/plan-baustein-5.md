@@ -25,24 +25,26 @@ Noch zu tun für 5a: Staging-Test durch Jonas, Feedback einarbeiten.
 
 ## Offen
 
-### 5b – Einladungen (soziales Modul `invitations`)
+### 5b – Einladungen (soziales Modul `invitations`) – gebaut am 23.11.2026
 
-Vor dem Bau einen kurzen Plan vorlegen.
+- [x] Teilnehmende aus der Gruppe einladen: beim Planen („Mit wem?“) und nachträglich im Termin („Leute einladen“ / „Einladung ändern“)
+- [x] Mitteilung (Glocke + Push, Kategorie „Termine“) an die Eingeladenen
+- [x] Antworten: Zusage, Vielleicht, Absage; bei einer Serie wahlweise „Dieser Termin“ oder „Alle Termine“
+- [x] Andere Zeit vorschlagen (pro Termin); der Besitzer tippt „Übernehmen“, der Termin wird verschoben
+- [x] Änderung durch den Besitzer (Tag, Zeit, Fokus, Vorlagen, Art) → Mitteilung, alle bestätigen neu
+- [x] Absagen eines Termins und Löschen der Serie → Mitteilung an alle
+- [x] „Ich komm mit“ bei einem Termin einer anderen Person; der Besitzer wählt „Mitnehmen“ oder „Lieber nicht“
+- [x] Kalender (Ich-Ansicht): Punkt in Personenfarbe oben rechts am Icon – gefüllt = zugesagt, Ring = offen, „+n“ bei mehreren; wer absagt, verschwindet. Termine, zu denen ich eingeladen bin, stehen auch in meinem Kalender (ab heute)
+- [x] Gruppenansicht: gemeinsamer Termin in jeder Personenzeile; wer noch nicht zugesagt hat, blasser
+- [x] Tages-Sheet: rechts die Avatare mit Status (✓ zugesagt, ? offen/vielleicht, Uhr = anderer Zeitvorschlag, ✗ abgesagt)
+- [x] Glocke/Push springen zum nächsten Termin des Plans (Training-Tab)
+- [x] Datenbank-Tests: andere Gruppen sehen nichts, nur Eingeladene antworten, nur der Besitzer ändert (22 Tests)
 
-- [ ] Teilnehmende aus der Gruppe zu einem Termin einladen (beim Planen und nachträglich)
-- [ ] Push an die Eingeladenen
-- [ ] Antworten: Zusage, Absage, Vielleicht, andere Zeit vorschlagen
-- [ ] Gegenvorschlag: der Besitzer nimmt ihn mit einem Tap an (Termin wird verschoben)
-- [ ] Änderung durch den Besitzer (Datum, Zeit, Vorlage, Teilnehmende) → Push, alle bestätigen neu
-- [ ] Absagen durch den Besitzer mit Bestätigung, Push an alle
-- [ ] „Ich komm mit“: bei einem geplanten Termin einer anderen Person anfragen; die Person nimmt an
-- [ ] Kalender (Ich-Ansicht): Avatar-Punkt in Personenfarbe oben rechts am Icon – gefüllt = zugesagt, Ring = offen, „+1“ bei mehreren; wer absagt, verschwindet
-- [ ] Gruppenansicht: gemeinsamer Termin in jeder Personenzeile; wer noch nicht zugesagt hat, blasser
-- [ ] Tages-Sheet: rechts die Teilnehmer-Avatare mit Status (✓ zugesagt, ? offen, Uhr = anderer Zeitvorschlag, ✗ abgesagt)
-- [ ] Glocke/Push springen zum Termin
-- [ ] Datenbank-Tests: andere Gruppen sehen nichts, nur Eingeladene antworten, nur der Besitzer ändert
+Entschieden: Eine Einladung gilt für die ganze Serie; absagen oder eine andere Zeit vorschlagen geht pro Termin.
 
-Offene Frage: Gilt eine Einladung bei einer Serie für alle Termine der Serie oder nur für einen?
+Bewusst noch nicht drin (kommt mit 5d): Termine anderer, zu denen ich eingeladen bin, unter „Heute geplant“ mit „Starten“ – das gemeinsame Starten gehört zum Live-Training.
+
+Beim Staging-Test prüfen: Nach „Übernehmen“ zeigt das offene Termin-Detail noch die alte Zeit, bis man es neu öffnet.
 
 ### 5c – Export
 

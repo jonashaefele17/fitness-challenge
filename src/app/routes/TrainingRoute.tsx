@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { TemplatesView, WorkoutLog } from '@/features/training';
+import { useNavigate, useSearchParams } from 'react-router';
+import { LinkedPlanSheet, TemplatesView, WorkoutLog } from '@/features/training';
 import { paths } from '../paths';
+import { targetParams } from '../targets';
 import { Screen, SegmentedControl } from '@/shared/ui';
 
 type Section = 'calendar' | 'templates';
@@ -10,6 +11,8 @@ type Section = 'calendar' | 'templates';
 export function TrainingRoute() {
   const [section, setSection] = useState<Section>('calendar');
   const navigate = useNavigate();
+  // Linked from a notification: a plan to open.
+  const [params, setParams] = useSearchParams();
   return (
     <Screen title="Training">
       <div className="flex flex-col gap-4">
@@ -32,6 +35,12 @@ export function TrainingRoute() {
           />
         )}
       </div>
+      <LinkedPlanSheet
+        planId={params.get(targetParams.plan)}
+        onClose={() => {
+          setParams({}, { replace: true });
+        }}
+      />
     </Screen>
   );
 }

@@ -6,8 +6,10 @@ import {
   CalendarPeopleContext,
   HistoryCompareContext,
   OpenLiveWorkoutContext,
+  PlanSocialContext,
   WorkoutEditContext,
 } from '@/features/training';
+import { planSocialSlots, useInvitationsRealtime } from '@/features/invitations';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
 import { WorkoutSocialProvider } from './feed/WorkoutSocial';
@@ -58,7 +60,11 @@ export function AppGate() {
             {/* Training opens finished workouts for editing through the app's route. */}
             <WorkoutEditContext.Provider value={editWorkout}>
               <OpenLiveWorkoutContext.Provider value={openLiveWorkout}>
-                <RouterProvider router={router} />
+                {/* Invitations plug into plans (who comes along, answers, "Ich komm mit"). */}
+                <PlanSocialContext.Provider value={planSocialSlots}>
+                  <InvitationsSync />
+                  <RouterProvider router={router} />
+                </PlanSocialContext.Provider>
               </OpenLiveWorkoutContext.Provider>
             </WorkoutEditContext.Provider>
           </WorkoutSocialProvider>
@@ -66,6 +72,12 @@ export function AppGate() {
       </HistoryCompareContext.Provider>
     </ActiveGroupProvider>
   );
+}
+
+/** Answers and invitations arrive live. */
+function InvitationsSync() {
+  useInvitationsRealtime();
+  return null;
 }
 
 function LoadError({ onRetry }: { onRetry: () => void }) {

@@ -1,9 +1,11 @@
 import { useContext, useLayoutEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { useWorkoutsInRange } from '../../api/useCalendar';
 import { usePlanOccurrences } from '../../api/usePlans';
 import { addDays, dayKey, startOfWeek } from '../../calendar';
 import type { CalendarWorkout, PlanOccurrence } from '../../types';
+import { PlanSocialContext, type PlanPerson } from '../plans/social';
 import { DaySheet } from './DaySheet';
 import { DayMarks } from './DayMarks';
 import { ACCENT, byDay, dayTitle, monthTitle, plansByDay, WEEKDAYS, type LogRow } from './logData';
@@ -85,7 +87,23 @@ export function GroupWeeks({
         }))),
   ];
   const rowDays = rows.map((row) => byDay(row.workouts));
-  const rowPlans = rows.map((row) => plansByDay(row.plans));
+  const userId = useUserId();
+  const social = useContext(PlanSocialContext);
+  const ownPlans = rows.flatMap((row) => row.plans ?? []);
+  const peopleOf = social.usePlanPeople(ownPlans);
+  const personOf = (row: LogRow) => (row.id === 'me' ? userId : row.id);
+  // A shared date shows in the line of everyone taking part (the day sheet lists it once).
+  const rowPlans = rows.map((row) =>
+    plansByDay([
+      ...(row.plans ?? []),
+      ...ownPlans.filter(
+        (plan) =>
+          plan.userId !== personOf(row) &&
+          peopleOf(plan).some((p) => p.id === personOf(row) && p.answer !== 'declined'),
+      ),
+    ]),
+  );
+  const ownPlansByRow = rows.map((row) => plansByDay(row.plans));
 
   // Reach down to the screen edge and run on behind the (translucent) navigation like any
   // iOS list; the bottom padding lets the last week scroll clear of it. Start at today's week.
@@ -140,7 +158,9 @@ export function GroupWeeks({
       )
     : [];
   const dayPlans = day
-    ? rows.flatMap((row, index) => (rowPlans[index]?.get(day) ?? []).map((plan) => ({ row, plan })))
+    ? rows.flatMap((row, index) =>
+        (ownPlansByRow[index]?.get(day) ?? []).map((plan) => ({ row, plan })),
+      )
     : [];
 
   return (
@@ -238,6 +258,8 @@ export function GroupWeeks({
                     days={days}
                     map={rowDays[rowIndex] ?? new Map<string, CalendarWorkout[]>()}
                     planMap={rowPlans[rowIndex] ?? new Map<string, PlanOccurrence[]>()}
+                    personId={personOf(row)}
+                    peopleOf={peopleOf}
                     onOpen={onOpen}
                     onDay={setDay}
                   />
@@ -253,6 +275,7 @@ export function GroupWeeks({
         entries={dayEntries}
         plans={dayPlans}
         showNames
+        peopleOf={peopleOf}
         onClose={() => {
           setDay(null);
         }}
@@ -266,6 +289,8 @@ function PersonWeek({
   days,
   map,
   planMap,
+  personId,
+  peopleOf,
   onOpen,
   onDay,
 }: {
@@ -273,6 +298,8 @@ function PersonWeek({
   days: Date[];
   map: Map<string, CalendarWorkout[]>;
   planMap: Map<string, PlanOccurrence[]>;
+  personId: string;
+  peopleOf: (plan: PlanOccurrence) => PlanPerson[];
   onOpen: (workoutId: string) => void;
   onDay: (key: string) => void;
 }) {
@@ -304,7 +331,13 @@ function PersonWeek({
             className="flex min-h-tap min-w-0 items-center justify-center rounded-sm active:bg-surface-3"
             style={{ color: row.color }}
           >
-            <DayMarks workouts={workouts} plans={plans} tinted />
+            <DayMarks
+              workouts={workouts}
+              plans={plans}
+              tinted
+              personId={personId}
+              peopleOf={peopleOf}
+            />
           </button>
         );
       })}

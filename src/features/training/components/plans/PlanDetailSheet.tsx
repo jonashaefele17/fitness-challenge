@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { Button, Sheet, TextField } from '@/shared/ui';
 import { useChangePlanDate, useDeletePlan, usePlan, useSkipPlanDate } from '../../api/usePlans';
@@ -8,6 +8,7 @@ import { PlanForm } from './PlanForm';
 import { PlanStartButton } from './PlanStartButton';
 import { PlanTargetPicker, type PlanTarget } from './PlanTargetPicker';
 import { planTitle, repeatText } from './planText';
+import { PlanSocialContext } from './social';
 
 const longDate = new Intl.DateTimeFormat('de', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -37,6 +38,7 @@ export function PlanDetailSheet({
   const skip = useSkipPlanDate();
   const change = useChangePlanDate();
   const remove = useDeletePlan();
+  const { Detail } = useContext(PlanSocialContext);
 
   function close() {
     setStep('detail');
@@ -80,6 +82,8 @@ export function PlanDetailSheet({
             {plan.status === 'cancelled' && <span className="text-danger">Abgesagt</span>}
             {plan.note && <span className="text-text">{plan.note}</span>}
           </div>
+
+          {Detail && plan.status !== 'done' && <Detail plan={plan} />}
 
           {mine && (
             <div className="flex flex-col gap-2">

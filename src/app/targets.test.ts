@@ -40,6 +40,12 @@ describe('targetPath', () => {
     expect(targetPath({ ...event, type: 'unknown' }, { thread: true })).toBe('/gruppe');
   });
 
+  it('opens a workout started by someone else (training together)', () => {
+    expect(targetPath({ groupId: 'g', type: 'live_workout', id: 'w1' }, { thread: false })).toBe(
+      '/training/live',
+    );
+  });
+
   it('opens a plan in the training tab', () => {
     expect(targetPath({ groupId: 'g', type: 'plan', id: 'p1' }, { thread: false })).toBe(
       '/training?termin=p1',

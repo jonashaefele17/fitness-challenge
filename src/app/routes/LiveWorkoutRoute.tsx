@@ -12,7 +12,8 @@ export function LiveWorkoutRoute() {
   const [retained, setRetained] = useState<ActiveWorkout | null>(null);
   if (active.data && active.data !== retained) setRetained(active.data);
 
-  if (active.isPending) return <SplashScreen />;
+  // Started by someone else (training together, opened from the push): wait for the fresh read.
+  if (active.isPending || (active.isFetching && !active.data && !retained)) return <SplashScreen />;
   const workout = active.data ?? retained;
   if (!workout) return <Navigate to={paths.training} replace />;
 

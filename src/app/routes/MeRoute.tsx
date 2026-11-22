@@ -2,11 +2,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSignOut, useUserId } from '@/features/auth';
 import { groupKeys, useActiveGroup, useGroupMembers } from '@/features/groups';
-import { NotificationSettingsPanel, useDisablePush } from '@/features/notifications';
+import {
+  NotificationBell,
+  NotificationSettingsPanel,
+  useDisablePush,
+} from '@/features/notifications';
 import { Avatar, ColorPicker, useMyProfile, useSetMyColor } from '@/features/profile';
 import { MyExercises, TrainingSettings, useHomeStudio, usePlaces } from '@/features/training';
 import { showToast } from '@/shared/lib';
 import { Button, Card, Screen, SegmentedControl } from '@/shared/ui';
+import { useOpenTarget } from '../targets';
 
 const roleLabels = { admin: 'Admin', member: 'Mitglied' } as const;
 
@@ -20,9 +25,10 @@ export function MeRoute() {
   const homeId = useHomeStudio().data ?? null;
   const home = (usePlaces().data ?? []).find((place) => place.id === homeId);
   const [section, setSection] = useState<Section>('training');
+  const openTarget = useOpenTarget();
 
   return (
-    <Screen title="Ich">
+    <Screen title="Ich" accessory={<NotificationBell onOpenTarget={openTarget} />}>
       <div className="flex flex-col gap-4">
         {profile.data && (
           <Card className="flex items-center gap-4">

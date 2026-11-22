@@ -55,6 +55,8 @@ export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetO
       if (thread && commentId) params.set(targetParams.comment, commentId);
       return `${paths.group}?${params.toString()}`;
     }
+    case 'live_workout':
+      return paths.liveWorkout;
     case 'plan':
       return `${paths.training}?${new URLSearchParams({ [targetParams.plan]: target.id }).toString()}`;
     default:

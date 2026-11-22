@@ -764,6 +764,7 @@ export type Database = {
           ended_at: string | null;
           group_id: string;
           id: string;
+          location_id: string | null;
           plan_id: string;
           plan_on: string;
           started_by: string;
@@ -774,6 +775,7 @@ export type Database = {
           ended_at?: string | null;
           group_id: string;
           id?: string;
+          location_id?: string | null;
           plan_id: string;
           plan_on: string;
           started_by: string;
@@ -783,6 +785,7 @@ export type Database = {
           ended_at?: string | null;
           group_id?: string;
           id?: string;
+          location_id?: string | null;
           plan_id?: string;
           plan_on?: string;
           started_by?: string;
@@ -793,6 +796,13 @@ export type Database = {
             columns: ['group_id'];
             isOneToOne: false;
             referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'live_sessions_location_id_fkey';
+            columns: ['location_id'];
+            isOneToOne: false;
+            referencedRelation: 'locations';
             referencedColumns: ['id'];
           },
           {

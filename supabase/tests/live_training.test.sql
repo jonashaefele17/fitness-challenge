@@ -2,22 +2,27 @@
 -- exercises are shared (add, remove, bring back, order), "nur für mich" stays personal,
 -- done sets are never taken away; nobody writes into someone else's workout; other groups
 -- see nothing.
---   a1 (owner), a2 (invited), a3 (group, not invited) share group A · b is in group B
+-- Starting starts it for everyone who said yes (told, not asked); everyone trains in the
+-- same studio; shared exercises are copied whole (device, warm-up/working sets, rep range).
+--   a1 (owner), a2 (invited, "vielleicht"), a5 (invited, yes), a3 (group, not invited) share
+--   group A · b is in group B
 
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(27);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
   ('22222222-2222-4222-8222-222222222222', 'a2@test.local'),
   ('44444444-4444-4444-8444-444444444444', 'a3@test.local'),
+  ('55555555-5555-4555-8555-555555555555', 'a5@test.local'),
   ('33333333-3333-4333-8333-333333333333', 'b@test.local');
 insert into public.profiles (id, display_name, color) values
   ('11111111-1111-4111-8111-111111111111', 'A1', 'person-1'),
   ('22222222-2222-4222-8222-222222222222', 'A2', 'person-2'),
   ('44444444-4444-4444-8444-444444444444', 'A3', 'person-4'),
+  ('55555555-5555-4555-8555-555555555555', 'A5', 'person-5'),
   ('33333333-3333-4333-8333-333333333333', 'B', 'person-3');
 insert into public.groups (id, name) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'A'), ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'B');
@@ -25,18 +30,25 @@ insert into public.group_members (group_id, user_id) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111'),
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '22222222-2222-4222-8222-222222222222'),
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '44444444-4444-4444-8444-444444444444'),
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '55555555-5555-4555-8555-555555555555'),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '33333333-3333-4333-8333-333333333333');
 insert into public.exercises (id, name, measure) values
   ('e0000000-0000-4000-8000-00000000000a', 'Test-Bank', 'weight_reps'),
   ('e0000000-0000-4000-8000-00000000000b', 'Test-Rudern', 'weight_reps'),
   ('e0000000-0000-4000-8000-00000000000c', 'Test-Curls', 'weight_reps');
 
--- a1 plans Monday 7 December, a2 is invited and says yes
+insert into public.locations (id, name) values
+  ('10000000-0000-4000-8000-000000000001', 'Studio Eins'),
+  ('10000000-0000-4000-8000-000000000002', 'Studio Zwei');
+
+-- a1 plans Monday 7 December; a2 says "vielleicht", a5 says yes
 insert into public.plans (id, user_id, kind, training_type_id, starts_on)
 values ('c0000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111', 'training',
         (select id from public.training_types where name = 'Studio' and owner_id is null), '2026-12-07');
 insert into public.plan_participants (plan_id, user_id, group_id, status) values
   ('c0000000-0000-4000-8000-000000000001', '22222222-2222-4222-8222-222222222222',
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'maybe'),
+  ('c0000000-0000-4000-8000-000000000001', '55555555-5555-4555-8555-555555555555',
    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'accepted');
 
 create schema tests;
@@ -53,19 +65,37 @@ create function tests.workout(p_user uuid) returns uuid
 language sql security definer set search_path = '' as $$
   select id from public.workouts where user_id = p_user and status = 'active'
 $$;
+create function tests.place(p_user uuid) returns uuid
+language sql security definer set search_path = '' as $$
+  select location_id from public.workouts where user_id = p_user and status = 'active'
+$$;
+create function tests.notes(p_user uuid, p_event text) returns bigint
+language sql security definer set search_path = '' as $$
+  select count(*) from public.notifications where recipient_id = p_user and event = p_event
+$$;
 grant execute on all functions in schema tests to authenticated;
 
 -- the owner starts the date: a session starts (the trigger runs at commit; forced here)
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
 select public.start_workout((select id from public.training_types where name = 'Studio' and owner_id is null),
-  null, null, 'c0000000-0000-4000-8000-000000000001', '2026-12-07');
+  '10000000-0000-4000-8000-000000000001', null, 'c0000000-0000-4000-8000-000000000001', '2026-12-07');
 set constraints all immediate;
 select is((select count(*) from public.live_sessions where ended_at is null), 1::bigint,
   'starting a plan date with people starts a session');
-insert into public.workout_items (id, workout_id, exercise_id, position) values
+select is(tests.place('55555555-5555-4555-8555-555555555555'), '10000000-0000-4000-8000-000000000001'::uuid,
+  'who said yes is started too, in the same studio');
+select is(tests.notes('55555555-5555-4555-8555-555555555555', 'live_started'), 1::bigint,
+  'and is told');
+select is(tests.workout('22222222-2222-4222-8222-222222222222'), null,
+  'who said "vielleicht" is not started');
+-- Bank with a rep range, a warm-up and a working set
+insert into public.workout_items (id, workout_id, exercise_id, position, rep_min, rep_max) values
   ('d0000000-0000-4000-8000-00000000000a', tests.workout('11111111-1111-4111-8111-111111111111'),
-   'e0000000-0000-4000-8000-00000000000a', 0);
+   'e0000000-0000-4000-8000-00000000000a', 0, 8, 12);
+insert into public.workout_sets (item_id, position, is_warmup) values
+  ('d0000000-0000-4000-8000-00000000000a', 0, true),
+  ('d0000000-0000-4000-8000-00000000000a', 1, false);
 
 -- the invitee joins and gets the list
 set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
@@ -75,6 +105,20 @@ select lives_ok(
   $$select public.live_start('c0000000-0000-4000-8000-000000000001', '2026-12-07')$$,
   'the invitee joins');
 select is(tests.list('22222222-2222-4222-8222-222222222222'), 'Test-Bank', 'and gets the shared list');
+select is(
+  (select count(s.*) || ',' || count(s.*) filter (where s.is_warmup) || ',' || min(i.rep_min)
+     from public.workout_items i join public.workout_sets s on s.item_id = i.id
+    where i.workout_id = tests.workout('22222222-2222-4222-8222-222222222222')),
+  '2,1,8', 'copied whole: warm-up and working set, rep range');
+select is(tests.place('22222222-2222-4222-8222-222222222222'), '10000000-0000-4000-8000-000000000001'::uuid,
+  'in the same studio');
+select lives_ok(
+  $$select public.live_start('c0000000-0000-4000-8000-000000000001', '2026-12-07')$$,
+  'joining twice keeps the workout');
+update public.workouts set location_id = '10000000-0000-4000-8000-000000000002'
+ where id = tests.workout('22222222-2222-4222-8222-222222222222');
+select is(tests.place('11111111-1111-4111-8111-111111111111'), '10000000-0000-4000-8000-000000000002'::uuid,
+  'another studio for one is another studio for all');
 
 -- adding: for all, or only for me
 insert into public.workout_items (id, workout_id, exercise_id, position) values
@@ -155,6 +199,8 @@ select is((select count(*) from public.live_sessions where ended_at is null), 1:
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
 select public.finish_workout(tests.workout('11111111-1111-4111-8111-111111111111'));
+set local request.jwt.claims to '{"sub": "55555555-5555-4555-8555-555555555555", "role": "authenticated"}';
+select public.finish_workout(tests.workout('55555555-5555-4555-8555-555555555555'));
 reset role;
 select is((select count(*) from public.live_sessions where ended_at is null), 0::bigint,
   'and ends when everyone is done');

@@ -80,6 +80,8 @@ export function describeNotification(
       return 'hat einen Termin geändert – bitte neu zusagen';
     case 'plan_cancelled':
       return 'hat einen Termin abgesagt';
+    case 'live_started':
+      return 'hat euer Training gestartet';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

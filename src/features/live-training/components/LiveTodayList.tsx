@@ -62,7 +62,6 @@ export function LiveTodayList({ onStarted }: { onStarted: () => void }) {
                 </span>
               )}
               <Button
-                variant={date.running ? 'primary' : 'secondary'}
                 loading={start.isPending && start.variables.planId === date.planId}
                 onClick={() => {
                   start.mutate(

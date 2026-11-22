@@ -49,8 +49,16 @@ Beim Staging-Test prüfen:
 Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten später)? Supplement-Zeit setzen und nicht abhaken.
 
 ### 6d – Gruppe
-- [ ] Teilen pro Habit: privat / nur erledigt / mit Werten
-- [ ] Vergleich der Erfüllungsquote; gleiche Vorlage + „mit Werten“ → Werte direkt vergleichen
-- [ ] Eigene Habits als Vorlage für die Gruppe veröffentlichen
-- [ ] Habit-Challenges (gleiche Regel für alle)
-- [ ] Meilensteine und Wochenzusammenfassung im Feed (kein täglicher Check-in)
+6d-1 Teilen und Vergleich
+- [ ] Teilen pro Habit: privat (Standard) / nur erledigt / mit Werten; beim Anlegen gefragt
+- [ ] Gruppe-Tab „Feed · Vergleich“: pro Person die geteilten Habits (diese Woche, 4-Wochen-Quote)
+- [ ] Gleiche Vorlage + beide „mit Werten“ → im Detail „Vergleichen mit …“
+- [ ] Datenbank-Tests: privat sieht niemand, „nur erledigt“ ohne Werte, andere Gruppen nichts
+
+6d-2 Vorlagen veröffentlichen
+- [ ] Eigenes Habit „Für die Gruppe veröffentlichen“, Bibliothek „Aus der Gruppe“
+
+6d-3 Feed
+- [ ] Wochenzusammenfassung montags (nur geteilte Habits), Meilensteine; kein täglicher Check-in
+
+Nicht in Version 1: Habit-Challenges (Wettbewerb über Saisons, Baustein 8) – siehe Ideenliste

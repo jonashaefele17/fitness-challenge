@@ -39,6 +39,7 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 ## Feed / Habits (zu Baustein 6 besprechen)
 
 - [x] Check-in nicht im Feed – entschieden 23.11.2026: nur Meilensteine und Wochenzusammenfassung (Konzept 1.37)
+- [ ] Habit-Challenges: jemand startet eine Challenge mit Regel und Zeitraum (z. B. „30 Tage kein Alkohol“), andere treten bei und bekommen dasselbe Habit, Rangliste der erfüllten Tage, Start/Ende im Feed. Aus Version 1 genommen (23.11.2026) – der Wettbewerb läuft erstmal über Saisons.
 - [ ] Kalorien: Tageswert eintippen mit Tagesziel und zusätzlich Wochenziel (Summe pro Woche). Tageswert geht schon mit „Zahl mit Einheit“; die Wochensumme wäre eine neue Ziel-Regel. Erst, wenn klar ist, wie Kalorien getrackt werden (Konzept: Ernährung außer Supplements nicht in Version 1).
 - [ ] Externe Quellen für Habits: persönlicher Zugangsschlüssel (Einstellungen), der nur Habit-Einträge schreiben darf; z. B. iPhone-Kurzbefehl schickt abends Schritte/Kalorien aus Apple Health. Datenmodell ist vorbereitet (Quelle pro Eintrag, eine Schreib-Funktion).
 

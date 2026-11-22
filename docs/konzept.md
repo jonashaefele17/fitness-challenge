@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 23.11.2026 | 1.39 | Habit-Challenges aus Version 1 genommen (Wettbewerb über Saisons); 6d = Teilen und Vergleich, Vorlagen veröffentlichen, Wochenzusammenfassung und Meilensteine im Feed; Teilen standardmäßig privat mit Frage beim Anlegen |
 | 23.11.2026 | 1.38 | Habit-Auswertung: Übersicht „Diese Woche“ und „Dranbleiben“ (wie im Prototyp), Detail mit drei Kennzahlen in Klartext und Trend; Quoten statt Serien in der Oberfläche, Serien in der Datenbank verzeihend (einmal verpassen unterbricht nicht) |
 | 23.11.2026 | 1.37 | Habits (Baustein 6) festgelegt: Ruhetage gestrichen, Pausen mit anteiligem Wochenziel, Supplements als eigenes Checklisten-Habit, Quelle pro Eintrag (Hand/App/extern), Check-in nicht im Feed, gleiche Habits direkt vergleichbar, Aufteilung 6a–6d |
 | 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
@@ -246,9 +247,9 @@ Habits sind ein Baukasten: Jeder definiert seine eigenen, Jonas' 5 Säulen (Spor
 
 **Einrichten und ändern:** aus einer Vorlagen-Bibliothek wählen oder selbst anlegen (empfohlen 3–7). Änderungen gelten ab dem Tag (versioniert), alte Tage bleiben nach alter Regel bewertet; nicht mehr genutzte Habits werden archiviert, nicht gelöscht.
 
-**Gruppe:** verglichen wird die Erfüllungsquote; nutzen zwei dieselbe Vorlage (z. B. Schritte) und teilen „mit Werten“, auch die Werte direkt. Der tägliche Check-in erscheint nicht im Feed, nur Meilensteine (z. B. „30 Tage am Stück“) und eine Wochenzusammenfassung. Optional gemeinsame Habit-Challenges (z. B. 30 Tage kein Alkohol), bei denen alle dieselbe Regel haben.
+**Gruppe:** verglichen wird die Erfüllungsquote; nutzen zwei dieselbe Vorlage (z. B. Schritte) und teilen „mit Werten“, auch die Werte direkt. Der tägliche Check-in erscheint nicht im Feed, nur Meilensteine (z. B. „30 Tage am Stück“) und eine Wochenzusammenfassung. Gemeinsame Habit-Challenges sind nicht Teil von Version 1 (der Wettbewerb läuft über Saisons und ihre Ziele); siehe Ideenliste.
 
-**Umsetzung in Teilen:** 6a Baukasten, Vorlagen, Versionierung, Sport automatisch, Pausen, Check-in · 6b Auswertung · 6c Erinnerungen (Check-in, Supplements) · 6d Gruppe (Teilen, Vergleich, gleiche Habits direkt, Veröffentlichen, Challenges, Meilensteine/Wochenzusammenfassung im Feed).
+**Umsetzung in Teilen:** 6a Baukasten, Vorlagen, Versionierung, Sport automatisch, Pausen, Check-in · 6b Auswertung · 6c Erinnerungen (Check-in, Supplements) · 6d Gruppe (6d-1 Teilen und Vergleich inkl. gleiche Habits direkt · 6d-2 Vorlagen veröffentlichen · 6d-3 Wochenzusammenfassung und Meilensteine im Feed). Teilen ist standardmäßig privat; beim Anlegen fragt die App, ob die Gruppe es sehen soll.
 
 ## Ziele, Saisons und Vergleich
 
@@ -366,7 +367,7 @@ Version 1 enthält alles in diesem Dokument und geht erst live, wenn sie steht; 
 3. **Training:** Katalog (Orte, Geräte, Übungen, Stufen, Einstellungen), Trainingsarten, Vorlagen, Trainingsablauf, Light-Eintrag, Progression, Zusammenfassung.
 4. **Feed:** Tageskarten, Detail, Kommentare bis Satzebene, Glocke, Sprung an die Stelle.
 5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, gemeinsames Live-Training, .ics.
-6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Veröffentlichen, Habit-Challenges.
+6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Teilen und Vergleich, Veröffentlichen, Wochenzusammenfassung im Feed.
 7. **Körper:** Wiegetag, Gewicht in %, Maße, Fortschrittsfotos.
 8. **Ziele & Saisons:** Ziel-Engine, Saison-Lebenszyklus, Vergleich, Rückblicke, Archiv.
 9. **PC & Admin:** Dashboard, Vorlagen-Editor, Geräte-Katalog, Saison-Verwaltung, Export.

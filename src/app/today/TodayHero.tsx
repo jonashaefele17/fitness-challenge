@@ -11,6 +11,7 @@ import {
   answerText,
   elapsedSeconds,
   formatDuration,
+  LinkedPlanSheet,
   planTitle,
   PlanPeopleAvatars,
   PlanSocialContext,
@@ -25,7 +26,6 @@ import {
 import { Button } from '@/shared/ui';
 import type { ReactNode } from 'react';
 import { paths } from '../paths';
-import { targetParams } from '../targets';
 
 const card = 'flex flex-col gap-4 rounded-card border border-accent/40 bg-surface-2 p-4';
 const label = 'text-footnote font-semibold text-accent';
@@ -58,9 +58,19 @@ export function TodayHero() {
   ]);
   const [starting, setStarting] = useState(false);
   const openLive = () => void navigate(paths.liveWorkout);
+  // A date's detail opens right here, as a sheet (no switch to the training tab).
+  const [detailId, setDetailId] = useState<string | null>(null);
   const openPlan = (plan: PlanOccurrence) => {
-    void navigate(`${paths.training}?${targetParams.plan}=${plan.planId}`);
+    setDetailId(plan.planId);
   };
+  const detail = (
+    <LinkedPlanSheet
+      planId={detailId}
+      onClose={() => {
+        setDetailId(null);
+      }}
+    />
+  );
   const withOthers = (plan: PlanOccurrence) => peopleOf(plan).filter((p) => p.id !== userId);
 
   const entries: Entry[] = [
@@ -112,6 +122,7 @@ export function TodayHero() {
           <Button onClick={openLive}>Öffnen</Button>
         </div>
         {rows}
+        {detail}
       </section>
     );
   }
@@ -140,7 +151,7 @@ export function TodayHero() {
           people={peopleOf(ref)}
           userId={userId}
           onDetails={() => {
-            void navigate(`${paths.training}?${targetParams.plan}=${ref.planId}`);
+            setDetailId(ref.planId);
           }}
           action={
             'own' in next ? (
@@ -153,6 +164,7 @@ export function TodayHero() {
           }
         />
         {rows}
+        {detail}
       </section>
     );
   }

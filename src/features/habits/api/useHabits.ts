@@ -11,6 +11,7 @@ import type {
   HabitOption,
   HabitPause,
   HabitStats,
+  HabitSummary,
   HabitTemplate,
   HabitValue,
   HabitWeek,
@@ -341,6 +342,40 @@ export function useHabitStats(from: string, to: string) {
         quota: (row.quota as number | null) ?? null,
         currentStreak: row.current_streak,
         bestStreak: row.best_streak,
+      }));
+    },
+  });
+}
+
+/** The figures of each habit in a range, in plain words (see habit_summary). */
+export function useHabitSummary(from: string, to: string) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...habitKeys.all(userId), 'summary', from, to],
+    queryFn: async (): Promise<HabitSummary[]> => {
+      const { data, error } = await supabase.rpc('habit_summary', {
+        p_user_id: userId,
+        p_from: from,
+        p_to: to,
+        p_today: todayKey(),
+        p_time_zone: timeZone(),
+      });
+      if (error) throw error;
+      const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+      return data.map((row) => ({
+        habitId: row.habit_id,
+        counted: row.counted,
+        met: row.met,
+        quota: num(row.quota),
+        previousQuota: num(row.previous_quota),
+        avgValue: num(row.avg_value),
+        bestValue: num(row.best_value),
+        avgStart: num(row.avg_start),
+        avgEnd: num(row.avg_end),
+        avgDuration: num(row.avg_duration),
+        choiceCounts: (row.choice_counts as Record<string, number> | null) ?? {},
+        itemCounts: (row.item_counts as Record<string, number> | null) ?? {},
+        completeDays: row.complete_days,
       }));
     },
   });

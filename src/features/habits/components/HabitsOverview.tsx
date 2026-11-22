@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, ChevronRightIcon, SegmentedControl, Sheet } from '@/shared/ui';
-import { useHabitDays, useHabitStats, useHabitWeeks, useMyHabits } from '../api/useHabits';
-import { addDays, todayKey } from '../dates';
-import type { Habit, HabitDay, HabitStats } from '../types';
+import { useHabitDays, useHabitSummary, useHabitWeeks, useMyHabits } from '../api/useHabits';
+import { addDays, formatMinutes, todayKey } from '../dates';
+import type { Habit, HabitDay, HabitDefinition, HabitSummary, HabitWeek } from '../types';
 import {
   HabitChecklistShare,
   HabitHeatmap,
@@ -25,24 +25,48 @@ function percent(quota: number | null): string {
   return quota === null ? '–' : `${String(Math.round(quota * 100))} %`;
 }
 
-function streakText(stats: HabitStats | undefined): string {
-  if (!stats || stats.currentStreak === 0) return 'keine Serie';
-  const n = stats.currentStreak;
-  return stats.unit === 'weeks'
-    ? `${String(n)} ${n === 1 ? 'Woche' : 'Wochen'} am Stück`
-    : `${String(n)} ${n === 1 ? 'Tag' : 'Tage'} am Stück`;
+/** ↑ / ↓ / = against the range before (5 points make a change). */
+function trend(summary: HabitSummary | undefined): { mark: string; label: string } | null {
+  if (summary?.quota == null || summary.previousQuota == null) return null;
+  const diff = summary.quota - summary.previousQuota;
+  if (diff > 0.05) return { mark: '↑', label: 'besser als davor' };
+  if (diff < -0.05) return { mark: '↓', label: 'schwächer als davor' };
+  return { mark: '=', label: 'wie davor' };
+}
+
+/** "23:27" from minutes after midnight. */
+function clock(minutes: number | null): string {
+  if (minutes === null) return '–';
+  const m = ((minutes % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+/** A day's square: met, partly, missed, pause, not due. */
+function cellClass(day: HabitDay | undefined): string {
+  switch (day?.state) {
+    case 'done':
+      return 'bg-accent';
+    case 'partial':
+      return 'bg-accent/45';
+    case 'missed':
+      return 'bg-surface-3';
+    case 'open':
+      return 'border border-border bg-transparent';
+    case 'paused':
+      return 'border border-dashed border-text-subtle';
+    default:
+      return 'bg-transparent';
+  }
 }
 
 /**
- * Ich → Habits: last week at a glance, a card per habit (quota of the last 4 weeks, streak,
- * the last two weeks as dots), each opening its chart; managing the habits is one tap away.
+ * Ich → Habits, as in the prototype: this week (a row per habit, Monday to Sunday and
+ * "5/7"), sticking with it over 4 weeks (small squares, share and trend); a tap opens the
+ * habit with its figures in plain words and its chart. Managing the habits is one tap away.
  */
 export function HabitsOverview() {
   const [today] = useState(todayKey);
   const habits = (useMyHabits().data ?? []).filter((h) => !h.archived);
-  const from = addDays(today, -27);
-  const stats = useHabitStats(from, today).data ?? [];
-  const recent = useHabitDays(addDays(today, -13), today).data ?? [];
   const [managing, setManaging] = useState(false);
   const [open, setOpen] = useState<Habit | null>(null);
 
@@ -54,21 +78,8 @@ export function HabitsOverview() {
         </p>
       ) : (
         <>
-          <LastWeek habits={habits} today={today} />
-          <ul className="flex flex-col gap-2">
-            {habits.map((habit) => (
-              <li key={habit.id}>
-                <HabitCard
-                  habit={habit}
-                  stats={stats.find((s) => s.habitId === habit.id)}
-                  days={recent.filter((d) => d.habitId === habit.id)}
-                  onOpen={() => {
-                    setOpen(habit);
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
+          <ThisWeek habits={habits} today={today} onOpen={setOpen} />
+          <StickingWithIt habits={habits} today={today} onOpen={setOpen} />
         </>
       )}
       <Button
@@ -94,89 +105,230 @@ export function HabitsOverview() {
   );
 }
 
-/** "Letzte Woche": the share met over all habits, the best and the weakest. */
-function LastWeek({ habits, today }: { habits: Habit[]; today: string }) {
-  const monday = addDays(mondayOf(today), -7);
-  const stats = (useHabitStats(monday, addDays(monday, 6)).data ?? []).filter(
-    (s) => s.quota !== null && habits.some((h) => h.id === s.habitId),
-  );
-  if (stats.length === 0) return null;
-  const name = (s: HabitStats) => habits.find((h) => h.id === s.habitId)?.current.name ?? '';
-  const ratio = (s: HabitStats) => `${String(s.met)}/${String(s.counted)}`;
-  const sorted = [...stats].sort((a, b) => (b.quota ?? 0) - (a.quota ?? 0));
-  const best = sorted[0];
-  const weakest = sorted.length > 1 ? sorted[sorted.length - 1] : undefined;
-  const overall = stats.reduce((sum, s) => sum + (s.quota ?? 0), 0) / stats.length;
+const LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];
+
+/** "Diese Woche": per habit Monday to Sunday and "5/7" (weekly goals: "3/4"). */
+function ThisWeek({
+  habits,
+  today,
+  onOpen,
+}: {
+  habits: Habit[];
+  today: string;
+  onOpen: (habit: Habit) => void;
+}) {
+  const monday = mondayOf(today);
+  const sunday = addDays(monday, 6);
+  const days = useHabitDays(monday, sunday).data ?? [];
+  const weeks = useHabitWeeks(monday, sunday).data ?? [];
+  const lastMonday = addDays(monday, -7);
+  const last = useHabitSummary(lastMonday, addDays(lastMonday, 6)).data ?? [];
+  const lastMet = last.reduce((sum, s) => sum + s.met, 0);
+  const lastCounted = last.reduce((sum, s) => sum + s.counted, 0);
+  const dates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+
   return (
-    <section className="flex flex-col gap-1 rounded-card bg-surface-2 p-4">
-      <span className="text-footnote font-semibold text-text-muted">Letzte Woche</span>
-      <span className="text-title-2 font-bold tabular-nums">{percent(overall)}</span>
-      <span className="text-subhead text-text-muted">
-        {best ? `Am besten: ${name(best)} ${ratio(best)}` : ''}
-        {weakest && weakest !== best ? ` · Ausbaufähig: ${name(weakest)} ${ratio(weakest)}` : ''}
-      </span>
+    <section className="flex flex-col gap-3 rounded-card bg-surface-2 p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-body font-semibold">Diese Woche</h2>
+        {lastCounted > 0 && (
+          <span className="text-footnote text-text-muted">
+            letzte: {lastMet} von {lastCounted}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-2">
+        <span />
+        <span className="grid grid-cols-7 gap-1">
+          {LETTERS.map((letter, i) => (
+            <span
+              key={dates[i]}
+              className={cn(
+                'w-5 text-center text-caption',
+                dates[i] === today ? 'text-accent' : 'text-text-muted',
+              )}
+            >
+              {letter}
+            </span>
+          ))}
+        </span>
+        <span />
+        {habits.map((habit) => {
+          const own = days.filter((d) => d.habitId === habit.id);
+          const week = weeks.find((w) => w.habitId === habit.id);
+          const weekly = habit.current.frequency === 'weekly';
+          const counted = own.filter(
+            (d) => d.state === 'done' || d.state === 'partial' || d.state === 'missed',
+          );
+          const ratio = weekly
+            ? `${String(week?.doneDays ?? 0)}/${String(week?.target ?? habit.current.timesPerWeek ?? 0)}`
+            : `${String(own.filter((d) => d.state === 'done').length)}/${String(counted.length)}`;
+          return (
+            <button
+              key={habit.id}
+              type="button"
+              onClick={() => {
+                onOpen(habit);
+              }}
+              className="col-span-3 grid grid-cols-subgrid items-center rounded-sm py-1 text-left active:bg-surface-3"
+            >
+              <span className="truncate text-subhead font-semibold">{habit.current.name}</span>
+              <span className="grid grid-cols-7 gap-1">
+                {dates.map((date) => (
+                  <span
+                    key={date}
+                    className={cn(
+                      'size-5 rounded-sm',
+                      cellClass(own.find((d) => d.onDate === date)),
+                    )}
+                  />
+                ))}
+              </span>
+              <span className="w-9 text-right text-footnote text-text-muted tabular-nums">
+                {ratio}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 }
 
-function HabitCard({
-  habit,
-  stats,
-  days,
+/** "Dranbleiben · letzte 4 Wochen": small squares, share and trend per habit. */
+function StickingWithIt({
+  habits,
+  today,
   onOpen,
 }: {
-  habit: Habit;
-  stats: HabitStats | undefined;
-  days: HabitDay[];
-  onOpen: () => void;
+  habits: Habit[];
+  today: string;
+  onOpen: (habit: Habit) => void;
 }) {
-  const weekly = habit.current.frequency === 'weekly';
+  const from = addDays(today, -27);
+  const days = useHabitDays(from, today).data ?? [];
+  const summary = useHabitSummary(from, today).data ?? [];
+  const dates = Array.from({ length: 28 }, (_, i) => addDays(from, i));
+
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex w-full flex-col gap-3 rounded-card bg-surface-2 p-4 text-left active:bg-surface-3"
-    >
-      <span className="flex items-baseline justify-between gap-3">
-        <span className="truncate text-body font-semibold">{habit.current.name}</span>
-        <span className="flex items-center gap-1 text-subhead font-semibold tabular-nums">
-          {percent(stats?.quota ?? null)}
-          <ChevronRightIcon aria-hidden className="text-text-subtle" />
-        </span>
-      </span>
-      {!weekly && (
-        <span className="flex gap-1" aria-hidden>
-          {days.map((d) => (
-            <span
-              key={d.onDate}
-              className={cn(
-                'h-2 flex-1 rounded-pill',
-                d.state === 'done'
-                  ? 'bg-accent'
-                  : d.state === 'partial'
-                    ? 'bg-accent/45'
-                    : d.state === 'paused'
-                      ? 'border border-dashed border-text-subtle'
-                      : d.state === null
-                        ? 'bg-transparent'
-                        : 'bg-surface-3',
-              )}
-            />
-          ))}
-        </span>
-      )}
-      <span className="text-footnote text-text-muted">
-        {streakText(stats)}
-        {stats && stats.bestStreak > stats.currentStreak
-          ? ` · längste ${String(stats.bestStreak)}`
-          : ''}{' '}
-        · letzte 4 Wochen
-      </span>
-    </button>
+    <section className="flex flex-col gap-3 rounded-card bg-surface-2 p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-body font-semibold">Dranbleiben</h2>
+        <span className="text-footnote text-text-muted">letzte 4 Wochen</span>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {habits.map((habit) => {
+          const own = days.filter((d) => d.habitId === habit.id);
+          const s = summary.find((x) => x.habitId === habit.id);
+          const t = trend(s);
+          return (
+            <li key={habit.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  onOpen(habit);
+                }}
+                className="flex w-full flex-col gap-1.5 rounded-sm py-1 text-left active:bg-surface-3"
+              >
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="truncate text-subhead font-semibold">{habit.current.name}</span>
+                  <span className="flex items-center gap-1 text-footnote tabular-nums">
+                    <span className="font-semibold">{percent(s?.quota ?? null)}</span>
+                    {t && (
+                      <span aria-label={t.label} className="text-text-muted">
+                        {t.mark}
+                      </span>
+                    )}
+                    <ChevronRightIcon aria-hidden className="text-text-subtle" />
+                  </span>
+                </span>
+                <span className="grid grid-cols-[repeat(28,minmax(0,1fr))] gap-0.5" aria-hidden>
+                  {dates.map((date) => (
+                    <span
+                      key={date}
+                      className={cn(
+                        'h-2 rounded-xs',
+                        cellClass(own.find((d) => d.onDate === date)),
+                      )}
+                    />
+                  ))}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
-/** One habit's chart (by its input type) and figures, for 4 weeks or 3 months. */
+/** The three figures that say most about a habit, by its kind. */
+function figures(
+  def: HabitDefinition,
+  s: HabitSummary | undefined,
+  weeks: HabitWeek[],
+): { label: string; value: string }[] {
+  const met = `${String(s?.met ?? 0)}/${String(s?.counted ?? 0)}`;
+  const amount = (v: number | null) =>
+    v === null
+      ? '–'
+      : def.inputType === 'duration'
+        ? formatMinutes(Math.round(v))
+        : `${v.toLocaleString('de', { maximumFractionDigits: 1 })}${def.unit ? ` ${def.unit}` : ''}`;
+  if (def.frequency === 'weekly') {
+    const counted = weeks.filter((w) => w.state === 'done' || w.state === 'missed');
+    const avg =
+      counted.length > 0 ? counted.reduce((sum, w) => sum + w.doneDays, 0) / counted.length : null;
+    return [
+      {
+        label: 'Ø pro Woche',
+        value: avg === null ? '–' : avg.toLocaleString('de', { maximumFractionDigits: 1 }),
+      },
+      { label: 'Wochen erreicht', value: met },
+      { label: 'Quote', value: percent(s?.quota ?? null) },
+    ];
+  }
+  switch (def.inputType) {
+    case 'time_pair':
+      return [
+        { label: 'Ø Schlaf', value: s?.avgDuration == null ? '–' : formatMinutes(s.avgDuration) },
+        { label: 'Ø ins Bett', value: clock(s?.avgStart ?? null) },
+        { label: 'im Ziel', value: met },
+      ];
+    case 'duration':
+    case 'number':
+      return [
+        { label: 'Ø pro Tag', value: amount(s?.avgValue ?? null) },
+        { label: 'im Ziel', value: met },
+        {
+          label: def.inputType === 'duration' ? 'Bester Tag' : 'Bestwert',
+          value: amount(s?.bestValue ?? null),
+        },
+      ];
+    case 'choice':
+      return def.options.map((o) => ({
+        label: o.label,
+        value: String(s?.choiceCounts[o.key] ?? 0),
+      }));
+    case 'checklist':
+      return [
+        {
+          label: 'vollständig',
+          value: `${String(s?.completeDays ?? 0)}/${String(s?.counted ?? 0)}`,
+        },
+        { label: 'Quote', value: percent(s?.quota ?? null) },
+        { label: 'Punkte', value: String(def.options.length) },
+      ];
+    default:
+      return [
+        { label: 'erfüllt', value: met },
+        { label: 'Quote', value: percent(s?.quota ?? null) },
+        { label: 'Trend', value: trend(s)?.label ?? '–' },
+      ];
+  }
+}
+
+/** One habit: three figures in plain words, then its chart; 4 weeks or 3 months. */
 function HabitDetailSheet({
   habit,
   today,
@@ -190,8 +342,9 @@ function HabitDetailSheet({
   const from = addDays(today, range === '4w' ? -27 : -90);
   const days = (useHabitDays(from, today).data ?? []).filter((d) => d.habitId === habit?.id);
   const weeks = (useHabitWeeks(from, today).data ?? []).filter((w) => w.habitId === habit?.id);
-  const stats = (useHabitStats(from, today).data ?? []).find((s) => s.habitId === habit?.id);
+  const summary = (useHabitSummary(from, today).data ?? []).find((s) => s.habitId === habit?.id);
   const def = habit?.current;
+  const t = trend(summary);
 
   return (
     <Sheet
@@ -214,13 +367,16 @@ function HabitDetailSheet({
             ]}
           />
           <div className="grid grid-cols-3 gap-2">
-            <Figure label="Quote" value={percent(stats?.quota ?? null)} />
-            <Figure
-              label={stats?.unit === 'weeks' ? 'Serie (Wochen)' : 'Serie (Tage)'}
-              value={String(stats?.currentStreak ?? 0)}
-            />
-            <Figure label="Längste" value={String(stats?.bestStreak ?? 0)} />
+            {figures(def, summary, weeks).map((f) => (
+              <Figure key={f.label} label={f.label} value={f.value} />
+            ))}
           </div>
+          {t && (
+            <p className="-mt-2 text-footnote text-text-muted">
+              {t.mark} {t.label} ({range === '4w' ? 'die 4 Wochen' : 'die 3 Monate'} davor:{' '}
+              {percent(summary?.previousQuota ?? null)})
+            </p>
+          )}
           <div className="rounded-card bg-surface-2 p-4">
             {def.frequency === 'weekly' ? (
               <HabitWeekBars weeks={weeks} />
@@ -246,9 +402,9 @@ function HabitDetailSheet({
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-0.5 rounded-card bg-surface-2 px-3 py-2.5">
-      <span className="text-caption text-text-muted">{label}</span>
-      <span className="text-title-3 font-bold tabular-nums">{value}</span>
+    <div className="flex min-w-0 flex-col gap-0.5 rounded-card bg-surface-2 px-3 py-2.5">
+      <span className="truncate text-caption text-text-muted">{label}</span>
+      <span className="truncate text-title-3 font-bold tabular-nums">{value}</span>
     </div>
   );
 }

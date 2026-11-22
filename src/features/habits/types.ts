@@ -106,3 +106,24 @@ export interface HabitStats {
   currentStreak: number;
   bestStreak: number;
 }
+
+/** A habit's figures in a range, in plain words. */
+export interface HabitSummary {
+  habitId: string;
+  /** Days (or weeks) counted and met. */
+  counted: number;
+  met: number;
+  quota: number | null;
+  /** The same share for the range before (trend). */
+  previousQuota: number | null;
+  /** Numbers and durations (minutes). */
+  avgValue: number | null;
+  bestValue: number | null;
+  /** Sleep: minutes after midnight. */
+  avgStart: number | null;
+  avgEnd: number | null;
+  avgDuration: number | null;
+  choiceCounts: Record<string, number>;
+  itemCounts: Record<string, number>;
+  completeDays: number;
+}

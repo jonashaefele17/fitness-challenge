@@ -34,7 +34,9 @@ Beim Staging-Test prüfen:
 - [x] Detail mit Zeitraum 4 Wochen / 3 Monate, Quote, Serie, längste Serie
 - [x] Grafik je Typ: Heatmap (Ja/Nein, Auswahl), Linie mit Zielband (Zahl, Dauer), Nachtbalken mit Zielzeit (Schlaf), Wochenbalken gegen Ziel (Sport, x pro Woche), Anteil pro Punkt (Checkliste); Antippen zeigt den Wert
 - [x] Kennzahlen in der Datenbank berechnet (habit_stats), nicht gespeichert; Pausen unterbrechen keine Serie
-- Später verfeinern (nach Pilot): Achsenbeschriftung, Wochentage an der Heatmap, Wochenrückblick als Push/Feed (6d)
+- [x] Überarbeitet nach Recherche und Prototyp (23.11.2026): Übersicht „Diese Woche“ (Mo–So pro Habit, „5/7“ bzw. „3/4“, letzte Woche „x von y“) und „Dranbleiben · letzte 4 Wochen“ (28 Kästchen, Quote, Trend ↑ ↓ =); Detail beginnt mit drei Kennzahlen in Klartext (z. B. Ø Schlaf · Ø ins Bett · im Ziel) und Trend gegenüber dem Zeitraum davor
+- [x] Entschieden: Quoten statt Serien in der Oberfläche (Jonas). Die Datenbank rechnet Serien „verzeihend“ (einmal verpassen unterbricht nicht, zweimal hintereinander schon) – für spätere Meilensteine im Feed (6d)
+- Später verfeinern (nach Pilot): Achsenbeschriftung, Wochenrückblick als Push/Feed (6d)
 
 ### 6c – Erinnerungen
 - [ ] Check-in-Erinnerung (Push)

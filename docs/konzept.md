@@ -17,6 +17,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 23.11.2026 | 1.38 | Habit-Auswertung: Übersicht „Diese Woche“ und „Dranbleiben“ (wie im Prototyp), Detail mit drei Kennzahlen in Klartext und Trend; Quoten statt Serien in der Oberfläche, Serien in der Datenbank verzeihend (einmal verpassen unterbricht nicht) |
 | 23.11.2026 | 1.37 | Habits (Baustein 6) festgelegt: Ruhetage gestrichen, Pausen mit anteiligem Wochenziel, Supplements als eigenes Checklisten-Habit, Quelle pro Eintrag (Hand/App/extern), Check-in nicht im Feed, gleiche Habits direkt vergleichbar, Aufteilung 6a–6d |
 | 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
 | 23.11.2026 | 1.35 | Gemeinsames Training nach erstem Test: Starten gilt für alle mit Zusage (Info-Push statt Frage), ein Studio für alle (Wechsel gilt für alle), gemeinsame Übungen samt Gerät und Satzstruktur, Beenden jede Person für sich; Glocke in allen Tabs |

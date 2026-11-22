@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { useUserId } from '@/features/auth';
+import { CheckIn } from '@/features/habits';
 import { LiveTodayList } from '@/features/live-training';
 import { NotificationBell } from '@/features/notifications';
 import { useMyProfile } from '@/features/profile';
@@ -23,6 +24,8 @@ export function TodayRoute() {
             Hier erscheinen bald deine geplanten Trainings, dein Check-in und was es Neues gibt.
           </p>
         </Card>
+        {/* Today's habits: tiles and the check-in. */}
+        <CheckIn />
         <TodayPlans />
         {/* Plan dates of others I take part in: start or join them. */}
         <LiveTodayList

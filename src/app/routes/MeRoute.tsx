@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSignOut, useUserId } from '@/features/auth';
 import { groupKeys, useActiveGroup, useGroupMembers } from '@/features/groups';
+import { HabitsSettings } from '@/features/habits';
 import {
   NotificationBell,
   NotificationSettingsPanel,
@@ -55,11 +56,7 @@ export function MeRoute() {
         />
 
         {section === 'training' && <MyExercises />}
-        {section === 'habits' && (
-          <p className="text-footnote text-text-subtle">
-            Hier siehst du deine Habits und ihre Auswertung, sobald du welche eingerichtet hast.
-          </p>
-        )}
+        {section === 'habits' && <HabitsSettings />}
         {section === 'settings' && <Settings userId={userId} />}
       </div>
     </Screen>

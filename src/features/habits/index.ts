@@ -1,4 +1,5 @@
 export { CheckIn } from './components/CheckIn';
+export { HabitsOverview } from './components/HabitsOverview';
 export { HabitsSettings } from './components/HabitsSettings';
 export { habitKeys } from './api/useHabits';
 export type * from './types';

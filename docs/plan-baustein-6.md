@@ -29,9 +29,12 @@ Beim Staging-Test prüfen:
 - [x] „Neu für dich“: ungelesene Mitteilungen, „Alle ›“ öffnet die Glocke
 
 
-### 6b – Auswertung (Ich → Habits)
-- [ ] Heatmap (Ja/Nein), Linie mit Zielband (Zahl, Dauer), Rhythmus (Uhrzeiten), Erfüllungsquote (Checkliste)
-- [ ] Streak, Wochenrückblick
+### 6b – Auswertung (Ich → Habits) – erste Version gebaut am 23.11.2026
+- [x] Übersicht: „Letzte Woche“ (Gesamtquote, am besten, ausbaufähig), Karte pro Habit mit Quote der letzten 4 Wochen, Serie, letzte 14 Tage als Striche; „Habits verwalten“ öffnet die Verwaltung
+- [x] Detail mit Zeitraum 4 Wochen / 3 Monate, Quote, Serie, längste Serie
+- [x] Grafik je Typ: Heatmap (Ja/Nein, Auswahl), Linie mit Zielband (Zahl, Dauer), Nachtbalken mit Zielzeit (Schlaf), Wochenbalken gegen Ziel (Sport, x pro Woche), Anteil pro Punkt (Checkliste); Antippen zeigt den Wert
+- [x] Kennzahlen in der Datenbank berechnet (habit_stats), nicht gespeichert; Pausen unterbrechen keine Serie
+- Später verfeinern (nach Pilot): Achsenbeschriftung, Wochentage an der Heatmap, Wochenrückblick als Push/Feed (6d)
 
 ### 6c – Erinnerungen
 - [ ] Check-in-Erinnerung (Push)

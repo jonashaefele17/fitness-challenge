@@ -10,6 +10,7 @@ import type {
   HabitDefinition,
   HabitOption,
   HabitPause,
+  HabitStats,
   HabitTemplate,
   HabitValue,
   HabitWeek,
@@ -315,5 +316,32 @@ export function useThisWeek() {
           },
         ]
       : [];
+  });
+}
+
+/** Quota and streaks per habit; the quota for the given range. */
+export function useHabitStats(from: string, to: string) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...habitKeys.all(userId), 'stats', from, to],
+    queryFn: async (): Promise<HabitStats[]> => {
+      const { data, error } = await supabase.rpc('habit_stats', {
+        p_user_id: userId,
+        p_from: from,
+        p_to: to,
+        p_today: todayKey(),
+        p_time_zone: timeZone(),
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        habitId: row.habit_id,
+        unit: row.unit === 'weeks' ? 'weeks' : 'days',
+        counted: row.counted,
+        met: row.met,
+        quota: (row.quota as number | null) ?? null,
+        currentStreak: row.current_streak,
+        bestStreak: row.best_streak,
+      }));
+    },
   });
 }

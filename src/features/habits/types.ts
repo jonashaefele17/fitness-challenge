@@ -93,3 +93,16 @@ export interface HabitPause {
   toDate: string;
   note: string | null;
 }
+
+/** A habit's figures: quota in a range, streaks over its whole life. */
+export interface HabitStats {
+  habitId: string;
+  /** Streaks count days (daily habits) or weeks (weekly ones). */
+  unit: 'days' | 'weeks';
+  counted: number;
+  met: number;
+  /** 0 … 1; null when nothing counted yet. */
+  quota: number | null;
+  currentStreak: number;
+  bestStreak: number;
+}

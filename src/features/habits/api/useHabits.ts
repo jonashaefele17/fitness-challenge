@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type { Json } from '@/shared/types/database';
@@ -93,36 +93,137 @@ export function useHabitTemplates() {
 }
 
 /** My habits (active and archived) with the definition valid today. */
+/** A person's habits (mine: all; others: what they share), with today's definition. */
+async function fetchHabits(person: string): Promise<Habit[]> {
+  const { data, error } = await supabase
+    .from('habits')
+    .select(
+      'id, user_id, template_id, source_habit_id, sort, archived_at, share_level, habit_versions(*)',
+    )
+    .eq('user_id', person)
+    .order('sort');
+  if (error) throw error;
+  const today = todayKey();
+  return data.flatMap((row) => {
+    const versions = [...row.habit_versions].sort((a, b) =>
+      a.valid_from.localeCompare(b.valid_from),
+    );
+    const current = [...versions].reverse().find((v) => v.valid_from <= today) ?? versions[0];
+    if (!current || !versions[0]) return [];
+    return [
+      {
+        id: row.id,
+        templateId: row.template_id,
+        archived: row.archived_at !== null,
+        shareLevel: row.share_level as Habit['shareLevel'],
+        userId: row.user_id,
+        sourceHabitId: row.source_habit_id,
+        current: toDefinition(current),
+        since: versions[0].valid_from,
+      },
+    ];
+  });
+}
+
 export function useMyHabits(personId?: string) {
   const userId = useUserId();
   const person = personId ?? userId;
   return useQuery({
     queryKey: [...habitKeys.list(userId), person],
-    queryFn: async (): Promise<Habit[]> => {
+    queryFn: () => fetchHabits(person),
+  });
+}
+
+/** The habits of several people at once (the group's comparison). */
+export function useHabitsOfPeople(personIds: string[]) {
+  const userId = useUserId();
+  const results = useQueries({
+    queries: personIds.map((person) => ({
+      queryKey: [...habitKeys.list(userId), person],
+      queryFn: () => fetchHabits(person),
+    })),
+  });
+  return personIds.map((person, index) => ({
+    personId: person,
+    habits: results[index]?.data ?? [],
+  }));
+}
+
+/**
+ * The catalog beyond the standard templates: habits group mates share that they made
+ * themselves (not taken from a template or someone else). Each follows its owner's habit.
+ */
+export function useGroupCatalog() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...habitKeys.all(userId), 'catalog'],
+    queryFn: async (): Promise<(Habit & { ownerName: string })[]> => {
       const { data, error } = await supabase
         .from('habits')
-        .select('id, template_id, sort, archived_at, share_level, habit_versions(*)')
-        .eq('user_id', person)
-        .order('sort');
+        .select('user_id')
+        .neq('user_id', userId)
+        .neq('share_level', 'private')
+        .is('template_id', null)
+        .is('source_habit_id', null)
+        .is('archived_at', null);
       if (error) throw error;
-      const today = todayKey();
-      return data.flatMap((row) => {
-        const versions = [...row.habit_versions].sort((a, b) =>
-          a.valid_from.localeCompare(b.valid_from),
-        );
-        const current = [...versions].reverse().find((v) => v.valid_from <= today) ?? versions[0];
-        if (!current || !versions[0]) return [];
-        return [
-          {
-            id: row.id,
-            templateId: row.template_id,
-            archived: row.archived_at !== null,
-            shareLevel: row.share_level as Habit['shareLevel'],
-            current: toDefinition(current),
-            since: versions[0].valid_from,
-          },
-        ];
+      const owners = [...new Set(data.map((row) => row.user_id))];
+      if (owners.length === 0) return [];
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', owners);
+      if (profileError) throw profileError;
+      const habits = (await Promise.all(owners.map(fetchHabits))).flat();
+      return habits
+        .filter((h) => !h.archived && h.templateId === null && h.sourceHabitId === null)
+        .map((h) => ({
+          ...h,
+          ownerName: profiles.find((p) => p.id === h.userId)?.display_name ?? '',
+        }));
+    },
+  });
+}
+
+/** Take over a group mate's habit as an own one (own goals). */
+export function useAdoptHabit() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: async (input: {
+      sourceId: string;
+      validFrom: string;
+      definition: Partial<HabitDefinition>;
+      shareLevel: ShareLevel;
+    }) => {
+      const { data, error } = await supabase.rpc('adopt_habit', {
+        p_source_id: input.sourceId,
+        p_valid_from: input.validFrom,
+        p_def: toDef(input.definition),
       });
+      if (error) throw error;
+      const { error: shareError } = await supabase
+        .from('habits')
+        .update({ share_level: input.shareLevel })
+        .eq('id', data);
+      if (shareError) throw shareError;
+      return data;
+    },
+    onSettled: refresh,
+  });
+}
+
+/** Super admin: a habit from the group becomes a standard template (values stay). */
+export function usePromoteHabit() {
+  const queryClient = useQueryClient();
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: async (habitId: string) => {
+      const { error } = await supabase.rpc('promote_habit_to_template', { p_habit_id: habitId });
+      if (error) throw error;
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: habitKeys.templates() });
+      await refresh();
     },
   });
 }

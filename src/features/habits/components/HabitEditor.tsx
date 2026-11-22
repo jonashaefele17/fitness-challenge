@@ -37,6 +37,7 @@ export function HabitEditor({
   saving,
   onSave,
   onArchive,
+  onPromote,
 }: {
   initial: HabitDefinition;
   initialShare?: ShareLevel;
@@ -44,6 +45,8 @@ export function HabitEditor({
   saving: boolean;
   onSave: (definition: HabitDefinition, shareLevel: ShareLevel) => void;
   onArchive?: (() => void) | undefined;
+  /** Super admin, on a group mate's habit: make it a standard template. */
+  onPromote?: (() => void) | undefined;
 }) {
   const [def, setDef] = useState(initial);
   const [share, setShare] = useState<ShareLevel>(initialShare);
@@ -391,6 +394,11 @@ export function HabitEditor({
         <Button type="submit" size="lg" missing={missing} loading={saving}>
           {isNew ? 'Hinzufügen' : 'Speichern'}
         </Button>
+        {onPromote && (
+          <Button variant="ghost" onClick={onPromote}>
+            Als Standard übernehmen
+          </Button>
+        )}
         {onArchive && (
           <Button variant="ghost" onClick={onArchive}>
             Archivieren

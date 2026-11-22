@@ -57,6 +57,10 @@ export interface Habit {
   templateId: string | null;
   archived: boolean;
   shareLevel: ShareLevel;
+  /** Whose habit it is. */
+  userId: string;
+  /** Taken over from this habit of a group mate (the catalog). */
+  sourceHabitId: string | null;
   /** The definition valid today. */
   current: HabitDefinition;
   /** The day it began. */

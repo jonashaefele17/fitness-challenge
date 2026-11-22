@@ -2536,6 +2536,24 @@ export type Database = {
           version_id: string;
         }[];
       };
+      habit_stats: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          best_streak: number;
+          counted: number;
+          current_streak: number;
+          habit_id: string;
+          met: number;
+          quota: number;
+          unit: string;
+        }[];
+      };
       habit_weeks: {
         Args: {
           p_from: string;

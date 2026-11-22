@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(25);
+select plan(30);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -134,11 +134,33 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
 select is(tests.state('Dehnen', '2026-12-02'), 'missed', 'its past stays');
 
+-- Figures (as of 10 December)
+select public.set_habit_entry(tests.habit('Supplements'), '2026-12-03', '{"checked":["creatine","vitamin_d"]}');
+select is(
+  (select quota from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-03', '2026-12-10')
+    where habit_id = tests.habit('Schlaf')),
+  0.667, 'quota: met days out of the days counted');
+select is(
+  (select quota from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-02', '2026-12-10')
+    where habit_id = tests.habit('Supplements')),
+  0.750, 'partly met counts partly');
+select is(
+  (select best_streak from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-10', '2026-12-10')
+    where habit_id = tests.habit('Supplements')),
+  2, 'the longest run of met days');
+select results_eq(
+  $$select unit, counted, met from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-11-30', '2026-12-13', '2026-12-10')
+     where habit_id = tests.habit('Sport')$$,
+  $$values ('weeks'::text, 1, 0)$$,
+  'weekly habits count weeks that ended (not the running one)');
+
 -- Private
 set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
 select is((select count(*) from public.habits), 0::bigint, 'nobody else sees my habits');
 select is((select count(*) from public.habit_days('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-07')),
   0::bigint, 'nor how they went');
+select is((select count(*) from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-07')),
+  0::bigint, 'nor their figures');
 select throws_ok(
   $$select public.set_habit_entry(tests.habit('Schlaf'), '2026-12-06', '{"start":"23:00","end":"07:00"}')$$,
   '42501', 'habit_not_found', 'nor writes into them');

@@ -50,13 +50,13 @@ Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten
 
 ### 6d – Gruppe
 6d-1 Teilen und Vergleich
-- [ ] Teilen pro Habit: privat (Standard) / nur erledigt / mit Werten; beim Anlegen gefragt
-- [ ] Gruppe-Tab „Feed · Vergleich“: pro Person die geteilten Habits (diese Woche, 4-Wochen-Quote)
-- [ ] Gleiche Vorlage + beide „mit Werten“ → im Detail „Vergleichen mit …“
-- [ ] Datenbank-Tests: privat sieht niemand, „nur erledigt“ ohne Werte, andere Gruppen nichts
+- [x] Teilen pro Habit: privat (Standard) / nur erledigt / mit Werten; im Editor „Wer sieht das?“
+- [x] Gruppe-Tab „Feed · Habits“: nach Habit gruppiert (gleiche Vorlage oder vom selben übernommen), pro Person letzte 7 Tage, 4-Wochen-Quote, bei „mit Werten“ der Durchschnitt
+- [x] Datenbank-Tests: privat sieht niemand, „nur erledigt“ ohne Werte, andere Gruppen nichts
 
-6d-2 Vorlagen veröffentlichen
-- [ ] Eigenes Habit „Für die Gruppe veröffentlichen“, Bibliothek „Aus der Gruppe“
+6d-2 Ein Katalog
+- [x] Bibliothek = Standard-Vorlagen + geteilte eigene Habits der Gruppe („· von Grazon“); übernehmen mit eigenen Zielen (merkt sich die Herkunft)
+- [x] Super-Admin: „Als Standard übernehmen“ – Original und Kopien hängen danach an der Vorlage, alle Werte bleiben
 
 6d-3 Feed
 - [ ] Wochenzusammenfassung montags (nur geteilte Habits), Meilensteine; kein täglicher Check-in

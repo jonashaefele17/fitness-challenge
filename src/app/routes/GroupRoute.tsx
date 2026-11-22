@@ -9,6 +9,7 @@ import { ReactionBar } from '@/features/reactions';
 import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen, SegmentedControl } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
+import { CardHabits } from '../feed/CardHabits';
 import { CardWorkouts } from '../feed/CardWorkouts';
 import { targetParams, useOpenTarget } from '../targets';
 
@@ -64,7 +65,12 @@ export function GroupRoute() {
             <FeedList
               groupId={group.id}
               highlightId={focused?.id ?? null}
-              renderBody={(card) => <CardWorkouts card={card} onOpen={setWorkoutId} />}
+              renderBody={(card) => (
+                <>
+                  <CardWorkouts card={card} onOpen={setWorkoutId} />
+                  <CardHabits card={card} />
+                </>
+              )}
               renderActions={(card) => {
                 const target = { groupId: group.id, type: 'feed_day', id: card.id };
                 return (

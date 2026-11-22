@@ -14,3 +14,4 @@ export {
 } from './compare';
 export { HabitCompareSheet } from './components/HabitCompareView';
 export { habitSummaryOptions } from './api/useHabits';
+export { HabitWeekReview } from './components/HabitWeekReview';

@@ -997,6 +997,102 @@ export type Database = {
           },
         ];
       };
+      plan_participants: {
+        Row: {
+          created_at: string;
+          group_id: string;
+          plan_id: string;
+          responded_at: string | null;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          group_id: string;
+          plan_id: string;
+          responded_at?: string | null;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          group_id?: string;
+          plan_id?: string;
+          responded_at?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_participants_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_participants_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_participants_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_responses: {
+        Row: {
+          created_at: string;
+          on_date: string;
+          plan_id: string;
+          proposed_date: string | null;
+          proposed_time: string | null;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          on_date: string;
+          plan_id: string;
+          proposed_date?: string | null;
+          proposed_time?: string | null;
+          status: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          on_date?: string;
+          plan_id?: string;
+          proposed_date?: string | null;
+          proposed_time?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_responses_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_responses_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       plan_skips: {
         Row: {
           created_at: string;
@@ -1854,6 +1950,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_plan_proposal: {
+        Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
+        Returns: undefined;
+      };
+      answer_join_request: {
+        Args: { p_accept: boolean; p_plan_id: string; p_user_id: string };
+        Returns: undefined;
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -2031,6 +2135,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      my_joined_plans: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          owner_id: string;
+          plan_id: string;
+          status: string;
+        }[];
+      };
       plan_occurrences: {
         Args: { p_from: string; p_to: string; p_user_id: string };
         Returns: {
@@ -2109,6 +2221,17 @@ export type Database = {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
       };
+      request_to_join_plan: { Args: { p_group_id: string; p_plan_id: string }; Returns: undefined };
+      respond_to_plan: {
+        Args: {
+          p_on_date: string;
+          p_plan_id: string;
+          p_proposed_date?: string;
+          p_proposed_time?: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
       restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
       save_template: {
         Args: {
@@ -2131,6 +2254,10 @@ export type Database = {
         }[];
       };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
+      set_plan_participants: {
+        Args: { p_group_id: string; p_plan_id: string; p_user_ids: string[] };
+        Returns: undefined;
+      };
       set_reaction: {
         Args: {
           p_group_id: string;

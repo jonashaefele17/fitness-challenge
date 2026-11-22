@@ -194,7 +194,7 @@ function CheckInFlow({
       {item && (
         <div className="flex min-h-sheet-min flex-col gap-6 pt-1">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
+            <div className="flex min-h-tap items-center justify-between">
               {index > 0 ? (
                 <button
                   type="button"

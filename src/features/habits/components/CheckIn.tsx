@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn, showToast } from '@/shared/lib';
-import { Button, CheckIcon, CloseIcon, Sheet } from '@/shared/ui';
+import { Button, CheckIcon, ChevronLeftIcon, CloseIcon, Sheet } from '@/shared/ui';
 import { useHabitDays, useHabitWeeks, useMyHabits, useSetHabitEntry } from '../api/useHabits';
 import { todayKey } from '../dates';
 import { ruleText, startValue, valueText } from '../habitText';
@@ -181,13 +181,30 @@ function CheckInFlow({
         if (!open) onClose();
       }}
       title="Check-in"
+      // One height for every question: the sheet does not jump between them.
+      className="min-h-sheet-min"
     >
       {item && (
-        <div className="flex flex-col gap-6 pt-1">
+        <div className="flex min-h-sheet-min flex-col gap-6 pt-1">
           <div className="flex flex-col gap-1">
-            <span className="text-footnote text-text-muted">
-              {index + 1} von {items.length}
-            </span>
+            <div className="flex items-center justify-between">
+              {index > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    go(index - 1);
+                  }}
+                  className="-ml-2 flex min-h-tap items-center gap-1 rounded-pill px-2 text-subhead font-semibold text-accent active:bg-surface-2"
+                >
+                  <ChevronLeftIcon aria-hidden /> Zurück
+                </button>
+              ) : (
+                <span />
+              )}
+              <span className="text-footnote text-text-muted">
+                {index + 1} von {items.length}
+              </span>
+            </div>
             <h3 className="text-title-2 font-bold">{item.habit.current.name}</h3>
             <span className="text-subhead text-text-muted">
               {item.day.frequency === 'weekly'
@@ -205,7 +222,7 @@ function CheckInFlow({
               save(value);
             }}
           />
-          <div className="flex flex-col gap-2">
+          <div className="mt-auto flex flex-col gap-2 pb-2">
             {item.habit.current.inputType !== 'yes_no' &&
               item.habit.current.inputType !== 'choice' && (
                 <Button

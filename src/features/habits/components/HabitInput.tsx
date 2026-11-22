@@ -1,5 +1,6 @@
 import { cn } from '@/shared/lib';
-import { Button, CheckIcon, TextField } from '@/shared/ui';
+import type { ReactNode } from 'react';
+import { Button, CheckIcon, NumberWheel, TextField } from '@/shared/ui';
 import type { HabitDefinition, HabitValue } from '../types';
 
 const option =
@@ -102,7 +103,6 @@ export function HabitInput({
           label={def.unit ?? 'Wert'}
           type="number"
           inputMode="decimal"
-          autoFocus
           className="h-tap text-title-2"
           value={number ?? ''}
           onChange={(event) => {
@@ -113,35 +113,42 @@ export function HabitInput({
       );
     }
     case 'duration': {
+      // Two wheels, no keyboard: hours and minutes in steps of five.
       const minutes = value && 'minutes' in value ? value.minutes : null;
-      const h = minutes === null ? '' : String(Math.floor(minutes / 60));
-      const m = minutes === null ? '' : String(minutes % 60);
+      const h = minutes === null ? null : Math.floor(minutes / 60);
+      const m = minutes === null ? null : minutes % 60;
       const set = (hours: number, mins: number) => {
-        onChange({ minutes: Math.max(0, hours * 60 + mins) });
+        const total = Math.max(0, hours * 60 + mins);
+        onChange({ minutes: total });
       };
       return (
         <div className="grid grid-cols-2 gap-3">
-          <TextField
-            label="Stunden"
-            type="number"
-            inputMode="numeric"
-            autoFocus
-            className="h-tap text-title-2"
-            value={h}
-            onChange={(event) => {
-              set(Number(event.target.value) || 0, minutes === null ? 0 : minutes % 60);
-            }}
-          />
-          <TextField
-            label="Minuten"
-            type="number"
-            inputMode="numeric"
-            className="h-tap text-title-2"
-            value={m}
-            onChange={(event) => {
-              set(minutes === null ? 0 : Math.floor(minutes / 60), Number(event.target.value) || 0);
-            }}
-          />
+          <WheelField label="Stunden">
+            <NumberWheel
+              value={h}
+              suggested={h === null}
+              step={1}
+              label="Stunden"
+              format={(n) => String(n)}
+              parse={(text) => Math.max(0, Math.round(Number(text) || 0))}
+              onChange={(hours) => {
+                set(hours, m ?? 0);
+              }}
+            />
+          </WheelField>
+          <WheelField label="Minuten">
+            <NumberWheel
+              value={m}
+              suggested={m === null}
+              step={5}
+              label="Minuten"
+              format={(n) => String(n).padStart(2, '0')}
+              parse={(text) => Math.max(0, Math.round(Number(text) || 0))}
+              onChange={(mins) => {
+                set(h ?? 0, mins);
+              }}
+            />
+          </WheelField>
         </div>
       );
     }
@@ -171,4 +178,13 @@ export function HabitInput({
       );
     }
   }
+}
+
+function WheelField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-card bg-surface-2 py-2">
+      <span className="text-footnote text-text-muted">{label}</span>
+      {children}
+    </div>
+  );
 }

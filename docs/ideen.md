@@ -94,6 +94,3 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Pro Person: Anzahl Trainings, Gesamtvolumen, neue Rekorde, größte Kraftzuwächse (Anfang → Ende der Saison in %), meisttrainierte Muskelgruppen, Lieblingsgerät, längste Serie; später Habits, Gewicht, erreichte Saisonziele.
 - [ ] Gruppe: Auszeichnungen wie „Meiste Trainings“, „Größter Kraftzuwachs“, „Meiste Rekorde“, „Volumen-Monster“. Vergleich über Zuwachs in % (fair unabhängig davon, wer absolut stärker ist); dafür ggf. geschätztes 1RM nur intern.
 - [ ] Darstellung wie „Wrapped“: Karten zum Durchwischen, am Saisonende per Push, als Bild teilbar.
-
-## Habit-Vergleich: Linien übereinander
-Im Detailvergleich die Werte-Verläufe (Schlafdauer, Screen-Time, Schritte) als überlagerte Linien je Person – nur bei „mit Werten“. Bisher: Kennzahlen nebeneinander und Erfüllt-Verlauf je Person.

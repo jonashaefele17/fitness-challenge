@@ -52,7 +52,7 @@ Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten
 6d-1 Teilen und Vergleich
 - [x] Teilen pro Habit: privat (Standard) / nur erledigt / mit Werten; im Editor „Wer sieht das?“
 - [x] Gruppe-Tab „Feed · Habits“: Matrix – Zeile pro Habit (gleiche Vorlage oder vom selben übernommen), Spalte pro Person, 4-Wochen-Quote mit Balken in Personenfarbe; bis 5 Personen ohne Scrollen
-- [x] Antippen: Detailvergleich (Kennzahlen nebeneinander, Verlauf je Person in ihrer Farbe); derselbe im Habit-Detail auf der Ich-Seite über „Vergleichen mit …“
+- [x] Antippen: Detailvergleich nach Art – Kennzahlen nebeneinander; Zahl/Dauer als Linien übereinander, Schlaf als Nächte je Person auf gemeinsamer Achse, Checkliste pro Punkt; dazu Erfüllt-Verlauf je Person in ihrer Farbe; derselbe im Habit-Detail auf der Ich-Seite über „Vergleichen mit …“
 - [x] Datenbank-Tests: privat sieht niemand, „nur erledigt“ ohne Werte, andere Gruppen nichts
 
 6d-2 Ein Katalog

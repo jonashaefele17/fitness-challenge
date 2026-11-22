@@ -8,6 +8,8 @@ import { percent } from '../cells';
 import type { HabitPerson } from '../compare';
 import { addDays, todayKey } from '../dates';
 import { figures } from '../figures';
+import { nightAxis, nightClock } from '../nights';
+import { HabitLines, HabitNights } from './HabitCharts';
 import type { HabitDay, HabitWeek } from '../types';
 
 export type CompareRange = '4w' | '3m';
@@ -74,7 +76,7 @@ export function HabitCompareView({
       days: of(days[i]?.data, person),
       weeks: personWeeks,
       figures: figures(person.habit.current, summary, personWeeks).filter(
-        (f) => f.label !== 'Quote' && f.label !== 'Trend',
+        (f) => f.label !== 'Quote' && f.label !== 'Trend' && f.label !== 'Punkte',
       ),
     };
   });
@@ -100,19 +102,124 @@ export function HabitCompareView({
 
   const weekly = people[0]?.habit.current.frequency === 'weekly';
   const dates = Array.from({ length: 28 }, (_, i) => addDays(today, i - 27));
+  const def = people[0]?.habit.current;
+  // Values only from me and those who share them; the others only say whether it was met.
+  const withValues = people
+    .map((person, i) => ({ person, days: perPerson[i]?.days ?? [] }))
+    .filter(({ person }) => person.habit.userId === userId || person.habit.shareLevel === 'values');
+  const onlyDone = people.filter((p) => !withValues.some((v) => v.person.id === p.id));
+  const kind =
+    !def || weekly
+      ? null
+      : def.inputType === 'number' || def.inputType === 'duration'
+        ? 'lines'
+        : def.inputType === 'time_pair'
+          ? 'nights'
+          : def.inputType === 'checklist'
+            ? 'items'
+            : null;
+  const allDates = Array.from({ length: range === '4w' ? 28 : 91 }, (_, i) =>
+    addDays(today, i - (range === '4w' ? 27 : 90)),
+  );
+  const axis = def
+    ? nightAxis(
+        withValues.map((v) => v.days),
+        def,
+      )
+    : { lo: 0, hi: 0 };
+  // Checklist: every item anyone has, how often it was ticked (of the answered days).
+  const items = [
+    ...new Map(
+      withValues.flatMap(({ person }) =>
+        person.habit.current.options.map((o) => [o.key, o.label] as const),
+      ),
+    ),
+  ];
+  const itemRows: CompareRow[] = items.map(([key, label]) => ({
+    key,
+    label,
+    cells: people.map((person) => {
+      const entry = withValues.find((v) => v.person.id === person.id);
+      if (!entry || !person.habit.current.options.some((o) => o.key === key)) return null;
+      const answered = entry.days.filter((d) => d.due && !d.paused && d.state !== 'open');
+      if (answered.length === 0) return null;
+      const share =
+        answered.filter((d) => d.value && 'checked' in d.value && d.value.checked.includes(key))
+          .length / answered.length;
+      return { value: percent(share), fraction: share };
+    }),
+  }));
+
   return (
     <div className="flex flex-col gap-5">
       <CompareTable
         columns={people.map((p) => ({ key: p.id, label: p.name, color: p.color }))}
         rows={rows}
       />
+      {kind && def && withValues.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h3 className="text-footnote font-semibold text-text-muted">
+            {kind === 'items' ? 'Pro Punkt' : 'Verlauf'}
+          </h3>
+          {kind === 'items' ? (
+            <CompareTable
+              columns={people.map((p) => ({ key: p.id, label: p.name, color: p.color }))}
+              rows={itemRows}
+            />
+          ) : (
+            <div className="flex flex-col gap-3 rounded-card bg-surface-2 p-4">
+              {kind === 'lines' ? (
+                <HabitLines
+                  def={def}
+                  dates={allDates}
+                  series={withValues.map(({ person, days: personDays }) => {
+                    const condition = person.habit.current.rule[0];
+                    return {
+                      id: person.id,
+                      name: person.name,
+                      color: person.color,
+                      days: personDays,
+                      target: condition ? Number(condition.value) : null,
+                    };
+                  })}
+                />
+              ) : (
+                <>
+                  {withValues.map(({ person, days: personDays }) => (
+                    <div key={person.id} className="flex flex-col gap-1">
+                      <span className="text-footnote font-semibold">{person.name}</span>
+                      <HabitNights
+                        days={personDays}
+                        def={person.habit.current}
+                        color={person.color}
+                        axis={axis}
+                        compact
+                      />
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-caption text-text-muted tabular-nums">
+                    <span>Balken von oben {nightClock(axis.lo)}</span>
+                    <span>bis unten {nightClock(axis.hi)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {onlyDone.length > 0 && (
+            <p className="px-1 text-footnote text-text-muted">
+              {onlyDone.map((p) => p.name).join(', ')} {onlyDone.length === 1 ? 'teilt' : 'teilen'}{' '}
+              nur, ob erledigt.
+            </p>
+          )}
+        </section>
+      )}
       <section className="flex flex-col gap-2">
         <h3 className="text-footnote font-semibold text-text-muted">
           {weekly
             ? 'Wochen'
             : range === '4w'
-              ? 'Die letzten 28 Tage'
-              : 'Pro Woche (Anteil erreichter Tage)'}
+              ? 'Erfüllt · letzte 28 Tage'
+              : 'Erfüllt pro Woche (Anteil der Tage)'}
         </h3>
         <div className="flex flex-col gap-2.5 rounded-card bg-surface-2 p-4">
           {people.map((person, i) => {

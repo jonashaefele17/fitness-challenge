@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { addDays, formatMinutes } from '../dates';
 import { valueText } from '../habitText';
+import { nightAxis, nightClock, rel } from '../nights';
 import type { HabitDay, HabitDefinition, HabitWeek } from '../types';
 
 const dayLabel = new Intl.DateTimeFormat('de', {
@@ -256,31 +257,167 @@ export function HabitLine({ days, def }: { days: HabitDay[]; def: HabitDefinitio
   );
 }
 
-/** Sleep: one bar per night from bed to getting up; the latest bed time as a line. */
-export function HabitNights({ days, def }: { days: HabitDay[]; def: HabitDefinition }) {
+/** A day's number or minutes, if shared. */
+function valueOf(d: HabitDay | undefined): number | null {
+  return d?.value && 'minutes' in d.value
+    ? d.value.minutes
+    : d?.value && 'value' in d.value
+      ? d.value.value
+      : null;
+}
+
+/**
+ * Numbers and durations of several people: a line each in their colour on one axis.
+ * The target only when everyone has the same one. A tap shows everyone's value that day.
+ */
+export function HabitLines({
+  series,
+  def,
+  dates,
+}: {
+  series: { id: string; name: string; color: string; days: HabitDay[]; target: number | null }[];
+  def: HabitDefinition;
+  dates: string[];
+}) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const rows = series.map((s) => ({
+    ...s,
+    values: dates.map((date) => {
+      const day = s.days.find((d) => d.onDate === date);
+      return day?.paused ? null : valueOf(day);
+    }),
+  }));
+  const targets = [...new Set(series.map((s) => s.target))];
+  const target = targets.length === 1 ? (targets[0] ?? null) : null;
+  const known = rows.flatMap((r) => r.values.filter((v): v is number => v !== null));
+  const max = Math.max(...known, target ?? 0, 1) * 1.15;
+  const w = 320;
+  const h = 140;
+  const pad = 6;
+  const xAt = (i: number) => pad + (i * (w - 2 * pad)) / Math.max(1, dates.length - 1);
+  const yAt = (v: number) => h - pad - (v / max) * (h - 2 * pad);
+  const show = (v: number) =>
+    def.inputType === 'duration'
+      ? formatMinutes(v)
+      : `${v.toLocaleString('de')}${def.unit ? ` ${def.unit}` : ''}`;
+  const pickedDate = picked !== null ? dates[picked] : undefined;
+  return (
+    <div className="flex flex-col gap-2">
+      <Readout
+        text={
+          pickedDate && picked !== null
+            ? `${fmt(pickedDate)} · ${rows
+                .map((r) => {
+                  const v = r.values[picked];
+                  return `${r.name} ${v === null || v === undefined ? '–' : show(v)}`;
+                })
+                .join(' · ')}`
+            : target !== null
+              ? `Ziel für alle: ${show(target)}`
+              : null
+        }
+      />
+      <svg
+        viewBox={`0 0 ${String(w)} ${String(h)}`}
+        className="w-full"
+        role="img"
+        aria-label="Verlauf im Vergleich"
+      >
+        {target !== null && (
+          <line
+            x1={0}
+            x2={w}
+            y1={yAt(target)}
+            y2={yAt(target)}
+            stroke="var(--color-text-subtle)"
+            strokeDasharray="4 4"
+          />
+        )}
+        {pickedDate && picked !== null && (
+          <line x1={xAt(picked)} x2={xAt(picked)} y1={0} y2={h} stroke="var(--color-border)" />
+        )}
+        {rows.map((r) => {
+          const segments: string[] = [];
+          let current = '';
+          r.values.forEach((v, i) => {
+            if (v === null) {
+              if (current) segments.push(current);
+              current = '';
+            } else current += `${current ? 'L' : 'M'}${String(xAt(i))},${String(yAt(v))}`;
+          });
+          if (current) segments.push(current);
+          return (
+            <g key={r.id}>
+              {segments.map((d) => (
+                <path
+                  key={d}
+                  d={d}
+                  fill="none"
+                  stroke={r.color}
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                />
+              ))}
+              {picked !== null && r.values[picked] != null && (
+                <circle
+                  cx={xAt(picked)}
+                  cy={yAt(r.values[picked] ?? 0)}
+                  r={4}
+                  fill={r.color}
+                  stroke="var(--color-surface-2)"
+                  strokeWidth={2}
+                />
+              )}
+            </g>
+          );
+        })}
+        {dates.map((date, i) => (
+          <rect
+            key={`hit-${date}`}
+            x={xAt(i) - w / Math.max(1, dates.length) / 2}
+            y={0}
+            width={w / Math.max(1, dates.length)}
+            height={h}
+            fill="transparent"
+            onClick={() => {
+              setPicked(i);
+            }}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * Sleep: one bar per night from bed to getting up; the latest bed time as a line.
+ * For comparing: in a person's colour, on an axis shared with the others, lower.
+ */
+export function HabitNights({
+  days,
+  def,
+  color = 'var(--color-accent)',
+  axis,
+  compact = false,
+}: {
+  days: HabitDay[];
+  def: HabitDefinition;
+  color?: string;
+  axis?: { lo: number; hi: number };
+  compact?: boolean;
+}) {
   const [picked, setPicked] = useState<number | null>(null);
   const nights = days.filter((d) => !d.paused);
-  // Minutes after 18:00 (so a night does not wrap).
-  const rel = (t: string) => {
-    const [hh = 0, mm = 0] = t.split(':').map(Number);
-    return (hh * 60 + mm - 18 * 60 + 24 * 60) % (24 * 60);
-  };
   const pairs = nights.map((d) =>
     d.value && 'start' in d.value ? { a: rel(d.value.start), b: rel(d.value.end) } : null,
   );
   const bedBefore = def.rule.find((c) => c.field === 'start');
   const limit = bedBefore ? rel(String(bedBefore.value)) : null;
-  const known = pairs.filter((p): p is { a: number; b: number } => p !== null);
-  const lo = Math.max(0, Math.min(...known.map((p) => p.a), limit ?? 24 * 60) - 30);
-  const hi = Math.min(24 * 60, Math.max(...known.map((p) => p.b), 13 * 60) + 30);
+  const { lo, hi } = axis ?? nightAxis([days], def);
   const w = 320;
-  const h = 160;
+  const h = compact ? 72 : 160;
   const step = w / Math.max(1, nights.length);
   const yAt = (m: number) => ((m - lo) / Math.max(1, hi - lo)) * h;
-  const clock = (m: number) => {
-    const t = (m + 18 * 60) % (24 * 60);
-    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
-  };
   const pickedNight = picked !== null ? nights[picked] : undefined;
   return (
     <div className="flex flex-col gap-2">
@@ -305,7 +442,7 @@ export function HabitNights({ days, def }: { days: HabitDay[]; def: HabitDefinit
             x2={w}
             y1={yAt(limit)}
             y2={yAt(limit)}
-            stroke="var(--color-accent)"
+            stroke={color}
             strokeOpacity={0.5}
             strokeDasharray="4 4"
           />
@@ -328,7 +465,7 @@ export function HabitNights({ days, def }: { days: HabitDay[]; def: HabitDefinit
                   width={Math.max(2, step * 0.6)}
                   height={Math.max(2, yAt(p.b) - yAt(p.a))}
                   rx={Math.min(4, step * 0.3)}
-                  fill={night.state === 'done' ? 'var(--color-accent)' : 'var(--color-text-subtle)'}
+                  fill={night.state === 'done' ? color : 'var(--color-text-subtle)'}
                   opacity={picked === null || picked === i ? 1 : 0.6}
                 />
               )}
@@ -336,10 +473,12 @@ export function HabitNights({ days, def }: { days: HabitDay[]; def: HabitDefinit
           );
         })}
       </svg>
-      <div className="flex justify-between text-caption text-text-muted tabular-nums">
-        <span>Balken von oben {clock(lo)}</span>
-        <span>bis unten {clock(hi)}</span>
-      </div>
+      {!compact && (
+        <div className="flex justify-between text-caption text-text-muted tabular-nums">
+          <span>Balken von oben {nightClock(lo)}</span>
+          <span>bis unten {nightClock(hi)}</span>
+        </div>
+      )}
     </div>
   );
 }

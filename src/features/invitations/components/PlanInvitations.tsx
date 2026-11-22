@@ -105,7 +105,7 @@ export function PlanInvitations({ plan }: { plan: PlanOccurrence }) {
         <InviteButton plan={plan} participants={participants} />
       )}
       {!mine && me && me.status !== 'requested' && plan.status === 'planned' && (
-        <MyAnswer plan={plan} me={me} />
+        <MyAnswer plan={plan} me={me} ownerName={owner?.displayName ?? 'Die Person'} />
       )}
       {!mine && me?.status === 'requested' && (
         <p className="text-subhead text-text-muted">
@@ -247,11 +247,28 @@ function InviteButton({
   );
 }
 
-function MyAnswer({ plan, me }: { plan: PlanOccurrence; me: Participant }) {
+function MyAnswer({
+  plan,
+  me,
+  ownerName,
+}: {
+  plan: PlanOccurrence;
+  me: Participant;
+  ownerName: string;
+}) {
   const data = useParticipation([plan.planId]).data;
-  // A series not answered yet: the answer holds for all dates, unless chosen otherwise.
+  // My proposal of another time for this date, if any.
+  const proposal = data?.responses.find(
+    (r) =>
+      r.planId === plan.planId &&
+      r.userId === me.userId &&
+      r.onDate === plan.planDate &&
+      r.status === 'proposed',
+  );
+  // A series not answered yet: the answer holds for all dates, unless chosen otherwise
+  // (with a proposal for this date, this date is what counts).
   const [scope, setScope] = useState<'one' | 'all'>(
-    plan.recurring && me.status === 'invited' ? 'all' : 'one',
+    plan.recurring && me.status === 'invited' && !proposal ? 'all' : 'one',
   );
   const [proposing, setProposing] = useState(false);
   const respond = useRespond();
@@ -268,6 +285,20 @@ function MyAnswer({ plan, me }: { plan: PlanOccurrence; me: Participant }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {proposal?.proposedDate && (
+        <div className="flex items-start gap-3 rounded-card bg-surface-2 px-4 py-3">
+          <PlanAnswerMark answer="proposed" className="mt-0.5 size-5" />
+          <span className="flex min-w-0 flex-col">
+            <span className="text-subhead font-semibold">
+              Dein Vorschlag: {proposalText(proposal.proposedDate, proposal.proposedTime)}
+            </span>
+            <span className="text-footnote text-text-muted">
+              {ownerName} kann ihn mit einem Tap übernehmen. Mit Zusage, Vielleicht oder Absage für
+              diesen Termin ziehst du ihn zurück.
+            </span>
+          </span>
+        </div>
+      )}
       {plan.recurring && (
         <SegmentedControl
           label="Antwort gilt für"
@@ -307,7 +338,14 @@ function MyAnswer({ plan, me }: { plan: PlanOccurrence; me: Participant }) {
           Antwort hat nicht geklappt.
         </p>
       )}
-      <ProposeSheet plan={plan} open={proposing} onOpenChange={setProposing} />
+      <ProposeSheet
+        plan={plan}
+        open={proposing}
+        onOpenChange={setProposing}
+        onProposed={() => {
+          setScope('one');
+        }}
+      />
     </div>
   );
 }
@@ -316,10 +354,12 @@ function ProposeSheet({
   plan,
   open,
   onOpenChange,
+  onProposed,
 }: {
   plan: PlanOccurrence;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProposed: () => void;
 }) {
   const [date, setDate] = useState(plan.onDate);
   const [time, setTime] = useState(plan.startTime ?? '');
@@ -341,6 +381,7 @@ function ProposeSheet({
             {
               onSuccess: () => {
                 onOpenChange(false);
+                onProposed();
               },
             },
           );

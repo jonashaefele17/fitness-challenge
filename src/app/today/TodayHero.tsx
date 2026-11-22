@@ -11,7 +11,6 @@ import {
   elapsedSeconds,
   formatDuration,
   planTitle,
-  PlanPeopleAvatars,
   PlanSocialContext,
   PlanStartButton,
   StartTrainingSheet,
@@ -103,10 +102,8 @@ export function TodayHero() {
               {active.items.length === 1 ? 'Übung' : 'Übungen'}
             </span>
           </span>
+          <Button onClick={openLive}>Öffnen</Button>
         </div>
-        <Button size="lg" onClick={openLive}>
-          Öffnen
-        </Button>
         {rows}
       </section>
     );
@@ -129,20 +126,21 @@ export function TodayHero() {
   return (
     <section className={card}>
       <span className={label}>Heute</span>
-      <div className="flex flex-col gap-1">
-        <span className="text-title-3 font-bold">Lust auf Training?</span>
-        <span className="text-subhead text-text-muted">
-          Starte frei oder mit einer deiner Vorlagen.
+      <div className="flex items-center gap-3">
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-title-3 font-bold">Lust auf Training?</span>
+          <span className="text-subhead text-text-muted">
+            Starte frei oder mit einer deiner Vorlagen.
+          </span>
         </span>
+        <Button
+          onClick={() => {
+            setStarting(true);
+          }}
+        >
+          Starten
+        </Button>
       </div>
-      <Button
-        size="lg"
-        onClick={() => {
-          setStarting(true);
-        }}
-      >
-        Training starten
-      </Button>
       <StartTrainingSheet open={starting} onOpenChange={setStarting} onOpenWorkout={openLive} />
     </section>
   );
@@ -165,7 +163,7 @@ function PlanIcon({ plan, className }: { plan: PlanOccurrence; className: string
   );
 }
 
-/** My next date: big title, with whom, start. */
+/** My next date: big title, with whom, a compact start. */
 function PlanMain({
   plan,
   people,
@@ -176,13 +174,13 @@ function PlanMain({
   onOpen: (plan: PlanOccurrence) => void;
 }) {
   return (
-    <>
+    <div className="flex items-center gap-3">
       <button
         type="button"
         onClick={() => {
           onOpen(plan);
         }}
-        className="flex items-center gap-3 text-left"
+        className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
         <span className="flex size-12 shrink-0 items-center justify-center rounded-pill bg-surface-3 text-accent">
           <PlanIcon plan={plan} className="size-6" />
@@ -195,14 +193,9 @@ function PlanMain({
             {subtitle(plan, people) || 'Details ›'}
           </span>
         </span>
-        <PlanPeopleAvatars people={people} />
       </button>
-      {plan.kind === 'training' && plan.trainingType && (
-        <div className="flex flex-col [&>button]:w-full">
-          <PlanStartButton plan={plan} size="lg" label="Training starten" />
-        </div>
-      )}
-    </>
+      {plan.kind === 'training' && plan.trainingType && <PlanStartButton plan={plan} />}
+    </div>
   );
 }
 

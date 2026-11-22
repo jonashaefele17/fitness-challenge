@@ -46,7 +46,7 @@ function People({ people }: { people: GroupMember[] }) {
   );
 }
 
-/** A date of someone else as the main entry of Heute's card: big title and start. */
+/** A date of someone else as the main entry of Heute's card: big title, compact start. */
 export function LiveDateMain({ date, onStarted }: { date: LiveToday; onStarted: () => void }) {
   const d = useDate(date, onStarted);
   return (
@@ -61,11 +61,10 @@ export function LiveDateMain({ date, onStarted }: { date: LiveToday; onStarted: 
           </span>
           <span className="truncate text-subhead text-text-muted">{d.subtitle}</span>
         </span>
-        <People people={date.running ? d.training : d.owner ? [d.owner] : []} />
+        <Button loading={d.loading} onClick={d.go}>
+          {d.label}
+        </Button>
       </div>
-      <Button size="lg" loading={d.loading} onClick={d.go}>
-        {d.label === 'Starten' ? 'Training starten' : d.label}
-      </Button>
     </>
   );
 }

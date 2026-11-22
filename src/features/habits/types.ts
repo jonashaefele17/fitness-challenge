@@ -49,10 +49,14 @@ export interface HabitTemplate extends HabitDefinition {
   description: string | null;
 }
 
+/** Who sees a habit: only me · whether it was met · also the values. */
+export type ShareLevel = 'private' | 'done' | 'values';
+
 export interface Habit {
   id: string;
   templateId: string | null;
   archived: boolean;
+  shareLevel: ShareLevel;
   /** The definition valid today. */
   current: HabitDefinition;
   /** The day it began. */

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, CloseIcon, FieldGroup, SegmentedControl, TextField } from '@/shared/ui';
-import type { HabitCondition, HabitDefinition, HabitInputType } from '../types';
+import type { HabitCondition, HabitDefinition, HabitInputType, ShareLevel } from '../types';
 
 const chip =
   'flex min-h-tap shrink-0 items-center justify-center rounded-pill border px-4 text-subhead font-semibold';
@@ -32,18 +32,21 @@ function ruleFor(type: HabitInputType): HabitCondition[] {
  */
 export function HabitEditor({
   initial,
+  initialShare = 'private',
   isNew,
   saving,
   onSave,
   onArchive,
 }: {
   initial: HabitDefinition;
+  initialShare?: ShareLevel;
   isNew: boolean;
   saving: boolean;
-  onSave: (definition: HabitDefinition) => void;
+  onSave: (definition: HabitDefinition, shareLevel: ShareLevel) => void;
   onArchive?: (() => void) | undefined;
 }) {
   const [def, setDef] = useState(initial);
+  const [share, setShare] = useState<ShareLevel>(initialShare);
   const [newItem, setNewItem] = useState('');
   const fromTrainings = def.source === 'training';
   const set = (changes: Partial<HabitDefinition>) => {
@@ -68,7 +71,7 @@ export function HabitEditor({
       className="flex flex-col gap-6 pt-1"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave({ ...def, name: def.name.trim() });
+        onSave({ ...def, name: def.name.trim() }, share);
       }}
     >
       <TextField
@@ -356,6 +359,28 @@ export function HabitEditor({
           ]}
         />
       )}
+
+      <FieldGroup label="Wer sieht das?">
+        <div className="flex flex-col gap-2">
+          <SegmentedControl
+            label="Wer sieht das"
+            value={share}
+            onChange={setShare}
+            options={[
+              { value: 'private', label: 'Nur ich' },
+              { value: 'done', label: 'Erledigt' },
+              { value: 'values', label: 'Mit Werten' },
+            ]}
+          />
+          <p className="text-footnote text-text-muted">
+            {share === 'private'
+              ? 'Nur du siehst dieses Habit.'
+              : share === 'done'
+                ? 'Deine Gruppe sieht, ob du es erfüllt hast – keine Werte.'
+                : 'Deine Gruppe sieht auch die Werte (z. B. Stunden, Schritte) und kann sich vergleichen.'}
+          </p>
+        </div>
+      </FieldGroup>
 
       <div className="flex flex-col gap-2">
         {!isNew && (

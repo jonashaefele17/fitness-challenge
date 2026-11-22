@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(16);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -63,6 +63,39 @@ update public.habits set share_level = 'private' where id = tests.habit('Schlaf'
 reset role;
 select is((select share_level from public.habits where id = tests.habit('Schlaf')), 'values',
   'nobody changes someone else''s sharing');
+
+-- The catalog: a2 takes over a1's Screen-Time with an own goal (at most 1:30 h)
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
+select lives_ok(
+  $$select public.adopt_habit(tests.habit('Screen-Time'), '2026-12-02', '{"rule":[{"op":"max","value":90}]}')$$,
+  'a shared habit can be taken over');
+select is(
+  (select v.rule -> 0 ->> 'value' from public.habits h join public.habit_versions v on v.habit_id = h.id
+    where h.user_id = '22222222-2222-4222-8222-222222222222'),
+  '90', 'with an own goal');
+select is(
+  (select source_habit_id from public.habits where user_id = '22222222-2222-4222-8222-222222222222'),
+  tests.habit('Screen-Time'), 'remembering where it came from');
+select throws_ok(
+  $$select public.adopt_habit((select h.id from public.habits h where h.share_level = 'private' limit 1), '2026-12-02', '{}')$$,
+  '42501', 'habit_not_found', 'a private habit cannot be taken over');
+select throws_ok(
+  $$select public.promote_habit_to_template(tests.habit('Screen-Time'))$$,
+  '42501', 'not_allowed', 'only the super admin makes standard templates');
+reset role;
+update public.profiles set is_super_admin = true where id = '11111111-1111-4111-8111-111111111111';
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select public.promote_habit_to_template(tests.habit('Screen-Time'));
+reset role;
+select results_eq(
+  $$select count(distinct template_id), count(*), count(source_habit_id),
+           (select count(*) from public.habit_entries where habit_id = tests.habit('Screen-Time'))
+      from public.habits h
+     where h.template_id = (select max(id::text)::uuid from public.habit_templates where key is null)$$,
+  $$values (1::bigint, 2::bigint, 0::bigint, 1::bigint)$$,
+  'as a standard template: original and copy move over, entries stay');
 
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';

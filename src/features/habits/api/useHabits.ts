@@ -16,6 +16,7 @@ import type {
   HabitTemplate,
   HabitValue,
   HabitWeek,
+  ShareLevel,
 } from '../types';
 
 export const habitKeys = {
@@ -92,15 +93,16 @@ export function useHabitTemplates() {
 }
 
 /** My habits (active and archived) with the definition valid today. */
-export function useMyHabits() {
+export function useMyHabits(personId?: string) {
   const userId = useUserId();
+  const person = personId ?? userId;
   return useQuery({
-    queryKey: habitKeys.list(userId),
+    queryKey: [...habitKeys.list(userId), person],
     queryFn: async (): Promise<Habit[]> => {
       const { data, error } = await supabase
         .from('habits')
-        .select('id, template_id, sort, archived_at, habit_versions(*)')
-        .eq('user_id', userId)
+        .select('id, template_id, sort, archived_at, share_level, habit_versions(*)')
+        .eq('user_id', person)
         .order('sort');
       if (error) throw error;
       const today = todayKey();
@@ -115,6 +117,7 @@ export function useMyHabits() {
             id: row.id,
             templateId: row.template_id,
             archived: row.archived_at !== null,
+            shareLevel: row.share_level as Habit['shareLevel'],
             current: toDefinition(current),
             since: versions[0].valid_from,
           },
@@ -125,13 +128,14 @@ export function useMyHabits() {
 }
 
 /** How my habits stand per day in a range. */
-export function useHabitDays(from: string, to: string) {
+export function useHabitDays(from: string, to: string, personId?: string) {
   const userId = useUserId();
+  const person = personId ?? userId;
   return useQuery({
-    queryKey: habitKeys.days(userId, from, to),
+    queryKey: [...habitKeys.days(userId, from, to), person],
     queryFn: async (): Promise<HabitDay[]> => {
       const { data, error } = await supabase.rpc('habit_days', {
-        p_user_id: userId,
+        p_user_id: person,
         p_from: from,
         p_to: to,
         p_today: todayKey(),
@@ -156,13 +160,14 @@ export function useHabitDays(from: string, to: string) {
 }
 
 /** Weekly habits per week (done days, target, state). */
-export function useHabitWeeks(from: string, to: string) {
+export function useHabitWeeks(from: string, to: string, personId?: string) {
   const userId = useUserId();
+  const person = personId ?? userId;
   return useQuery({
-    queryKey: habitKeys.weeks(userId, from, to),
+    queryKey: [...habitKeys.weeks(userId, from, to), person],
     queryFn: async (): Promise<HabitWeek[]> => {
       const { data, error } = await supabase.rpc('habit_weeks', {
-        p_user_id: userId,
+        p_user_id: person,
         p_from: from,
         p_to: to,
         p_today: todayKey(),
@@ -195,6 +200,8 @@ export function useSaveHabit() {
       templateId: string | null;
       validFrom: string;
       definition: Partial<HabitDefinition>;
+      /** Who sees it (not versioned: it holds for the whole habit). */
+      shareLevel?: ShareLevel;
     }) => {
       const { data, error } = await supabase.rpc('save_habit', {
         // null: a new habit (the generated types do not know it may be null)
@@ -204,6 +211,13 @@ export function useSaveHabit() {
         p_def: toDef(input.definition),
       });
       if (error) throw error;
+      if (input.shareLevel) {
+        const { error: shareError } = await supabase
+          .from('habits')
+          .update({ share_level: input.shareLevel })
+          .eq('id', data);
+        if (shareError) throw shareError;
+      }
       return data;
     },
     onSettled: refresh,
@@ -349,13 +363,14 @@ export function useHabitStats(from: string, to: string) {
 }
 
 /** The figures of each habit in a range, in plain words (see habit_summary). */
-export function useHabitSummary(from: string, to: string) {
+export function useHabitSummary(from: string, to: string, personId?: string) {
   const userId = useUserId();
+  const person = personId ?? userId;
   return useQuery({
-    queryKey: [...habitKeys.all(userId), 'summary', from, to],
+    queryKey: [...habitKeys.all(userId), 'summary', from, to, person],
     queryFn: async (): Promise<HabitSummary[]> => {
       const { data, error } = await supabase.rpc('habit_summary', {
-        p_user_id: userId,
+        p_user_id: person,
         p_from: from,
         p_to: to,
         p_today: todayKey(),

@@ -865,6 +865,7 @@ export type Database = {
           id: string;
           share_level: string;
           sort: number;
+          source_habit_id: string | null;
           template_id: string | null;
           user_id: string;
         };
@@ -875,6 +876,7 @@ export type Database = {
           id?: string;
           share_level?: string;
           sort?: number;
+          source_habit_id?: string | null;
           template_id?: string | null;
           user_id?: string;
         };
@@ -884,10 +886,18 @@ export type Database = {
           id?: string;
           share_level?: string;
           sort?: number;
+          source_habit_id?: string | null;
           template_id?: string | null;
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'habits_source_habit_id_fkey';
+            columns: ['source_habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'habits_template_id_fkey';
             columns: ['template_id'];
@@ -2403,6 +2413,10 @@ export type Database = {
         Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      adopt_habit: {
+        Args: { p_def: Json; p_source_id: string; p_valid_from: string };
+        Returns: string;
+      };
       answer_join_request: {
         Args: { p_accept: boolean; p_plan_id: string; p_user_id: string };
         Returns: undefined;
@@ -2770,6 +2784,7 @@ export type Database = {
           workout_started_at: string;
         }[];
       };
+      promote_habit_to_template: { Args: { p_habit_id: string }; Returns: string };
       redeem_invite: {
         Args: { p_code: string; p_display_name?: string; p_home_gym?: string };
         Returns: string;

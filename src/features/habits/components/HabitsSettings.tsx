@@ -23,7 +23,7 @@ import {
 import { todayKey } from '../dates';
 import { EMPTY_HABIT } from '../defaults';
 import { summaryText } from '../habitText';
-import type { Habit, HabitDefinition, HabitTemplate } from '../types';
+import type { Habit, HabitDefinition, HabitTemplate, ShareLevel } from '../types';
 import { HabitEditor } from './HabitEditor';
 
 type Editing =
@@ -44,7 +44,7 @@ export function HabitsSettings() {
   const save = useSaveHabit();
   const archive = useArchiveHabit();
 
-  function onSave(definition: HabitDefinition) {
+  function onSave(definition: HabitDefinition, shareLevel: ShareLevel) {
     if (!editing) return;
     save.mutate(
       {
@@ -52,6 +52,7 @@ export function HabitsSettings() {
         templateId: editing.kind === 'new' ? (editing.template?.id ?? null) : null,
         validFrom: todayKey(),
         definition,
+        shareLevel,
       },
       {
         onSuccess: () => {
@@ -162,6 +163,7 @@ export function HabitsSettings() {
                   ? { ...editing.template }
                   : EMPTY_HABIT
             }
+            initialShare={editing.kind === 'habit' ? editing.habit.shareLevel : 'private'}
             isNew={editing.kind === 'new'}
             saving={save.isPending}
             onSave={onSave}

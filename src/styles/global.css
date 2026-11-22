@@ -4,7 +4,7 @@
 @layer base {
   html {
     overflow-x: clip;
-    /* Pages bounce up and down like iOS, never sideways (the calendar turns it off). */
+    /* Pages bounce up and down like iOS, never sideways. */
     overscroll-behavior-x: none;
     /* No visible scrollbar on the pages – like native iOS. */
     scrollbar-width: none;
@@ -30,12 +30,6 @@
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     display: none;
-  }
-
-  /* The calendar stays put (no bounce): set while the training tab is shown. */
-  html[data-no-bounce],
-  html[data-no-bounce] body {
-    overscroll-behavior-y: none;
   }
 
   button,

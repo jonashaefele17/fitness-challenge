@@ -48,18 +48,23 @@ Bewusst noch nicht drin (kommt mit 5c): Termine anderer, zu denen ich eingeladen
 
 Beim Staging-Test prüfen: Nach „Übernehmen“ zeigt das offene Termin-Detail noch die alte Zeit, bis man es neu öffnet.
 
-### 5c – Gemeinsames Live-Training (soziales Modul `live-training`)
+### 5c – Gemeinsames Live-Training (soziales Modul `live-training`) – gebaut am 23.11.2026, Branch `feat/live-training`
 
-Vor dem Bau den Mechanismus klären und einen Plan vorlegen.
+- [x] Start aus einem heutigen Termin mit Teilnehmenden: wer startet, startet ein gemeinsames Training
+- [x] Kein Push „beitreten?“ (entschieden); im Heute-Tab „Heute mit anderen“: „Mitmachen“, solange jemand trainiert, sonst „Starten“ (auch als Eingeladene/r)
+- [x] Gemeinsame Übungsliste; jede Person trägt nur ihre eigenen Sätze ein
+- [x] Die Sätze der anderen live über der Übungskarte (alle paar Sekunden aktualisiert)
+- [x] Jede Person darf Übungen ergänzen; Schalter „Für alle“ im Übungs-Picker (aus = nur für mich)
+- [x] Löschen und Sortieren wirken für alle; gelöscht wird bei den anderen nur, wer noch keine abgehakten Sätze darin hat; „Rückgängig“ bringt die Übung bei allen zurück
+- [x] Am Ende hat jede Person ihr eigenes Training; im Feed steht „mit …“ unter dem Training
+- [x] Datenbank-Tests (22): Teilen, nur für mich, Sortieren, Löschen mit/ohne Sätze, Zurückholen, nicht Eingeladene, andere Gruppen, Ende der Sitzung
 
-- [ ] Start aus einem heutigen Termin mit Teilnehmenden
-- [ ] Kein Push „beitreten?“ beim Trainingsstart (entschieden); Beitreten über den Termin bzw. selbst aktiv
-- [ ] Gemeinsame Übungsliste; jede Person trägt nur ihre eigenen Sätze ein
-- [ ] Die Sätze der anderen live in der Übungskarte sehen
-- [ ] Jede Person darf Übungen ergänzen
-- [ ] Am Ende hat jede Person ihr eigenes Training, verknüpft als „mit …“; im Feed auf beiden Karten
+Entschieden (Jonas): Löschen und Sortieren gelten für alle (nicht nur für einen selbst).
 
-Offene Frage: Wie fügt man eine Übung **nur für sich** hinzu (ohne sie in die gemeinsame Liste zu setzen)?
+Beim Staging-Test prüfen:
+- Zu zweit gleichzeitig trainieren: neue, gelöschte und verschobene Übungen kommen nach wenigen Sekunden beim anderen an
+- Feed-Karte „mit …“ (im Browser noch nicht geprüft)
+- Eigene Trainingsarten des Besitzers: Mitmachen geht nur bei Standard-Trainingsarten (Studio, Laufen …)
 
 ### 5d – Export
 

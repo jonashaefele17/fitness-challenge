@@ -11,12 +11,26 @@ export function emptyPlan(day: string): PlanDraft {
     id: null,
     kind: 'training',
     trainingTypeId: null,
-    templateId: null,
+    focusId: null,
+    templateIds: [],
     title: '',
     note: '',
     startsOn: day,
     startTime: '',
     repeatWeekdays: [],
     repeatUntil: '',
+    days: [],
   };
 }
+
+export const WEEKDAY_NAMES = [
+  '',
+  'Montag',
+  'Dienstag',
+  'Mittwoch',
+  'Donnerstag',
+  'Freitag',
+  'Samstag',
+  'Sonntag',
+];
+export const WEEKDAY_SHORT = ['', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];

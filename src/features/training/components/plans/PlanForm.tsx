@@ -1,23 +1,20 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib';
-import { Button, FieldGroup, SegmentedControl, Switch, TextField } from '@/shared/ui';
-import { useTrainingTypes } from '../../api/useCatalog';
+import {
+  Button,
+  ChevronRightIcon,
+  FieldGroup,
+  SegmentedControl,
+  Sheet,
+  Switch,
+  TextField,
+} from '@/shared/ui';
+import { useTrainingFocuses, useTrainingTypes } from '../../api/useCatalog';
 import { useSavePlan } from '../../api/usePlans';
-import { useTemplates } from '../../api/useTemplates';
-import { templateSections } from '../../templateRules';
-import type { PlanDraft } from '../../types';
+import type { PlanDay, PlanDraft } from '../../types';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
-import { isoWeekday } from './planDraft';
-
-const WEEKDAYS = [
-  { day: 1, label: 'Mo' },
-  { day: 2, label: 'Di' },
-  { day: 3, label: 'Mi' },
-  { day: 4, label: 'Do' },
-  { day: 5, label: 'Fr' },
-  { day: 6, label: 'Sa' },
-  { day: 7, label: 'So' },
-];
+import { isoWeekday, WEEKDAY_NAMES, WEEKDAY_SHORT } from './planDraft';
+import { PlanTargetPicker } from './PlanTargetPicker';
 
 const chip =
   'flex min-h-tap shrink-0 items-center gap-2 rounded-pill border px-4 text-subhead font-semibold';
@@ -25,30 +22,58 @@ const on = 'border-accent bg-accent text-on-accent';
 const off = 'border-border bg-surface-2 active:bg-surface-3';
 
 /**
- * Plan a training or an event: type (and template) or name, time, note, and optionally
- * weekly on chosen weekdays. A series is edited as a whole.
+ * Plan a training or an event: type, focus and templates (or a name), day, time, note, and
+ * optionally weekly on chosen weekdays, each weekday with its own focus and templates if
+ * wanted (Mo = Push, Do = Pull). A series is edited as a whole; single dates are changed
+ * from their detail.
  */
 export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: () => void }) {
   const [draft, setDraft] = useState(initial);
+  const [editDay, setEditDay] = useState<number | null>(null);
   const types = useTrainingTypes().data ?? [];
-  const [now] = useState(() => Date.now());
-  const templates = templateSections(
-    useTemplates().data ?? [],
-    now,
-    draft.trainingTypeId ?? '',
-  ).active;
+  const focuses = useTrainingFocuses().data ?? [];
   const save = useSavePlan();
   const repeats = draft.repeatWeekdays.length > 0;
+  const training = draft.kind === 'training';
   const missing =
-    draft.kind === 'training' && !draft.trainingTypeId
+    training && !draft.trainingTypeId
       ? 'Wähl eine Trainingsart.'
-      : draft.kind === 'event' && !draft.title.trim()
+      : !training && !draft.title.trim()
         ? 'Gib dem Event einen Namen.'
         : null;
 
   function set(changes: Partial<PlanDraft>) {
     setDraft((current) => ({ ...current, ...changes }));
   }
+
+  function dayOf(weekday: number): PlanDay | undefined {
+    return draft.days.find((day) => day.weekday === weekday);
+  }
+
+  function setDay(weekday: number, day: Omit<PlanDay, 'weekday'> | null) {
+    setDraft((current) => ({
+      ...current,
+      days: [
+        ...current.days.filter((d) => d.weekday !== weekday),
+        ...(day ? [{ weekday, ...day }] : []),
+      ],
+    }));
+  }
+
+  /** "Push · 2 Vorlagen" / "wie oben" */
+  function daySummary(weekday: number): string {
+    const day = dayOf(weekday);
+    if (!day) return 'wie oben';
+    const focus = focuses.find((f) => f.id === day.focusId)?.name;
+    const count = day.templateIds.length;
+    return (
+      [focus, count === 1 ? '1 Vorlage' : count > 1 ? `${String(count)} Vorlagen` : null]
+        .filter(Boolean)
+        .join(' · ') || 'ohne Fokus und Vorlage'
+    );
+  }
+
+  const editing = editDay !== null ? (dayOf(editDay) ?? null) : null;
 
   return (
     <form
@@ -70,7 +95,7 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
         ]}
       />
 
-      {draft.kind === 'training' ? (
+      {training ? (
         <>
           <FieldGroup label="Trainingsart">
             <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
@@ -80,7 +105,7 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
                   type="button"
                   aria-pressed={draft.trainingTypeId === type.id}
                   onClick={() => {
-                    set({ trainingTypeId: type.id, templateId: null });
+                    set({ trainingTypeId: type.id, focusId: null, templateIds: [], days: [] });
                   }}
                   className={cn(chip, draft.trainingTypeId === type.id ? on : off)}
                 >
@@ -90,32 +115,13 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
               ))}
             </div>
           </FieldGroup>
-          {/* Always there (same height), so the sheet does not jump when the type changes. */}
-          <FieldGroup label="Vorlage (optional)">
-            {templates.length > 0 ? (
-              <div className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
-                {templates.map((template) => (
-                  <button
-                    key={template.id}
-                    type="button"
-                    aria-pressed={draft.templateId === template.id}
-                    onClick={() => {
-                      set({ templateId: draft.templateId === template.id ? null : template.id });
-                    }}
-                    className={cn(chip, draft.templateId === template.id ? on : off)}
-                  >
-                    {template.name}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="flex min-h-tap items-center text-subhead text-text-subtle">
-                {draft.trainingTypeId
-                  ? 'Keine Vorlagen für diese Trainingsart.'
-                  : 'Erst eine Trainingsart wählen.'}
-              </p>
-            )}
-          </FieldGroup>
+          <PlanTargetPicker
+            trainingTypeId={draft.trainingTypeId}
+            value={{ focusId: draft.focusId, templateIds: draft.templateIds }}
+            onChange={(target) => {
+              set(target);
+            }}
+          />
         </>
       ) : (
         <TextField
@@ -155,23 +161,27 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
           label="Wöchentlich wiederholen"
           checked={repeats}
           onCheckedChange={(repeat) => {
-            set({ repeatWeekdays: repeat ? [isoWeekday(draft.startsOn)] : [], repeatUntil: '' });
+            set({
+              repeatWeekdays: repeat ? [isoWeekday(draft.startsOn)] : [],
+              repeatUntil: '',
+              days: [],
+            });
           }}
         />
         {repeats && (
           <>
             <div className="grid grid-cols-7 gap-1">
-              {WEEKDAYS.map(({ day, label }) => {
-                const active = draft.repeatWeekdays.includes(day);
+              {[1, 2, 3, 4, 5, 6, 7].map((weekday) => {
+                const active = draft.repeatWeekdays.includes(weekday);
                 return (
                   <button
-                    key={day}
+                    key={weekday}
                     type="button"
                     aria-pressed={active}
                     onClick={() => {
                       const next = active
-                        ? draft.repeatWeekdays.filter((d) => d !== day)
-                        : [...draft.repeatWeekdays, day].sort();
+                        ? draft.repeatWeekdays.filter((d) => d !== weekday)
+                        : [...draft.repeatWeekdays, weekday].sort();
                       // At least one day stays chosen while repeating.
                       if (next.length > 0) set({ repeatWeekdays: next });
                     }}
@@ -180,11 +190,36 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
                       active ? on : off,
                     )}
                   >
-                    {label}
+                    {WEEKDAY_SHORT[weekday]}
                   </button>
                 );
               })}
             </div>
+
+            {training && draft.repeatWeekdays.length > 1 && (
+              <FieldGroup label="Pro Wochentag (optional)">
+                <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
+                  {draft.repeatWeekdays.map((weekday) => (
+                    <li key={weekday}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditDay(weekday);
+                        }}
+                        className="flex min-h-tap w-full items-center justify-between gap-3 px-4 py-2.5 text-left active:bg-surface-3"
+                      >
+                        <span className="text-subhead font-semibold">{WEEKDAY_NAMES[weekday]}</span>
+                        <span className="flex min-w-0 items-center gap-2 text-footnote text-text-muted">
+                          <span className="truncate">{daySummary(weekday)}</span>
+                          <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </FieldGroup>
+            )}
+
             <TextField
               label="Bis (optional)"
               type="date"
@@ -216,6 +251,46 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
       <Button type="submit" size="lg" missing={missing} loading={save.isPending}>
         {draft.id ? 'Speichern' : 'Planen'}
       </Button>
+
+      <Sheet
+        open={editDay !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditDay(null);
+        }}
+        title={editDay !== null ? (WEEKDAY_NAMES[editDay] ?? 'Tag') : 'Tag'}
+      >
+        {editDay !== null && (
+          <div className="flex flex-col gap-6 pt-1">
+            <PlanTargetPicker
+              trainingTypeId={draft.trainingTypeId}
+              value={editing ?? { focusId: draft.focusId, templateIds: draft.templateIds }}
+              onChange={(target) => {
+                setDay(editDay, target);
+              }}
+            />
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => {
+                  setEditDay(null);
+                }}
+              >
+                Fertig
+              </Button>
+              {editing && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setDay(editDay, null);
+                    setEditDay(null);
+                  }}
+                >
+                  Wie oben
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Sheet>
     </form>
   );
 }

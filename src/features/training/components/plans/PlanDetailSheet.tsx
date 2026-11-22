@@ -1,19 +1,22 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useUserId } from '@/features/auth';
-import { Button, Sheet } from '@/shared/ui';
-import { useDeletePlan, usePlan, useSkipPlanDate } from '../../api/usePlans';
+import { Button, Sheet, TextField } from '@/shared/ui';
+import { useChangePlanDate, useDeletePlan, usePlan, useSkipPlanDate } from '../../api/usePlans';
 import { useTemplates } from '../../api/useTemplates';
-import { useStartWorkout } from '../../api/useWorkout';
 import type { PlanDraft, PlanOccurrence } from '../../types';
-import { OpenLiveWorkoutContext } from './open-live';
 import { PlanForm } from './PlanForm';
+import { PlanStartButton } from './PlanStartButton';
+import { PlanTargetPicker, type PlanTarget } from './PlanTargetPicker';
 import { planTitle, repeatText } from './planText';
 
 const longDate = new Intl.DateTimeFormat('de', { weekday: 'long', day: 'numeric', month: 'long' });
 
-type Step = 'detail' | 'edit' | 'redo' | 'confirm-cancel' | 'confirm-delete';
+type Step = 'detail' | 'edit' | 'change' | 'redo' | 'confirm-cancel' | 'confirm-delete';
 
-/** One planned date: what, when, and (mine) start, edit, cancel, make up, delete. */
+/**
+ * One planned date: what (type, focus, templates), when, and (mine) start, edit the series,
+ * change only this date, cancel, make up, delete.
+ */
 export function PlanDetailSheet({
   plan,
   today,
@@ -28,11 +31,12 @@ export function PlanDetailSheet({
   const mine = plan?.userId === useUserId();
   const draft = usePlan(plan && mine ? plan.planId : null).data ?? null;
   const templates = useTemplates().data ?? [];
-  const template = templates.find((t) => t.id === plan?.templateId);
+  const templateNames = (plan?.templateIds ?? []).flatMap(
+    (id) => templates.find((t) => t.id === id)?.name ?? [],
+  );
   const skip = useSkipPlanDate();
+  const change = useChangePlanDate();
   const remove = useDeletePlan();
-  const start = useStartWorkout();
-  const openLive = useContext(OpenLiveWorkoutContext);
 
   function close() {
     setStep('detail');
@@ -41,12 +45,14 @@ export function PlanDetailSheet({
 
   const title =
     step === 'edit'
-      ? 'Termin bearbeiten'
-      : step === 'redo'
-        ? 'Nachholen'
-        : plan
-          ? planTitle(plan)
-          : 'Termin';
+      ? 'Serie bearbeiten'
+      : step === 'change'
+        ? 'Nur diesen Termin'
+        : step === 'redo'
+          ? 'Nachholen'
+          : plan
+            ? planTitle(plan)
+            : 'Termin';
 
   return (
     <Sheet
@@ -63,8 +69,14 @@ export function PlanDetailSheet({
               {longDate.format(new Date(`${plan.onDate}T12:00:00`))}
               {plan.startTime ? ` · ${plan.startTime} Uhr` : ''}
             </span>
-            {template && <span>Vorlage: {template.name}</span>}
+            {plan.focus && <span>Fokus: {plan.focus.name}</span>}
+            {templateNames.length > 0 && (
+              <span>
+                {templateNames.length === 1 ? 'Vorlage' : 'Vorlagen'}: {templateNames.join(', ')}
+              </span>
+            )}
             {plan.recurring && draft && <span>{repeatText(draft)}</span>}
+            {plan.changed && <span>Nur dieser Termin geändert</span>}
             {plan.status === 'cancelled' && <span className="text-danger">Abgesagt</span>}
             {plan.note && <span className="text-text">{plan.note}</span>}
           </div>
@@ -75,33 +87,22 @@ export function PlanDetailSheet({
                 plan.status === 'planned' &&
                 plan.onDate === today &&
                 plan.trainingType && (
-                  <Button
+                  <PlanStartButton
+                    plan={plan}
                     size="lg"
-                    loading={start.isPending}
-                    onClick={() => {
-                      if (!plan.trainingType) return;
-                      start.mutate(
-                        {
-                          trainingTypeId: plan.trainingType.id,
-                          templateId: plan.templateId ?? undefined,
-                          plan: { id: plan.planId, onDate: plan.onDate },
-                        },
-                        {
-                          onSuccess: () => {
-                            close();
-                            openLive?.();
-                          },
-                        },
-                      );
-                    }}
-                  >
-                    Training starten
-                  </Button>
+                    label="Training starten"
+                    onStarted={close}
+                  />
                 )}
-              {start.isError && (
-                <p role="alert" className="text-footnote text-danger">
-                  Starten hat nicht geklappt (läuft schon ein Training?).
-                </p>
+              {plan.status !== 'done' && plan.recurring && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setStep('change');
+                  }}
+                >
+                  Nur diesen Termin ändern
+                </Button>
               )}
               {plan.status !== 'done' && (
                 <Button
@@ -138,7 +139,7 @@ export function PlanDetailSheet({
                     loading={skip.isPending}
                     onClick={() => {
                       skip.mutate(
-                        { planId: plan.planId, onDate: plan.onDate, skip: false },
+                        { planId: plan.planId, planDate: plan.planDate, skip: false },
                         { onSuccess: close },
                       );
                     }}
@@ -146,6 +147,30 @@ export function PlanDetailSheet({
                     Findet doch statt
                   </Button>
                 </>
+              )}
+              {plan.changed && plan.status !== 'done' && (
+                <Button
+                  variant="ghost"
+                  loading={change.isPending}
+                  onClick={() => {
+                    change.mutate(
+                      {
+                        change: {
+                          planId: plan.planId,
+                          planDate: plan.planDate,
+                          onDate: plan.planDate,
+                          startTime: '',
+                          focusId: null,
+                          templateIds: [],
+                        },
+                        reset: true,
+                      },
+                      { onSuccess: close },
+                    );
+                  }}
+                >
+                  Wieder wie in der Serie
+                </Button>
               )}
               <Button
                 variant="ghost"
@@ -170,7 +195,7 @@ export function PlanDetailSheet({
             loading={skip.isPending}
             onClick={() => {
               skip.mutate(
-                { planId: plan.planId, onDate: plan.onDate, skip: true },
+                { planId: plan.planId, planDate: plan.planDate, skip: true },
                 { onSuccess: close },
               );
             }}
@@ -217,13 +242,97 @@ export function PlanDetailSheet({
 
       {step === 'edit' && draft && <PlanForm initial={draft} onSaved={close} />}
       {step === 'redo' && plan && draft && (
-        <PlanForm initial={redoDraft(draft, today)} onSaved={close} />
+        <PlanForm initial={redoDraft(draft, plan, today)} onSaved={close} />
       )}
+      {step === 'change' && plan && <ChangeDateForm plan={plan} onSaved={close} />}
     </Sheet>
   );
 }
 
-/** "Nachholen": the same training once more, today by default. */
-function redoDraft(draft: PlanDraft, today: string): PlanDraft {
-  return { ...draft, id: null, startsOn: today, repeatWeekdays: [], repeatUntil: '' };
+/** "Nachholen": this training once more (its focus and templates), today by default. */
+function redoDraft(draft: PlanDraft, plan: PlanOccurrence, today: string): PlanDraft {
+  return {
+    ...draft,
+    id: null,
+    startsOn: today,
+    startTime: plan.startTime ?? '',
+    focusId: plan.focus?.id ?? null,
+    templateIds: plan.templateIds,
+    repeatWeekdays: [],
+    repeatUntil: '',
+    days: [],
+  };
+}
+
+/** "Nur diesen Termin ändern": day, time, focus and templates of one date. */
+function ChangeDateForm({ plan, onSaved }: { plan: PlanOccurrence; onSaved: () => void }) {
+  const [onDate, setOnDate] = useState(plan.onDate);
+  const [startTime, setStartTime] = useState(plan.startTime ?? '');
+  const [target, setTarget] = useState<PlanTarget>({
+    focusId: plan.focus?.id ?? null,
+    templateIds: plan.templateIds,
+  });
+  const change = useChangePlanDate();
+  return (
+    <form
+      className="flex flex-col gap-6 pt-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+        change.mutate(
+          {
+            change: {
+              planId: plan.planId,
+              planDate: plan.planDate,
+              onDate,
+              startTime,
+              focusId: target.focusId,
+              templateIds: target.templateIds,
+            },
+          },
+          { onSuccess: onSaved },
+        );
+      }}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <TextField
+          label="Tag"
+          type="date"
+          className="h-tap appearance-none"
+          value={onDate}
+          onChange={(event) => {
+            setOnDate(event.target.value);
+          }}
+        />
+        <TextField
+          label="Uhrzeit (optional)"
+          type="time"
+          className="h-tap appearance-none"
+          value={startTime}
+          onChange={(event) => {
+            setStartTime(event.target.value);
+          }}
+        />
+      </div>
+      {plan.kind === 'training' && plan.trainingType && (
+        <PlanTargetPicker
+          trainingTypeId={plan.trainingType.id}
+          value={target}
+          onChange={setTarget}
+        />
+      )}
+      {change.isError && (
+        <p role="alert" className="text-footnote text-danger">
+          Speichern hat nicht geklappt.
+        </p>
+      )}
+      <Button
+        type="submit"
+        size="lg"
+        missing={onDate ? null : 'Wähl einen Tag.'}
+        loading={change.isPending}
+      >
+        Nur diesen Termin speichern
+      </Button>
+    </form>
+  );
 }

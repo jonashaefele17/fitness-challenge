@@ -1,11 +1,9 @@
-import { useContext, useState } from 'react';
-import { Button } from '@/shared/ui';
+import { useState } from 'react';
 import { usePlanOccurrences } from '../../api/usePlans';
-import { useStartWorkout } from '../../api/useWorkout';
 import type { PlanOccurrence } from '../../types';
 import { TrainingTypeIcon } from '../TrainingTypeIcon';
-import { OpenLiveWorkoutContext } from './open-live';
 import { PlanDetailSheet } from './PlanDetailSheet';
+import { PlanStartButton } from './PlanStartButton';
 import { planTitle } from './planText';
 
 function todayKey(): string {
@@ -22,8 +20,6 @@ export function TodayPlans() {
   });
   const plans = (usePlanOccurrences(range).data ?? []).filter((p) => p.status === 'planned');
   const [open, setOpen] = useState<PlanOccurrence | null>(null);
-  const start = useStartWorkout();
-  const openLive = useContext(OpenLiveWorkoutContext);
   if (plans.length === 0) return null;
 
   return (
@@ -32,7 +28,7 @@ export function TodayPlans() {
       <ul className="flex flex-col gap-2">
         {plans.map((plan) => (
           <li
-            key={plan.planId}
+            key={`${plan.planId}:${plan.planDate}`}
             className="flex min-h-tap items-center gap-3 rounded-card bg-surface-2 px-4 py-3"
           >
             <button
@@ -53,38 +49,18 @@ export function TodayPlans() {
                 )}
               </span>
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-subhead font-semibold">{planTitle(plan)}</span>
+                <span className="truncate text-subhead font-semibold">
+                  {[planTitle(plan), plan.focus?.name].filter(Boolean).join(' · ')}
+                </span>
                 {plan.startTime && (
                   <span className="text-footnote text-text-muted">{plan.startTime} Uhr</span>
                 )}
               </span>
             </button>
-            {plan.kind === 'training' && plan.trainingType && (
-              <Button
-                loading={start.isPending && start.variables.plan?.id === plan.planId}
-                onClick={() => {
-                  if (!plan.trainingType) return;
-                  start.mutate(
-                    {
-                      trainingTypeId: plan.trainingType.id,
-                      templateId: plan.templateId ?? undefined,
-                      plan: { id: plan.planId, onDate: plan.onDate },
-                    },
-                    { onSuccess: () => openLive?.() },
-                  );
-                }}
-              >
-                Starten
-              </Button>
-            )}
+            {plan.kind === 'training' && plan.trainingType && <PlanStartButton plan={plan} />}
           </li>
         ))}
       </ul>
-      {start.isError && (
-        <p role="alert" className="text-footnote text-danger">
-          Starten hat nicht geklappt (läuft schon ein Training?).
-        </p>
-      )}
       <PlanDetailSheet
         plan={open}
         today={today}

@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(13);
+select plan(18);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -53,6 +53,28 @@ select is(
     where kind = 'event'),
   1::bigint, 'the event once');
 
+-- per weekday: Monday Push, Thursday Pull
+insert into public.plan_days (plan_id, weekday, focus_id) values
+  ('c0000000-0000-4000-8000-000000000001', 1, (select id from public.training_focuses where name = 'Push' and owner_id is null)),
+  ('c0000000-0000-4000-8000-000000000001', 4, (select id from public.training_focuses where name = 'Pull' and owner_id is null));
+select results_eq(
+  $$select focus_name from public.plan_occurrences('11111111-1111-4111-8111-111111111111', '2026-12-14', '2026-12-17') order by on_date$$,
+  $$values ('Push'::text), ('Pull'::text)$$,
+  'each weekday of the series has its own focus');
+
+-- one date changed on its own: Monday 21 moved to Tuesday 22, 07:00
+insert into public.plan_changes (plan_id, on_date, moved_to, start_time)
+values ('c0000000-0000-4000-8000-000000000001', '2026-12-21', '2026-12-22', '07:00');
+select results_eq(
+  $$select on_date, plan_date, start_time, changed from public.plan_occurrences(
+      '11111111-1111-4111-8111-111111111111', '2026-12-21', '2026-12-22')$$,
+  $$values ('2026-12-22'::date, '2026-12-21'::date, '07:00'::time, true)$$,
+  'a single date moves on its own, with its time');
+select is(
+  (select count(*) from public.plan_occurrences('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-31')
+    where plan_id = 'c0000000-0000-4000-8000-000000000001'),
+  9::bigint, 'the series keeps its number of dates');
+
 -- one date cancelled
 insert into public.plan_skips (plan_id, on_date) values ('c0000000-0000-4000-8000-000000000001', '2026-12-07');
 select is(
@@ -82,6 +104,13 @@ select throws_ok(
 select throws_ok(
   $$select public.start_workout(tests.studio(), null, null, 'c0000000-0000-4000-8000-000000000001', '2026-12-14')$$,
   'P0001', 'plan_not_found', 'nor start from their plan');
+select throws_ok(
+  $$insert into public.plan_changes (plan_id, on_date, start_time)
+    values ('c0000000-0000-4000-8000-000000000001', '2026-12-17', '06:00')$$,
+  '42501', null, 'nor change a single date');
+select throws_ok(
+  $$insert into public.plan_days (plan_id, weekday) values ('c0000000-0000-4000-8000-000000000001', 3)$$,
+  '42501', null, 'nor the weekdays of the series');
 set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
 select is(
   (select count(*) from public.plan_occurrences('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-31')),

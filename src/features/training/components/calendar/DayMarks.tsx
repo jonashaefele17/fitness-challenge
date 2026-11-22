@@ -45,7 +45,7 @@ export function DayMarks({
           <TrainingTypeIcon icon={plan.trainingType?.icon ?? 'generic'} className="size-5" />
         )}
         <span className="max-w-full truncate text-caption leading-none text-text-muted">
-          {cancelled ? '' : (plan.startTime ?? '')}
+          {cancelled ? '' : (plan.focus?.shortName ?? plan.startTime ?? '')}
         </span>
       </span>
     );

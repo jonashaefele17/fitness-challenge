@@ -283,19 +283,33 @@ export interface WorkoutCardSummary {
 export interface PlanOccurrence {
   planId: string;
   userId: string;
-  /** "2026-12-07" */
+  /** Where it shows, "2026-12-07" (moved or not). */
   onDate: string;
+  /** The date as planned: key for cancelling, changing and "done". */
+  planDate: string;
   /** "18:00", or null for no fixed time. */
   startTime: string | null;
   kind: 'training' | 'event';
   trainingType: { id: string; name: string; icon: string } | null;
-  templateId: string | null;
+  focus: { id: string; name: string; shortName: string | null } | null;
+  /** Templates to choose from at the start (one: starts with it). */
+  templateIds: string[];
   title: string | null;
   note: string | null;
   recurring: boolean;
+  /** This date was changed on its own. */
+  changed: boolean;
   status: 'planned' | 'cancelled' | 'done';
   /** The finished workout started from it (status done). */
   workoutId: string | null;
+}
+
+/** Focus and templates of one weekday of a series (instead of the plan's). */
+export interface PlanDay {
+  /** ISO weekday 1–7. */
+  weekday: number;
+  focusId: string | null;
+  templateIds: string[];
 }
 
 /** A plan as edited in the form. */
@@ -303,7 +317,8 @@ export interface PlanDraft {
   id: string | null;
   kind: 'training' | 'event';
   trainingTypeId: string | null;
-  templateId: string | null;
+  focusId: string | null;
+  templateIds: string[];
   title: string;
   note: string;
   /** "2026-12-07" */
@@ -314,4 +329,18 @@ export interface PlanDraft {
   repeatWeekdays: number[];
   /** "2026-12-31" or "" (open ended). */
   repeatUntil: string;
+  /** Series: weekdays with their own focus and templates. */
+  days: PlanDay[];
+}
+
+/** "Nur diesen Termin ändern": what differs on one date. */
+export interface PlanChange {
+  planId: string;
+  planDate: string;
+  /** "2026-12-08", or the planned date. */
+  onDate: string;
+  /** "07:00" or "" (no fixed time). */
+  startTime: string;
+  focusId: string | null;
+  templateIds: string[];
 }

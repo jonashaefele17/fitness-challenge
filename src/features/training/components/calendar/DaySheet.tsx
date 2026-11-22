@@ -87,7 +87,7 @@ export function DaySheet({
         {shownPlans.length > 0 && (
           <ul className="flex flex-col gap-2">
             {shownPlans.map(({ row, plan }) => (
-              <li key={`${plan.planId}:${plan.onDate}`}>
+              <li key={`${plan.planId}:${plan.planDate}`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -122,6 +122,7 @@ export function DaySheet({
                     <span className="truncate text-footnote text-text-muted">
                       {[
                         plan.status === 'cancelled' ? 'abgesagt' : 'geplant',
+                        plan.focus?.name,
                         plan.startTime ? `${plan.startTime} Uhr` : null,
                         plan.recurring ? 'wöchentlich' : null,
                       ]

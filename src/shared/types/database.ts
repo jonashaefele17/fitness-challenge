@@ -914,6 +914,89 @@ export type Database = {
           },
         ];
       };
+      plan_changes: {
+        Row: {
+          clear_time: boolean;
+          focus_id: string | null;
+          moved_to: string | null;
+          on_date: string;
+          plan_id: string;
+          start_time: string | null;
+          template_ids: string[] | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          clear_time?: boolean;
+          focus_id?: string | null;
+          moved_to?: string | null;
+          on_date: string;
+          plan_id: string;
+          start_time?: string | null;
+          template_ids?: string[] | null;
+        };
+        Update: {
+          clear_time?: boolean;
+          focus_id?: string | null;
+          moved_to?: string | null;
+          on_date?: string;
+          plan_id?: string;
+          start_time?: string | null;
+          template_ids?: string[] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_changes_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_changes_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      plan_days: {
+        Row: {
+          focus_id: string | null;
+          plan_id: string;
+          template_ids: string[];
+          weekday: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          focus_id?: string | null;
+          plan_id: string;
+          template_ids?: string[];
+          weekday: number;
+        };
+        Update: {
+          focus_id?: string | null;
+          plan_id?: string;
+          template_ids?: string[];
+          weekday?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'plan_days_focus_id_fkey';
+            columns: ['focus_id'];
+            isOneToOne: false;
+            referencedRelation: 'training_focuses';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'plan_days_plan_id_fkey';
+            columns: ['plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       plan_skips: {
         Row: {
           created_at: string;
@@ -944,6 +1027,7 @@ export type Database = {
       plans: {
         Row: {
           created_at: string;
+          focus_id: string | null;
           id: string;
           kind: string;
           note: string | null;
@@ -951,7 +1035,7 @@ export type Database = {
           repeat_weekdays: number[];
           start_time: string | null;
           starts_on: string;
-          template_id: string | null;
+          template_ids: string[];
           title: string | null;
           training_type_id: string | null;
           user_id: string;
@@ -959,6 +1043,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          focus_id?: string | null;
           id?: string;
           kind: string;
           note?: string | null;
@@ -966,13 +1051,14 @@ export type Database = {
           repeat_weekdays?: number[];
           start_time?: string | null;
           starts_on: string;
-          template_id?: string | null;
+          template_ids?: string[];
           title?: string | null;
           training_type_id?: string | null;
           user_id?: string;
         };
         Update: {
           created_at?: string;
+          focus_id?: string | null;
           id?: string;
           kind?: string;
           note?: string | null;
@@ -980,17 +1066,17 @@ export type Database = {
           repeat_weekdays?: number[];
           start_time?: string | null;
           starts_on?: string;
-          template_id?: string | null;
+          template_ids?: string[];
           title?: string | null;
           training_type_id?: string | null;
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'plans_template_id_fkey';
-            columns: ['template_id'];
+            foreignKeyName: 'plans_focus_id_fkey';
+            columns: ['focus_id'];
             isOneToOne: false;
-            referencedRelation: 'workout_templates';
+            referencedRelation: 'training_focuses';
             referencedColumns: ['id'];
           },
           {
@@ -1948,14 +2034,19 @@ export type Database = {
       plan_occurrences: {
         Args: { p_from: string; p_to: string; p_user_id: string };
         Returns: {
+          changed: boolean;
+          focus_id: string;
+          focus_name: string;
+          focus_short: string;
           kind: string;
           note: string;
           on_date: string;
+          plan_date: string;
           plan_id: string;
           recurring: boolean;
           start_time: string;
           status: string;
-          template_id: string;
+          template_ids: string[];
           title: string;
           training_type_id: string;
           type_icon: string;

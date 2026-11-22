@@ -14,17 +14,14 @@ Branch: `feat/planning`. Grundlage: Konzept, Abschnitt „Planung, Kalender und 
 
 Noch zu tun für 5a: Staging-Test durch Jonas, Feedback einarbeiten.
 
-### Feedback zu 5a (22.11.2026, noch nicht gebaut)
+### Feedback zu 5a (22.11.2026) – umgesetzt am 23.11.2026
 
-- [ ] **Fokus bei geplanten Trainings angeben** (Push, Pull, Beine, OK …). Der Fokus ist das, was man in der Übersicht sehen will: im Kalender als Kürzel unter dem Umriss-Icon, wie bei erledigten Trainings.
-- [ ] **Vorlage passend zum Fokus:** Beim Planen nur die Vorlagen anbieten, die zum gewählten Fokus passen (bzw. diese zuerst).
-- [ ] **Vorlage in einer Serie wechselbar:** Eine Serie soll nicht auf eine Vorlage festgelegt sein (z. B. Mo Push, Do Pull oder abwechselnd).
-- [ ] **Mehrfachauswahl** von Vorlagen bzw. Fokus für eine Serie prüfen.
-
-Vor dem Bau klären (Vorschlag mit Empfehlung vorlegen):
-- Wie wechselt die Vorlage in einer Serie: pro Wochentag fest (Mo = Push, Do = Pull), der Reihe nach rotierend (Push → Pull → Beine → …) oder pro einzelnem Termin wählbar?
-- Was bedeutet Mehrfachauswahl genau: mehrere Vorlagen, aus denen beim Start gewählt wird, oder eine feste Reihenfolge?
-- Wird der Fokus aus der Vorlage übernommen, oder wählt man den Fokus und die Vorlage passt sich an?
+- [x] Fokus bei geplanten Trainings angeben; im Kalender als Kürzel unter dem Umriss-Icon
+- [x] Vorlagen passend zum Fokus zuerst, die anderen unter „Andere“; wählt man zuerst eine Vorlage, übernimmt der Termin ihren Fokus; ein neuer Fokus behält nur passende Vorlagen
+- [x] Mehrere Vorlagen pro Termin: beim Start fragt die App „Welche Vorlage heute?“
+- [x] Serie pro Wochentag (Variante A): jeder Wochentag mit eigenem Fokus und eigenen Vorlagen (Mo = Push, Fr = Pull), sonst „wie oben“
+- [x] „Nur diesen Termin ändern“: Tag, Uhrzeit, Fokus und Vorlagen eines einzelnen Termins; „Wieder wie in der Serie“ nimmt die Änderung zurück
+- Nicht gebaut (bewusst): Vorlagen reihum (Variante B) – nur falls ohne feste Tage trainiert wird
 
 ## Offen
 
@@ -67,4 +64,4 @@ Offene Frage: Wie fügt man eine Übung **nur für sich** hinzu (ohne sie in die
 
 ## Offene Einschränkung aus 5a
 
-„Serie bearbeiten“ ändert immer die ganze Serie. Einen einzelnen Termin verschiebt man über Absagen + Nachholen. Beim Staging-Test prüfen, ob „nur diesen Termin ändern“ fehlt.
+Erledigt: „Nur diesen Termin ändern“ ist gebaut (siehe Feedback oben).

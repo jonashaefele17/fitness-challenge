@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn, showToast } from '@/shared/lib';
-import { Button, CheckIcon, Sheet } from '@/shared/ui';
+import { Button, CheckIcon, CloseIcon, Sheet } from '@/shared/ui';
 import { useHabitDays, useHabitWeeks, useMyHabits, useSetHabitEntry } from '../api/useHabits';
 import { todayKey } from '../dates';
 import { ruleText, startValue, valueText } from '../habitText';
@@ -27,6 +27,13 @@ function useToday(today: string): Item[] {
     .sort((a, b) => Number(a.day.timeOfDay === 'evening') - Number(b.day.timeOfDay === 'evening'));
 }
 
+/** Not answered yet today (weekly: nothing today and the week's target not reached). */
+function isOpen(item: Item): boolean {
+  return item.day.frequency === 'weekly'
+    ? item.day.value === null && item.week?.state !== 'done'
+    : item.day.state === 'open';
+}
+
 /** Done today (weekly: done today or the week's target reached). */
 function isDone(item: Item): boolean {
   return item.day.state === 'done' || item.week?.state === 'done';
@@ -42,7 +49,7 @@ export function CheckIn() {
   const [start, setStart] = useState<number | null>(null);
   const askable = items.filter((i) => i.day.source !== 'training');
   if (items.length === 0) return null;
-  const open = askable.filter((i) => !isDone(i) && i.day.state !== 'partial');
+  const open = askable.filter(isOpen);
 
   return (
     <section className="flex flex-col gap-2">
@@ -90,6 +97,7 @@ export function CheckIn() {
 function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
   const done = isDone(item);
   const partial = !done && item.day.state === 'partial';
+  const missed = !done && item.day.state === 'missed';
   const weekly = item.day.frequency === 'weekly';
   const detail = weekly
     ? `${String(item.week?.doneDays ?? 0)}/${String(item.week?.target ?? item.habit.current.timesPerWeek ?? 0)} Woche`
@@ -109,9 +117,11 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
           'flex size-6 items-center justify-center rounded-pill border-2',
           done && 'border-accent bg-accent text-on-accent',
           partial && 'border-accent',
-          !done && !partial && 'border-border',
+          missed && 'border-border text-text-subtle',
+          !done && !partial && !missed && 'border-border',
         )}
       >
+        {missed && <CloseIcon className="size-3.5" />}
         {done && <CheckIcon className="size-4" />}
         {partial && <span className="size-2.5 rounded-pill bg-accent" />}
       </span>

@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(25);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -53,6 +53,8 @@ select is(tests.state('Schlaf', '2026-12-02'), 'missed', 'older days keep the ol
 select is(tests.state('Schlaf', '2026-12-04'), 'missed', 'after midnight is still late');
 select is(tests.state('Schlaf', '2026-12-05'), 'missed', 'a past day without entry is missed');
 select is(tests.state('Schlaf', '2026-12-10'), 'open', 'today without entry is open');
+select public.set_habit_entry(tests.habit('Schlaf'), '2026-12-10', '{"start":"01:00","end":"05:00"}');
+select is(tests.state('Schlaf', '2026-12-10'), 'missed', 'an answer that misses is missed, also today');
 select throws_ok(
   $$select public.set_habit_entry(tests.habit('Schlaf'), '2026-12-05', '{"minutes":30}')$$,
   'P0001', 'invalid_value', 'a value must fit the input type');

@@ -4,5 +4,13 @@ export { HabitsSettings } from './components/HabitsSettings';
 export { habitKeys } from './api/useHabits';
 export type * from './types';
 export { useThisWeek } from './api/useHabits';
-export { HabitCompareRow } from './components/HabitCompareRow';
 export { useHabitsOfPeople } from './api/useHabits';
+export {
+  HabitCompareContext,
+  habitKey,
+  type HabitCompare,
+  type HabitPerson,
+  type UseHabitCompare,
+} from './compare';
+export { HabitCompareSheet } from './components/HabitCompareView';
+export { habitSummaryOptions } from './api/useHabits';

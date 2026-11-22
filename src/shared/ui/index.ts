@@ -14,3 +14,10 @@ export { TextField, type TextFieldProps } from './TextField';
 export { Toaster } from './Toaster';
 export * from './icons';
 export { NumberWheel, type NumberWheelProps } from './NumberWheel';
+export {
+  CompareTable,
+  type CompareCell,
+  type CompareColumn,
+  type CompareRow,
+  type CompareTableProps,
+} from './CompareTable';

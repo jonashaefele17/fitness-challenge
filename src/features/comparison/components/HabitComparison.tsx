@@ -1,49 +1,33 @@
+import { useQueries } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useUserId } from '@/features/auth';
-import { useActiveGroup, useGroupMembers, type GroupMember } from '@/features/groups';
-import { HabitCompareRow, useHabitsOfPeople, type Habit } from '@/features/habits';
-import { personColorVar } from '@/shared/design-tokens';
+import { HabitCompareSheet, habitSummaryOptions, type HabitPerson } from '@/features/habits';
+import { CompareTable } from '@/shared/ui';
+import { useGroupHabits } from '../api/useGroupHabits';
 
-interface Entry {
-  habit: Habit;
-  member: GroupMember;
+function dayKey(date: Date): string {
+  return `${String(date.getFullYear())}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 /**
- * The group's habits side by side, grouped by habit: everyone who keeps the same one
- * (same standard template, or taken over from the same person) in one card.
- * Only shared habits appear; the database hides the rest anyway.
+ * Gruppe → Habits: a row per shared habit, a column per person with the share of the last
+ * 4 weeks (bar in their colour). A tap opens the habit compared side by side.
  */
 export function HabitComparison() {
   const userId = useUserId();
-  const { group } = useActiveGroup();
-  const members = useGroupMembers(group.id).data ?? [];
-  const lists = useHabitsOfPeople(members.map((m) => m.userId));
-
-  const groups = new Map<string, Entry[]>();
-  lists.forEach(({ personId, habits }) => {
-    const member = members.find((m) => m.userId === personId);
-    if (!member) return;
-    habits
-      .filter((h) => !h.archived && h.shareLevel !== 'private')
-      .forEach((habit) => {
-        const key = habit.templateId ?? habit.sourceHabitId ?? habit.id;
-        groups.set(key, [...(groups.get(key) ?? []), { habit, member }]);
-      });
+  const { columns, rows } = useGroupHabits();
+  const [range] = useState(() => {
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(today.getDate() - 27);
+    return { from: dayKey(from), to: dayKey(today) };
   });
-  // Mine first within a habit; shared habits (2+ people) before single ones.
-  const cards = [...groups.values()]
-    .map((entries) =>
-      entries.sort((a, b) =>
-        a.member.userId === userId ? -1 : b.member.userId === userId ? 1 : 0,
-      ),
-    )
-    .sort(
-      (a, b) =>
-        Number(b.length > 1) - Number(a.length > 1) ||
-        (a[0]?.habit.current.name ?? '').localeCompare(b[0]?.habit.current.name ?? '', 'de'),
-    );
+  const summaries = useQueries({
+    queries: columns.map((c) => habitSummaryOptions(userId, range.from, range.to, c.id)),
+  });
+  const [open, setOpen] = useState<{ title: string; people: HabitPerson[] } | null>(null);
 
-  if (cards.length === 0) {
+  if (rows.length === 0) {
     return (
       <p className="rounded-card bg-surface-2 px-4 py-6 text-center text-subhead text-text-muted">
         Noch keine geteilten Habits. Teilen geht beim Habit unter „Wer sieht das?“.
@@ -51,39 +35,34 @@ export function HabitComparison() {
     );
   }
   return (
-    <div className="flex flex-col gap-3">
-      <p className="px-1 text-footnote text-text-muted">
-        Kästchen: letzte 7 Tage · Prozent: letzte 4 Wochen
-      </p>
-      {cards.map((entries) => {
-        const first = entries[0];
-        if (!first) return null;
-        const alone = entries.length === 1;
-        return (
-          <section
-            key={first.habit.id}
-            className="flex flex-col gap-3 rounded-card bg-surface-2 px-4 py-3"
-          >
-            <h3 className="text-subhead font-semibold">
-              {first.habit.current.name}
-              {alone && (
-                <span className="font-normal text-text-muted">
-                  {' '}
-                  · nur {first.member.userId === userId ? 'du' : first.member.displayName}
-                </span>
-              )}
-            </h3>
-            {entries.map(({ habit, member }) => (
-              <HabitCompareRow
-                key={habit.id}
-                habit={habit}
-                label={member.userId === userId ? 'Du' : member.displayName}
-                color={personColorVar(member.color)}
-              />
-            ))}
-          </section>
-        );
-      })}
+    <div className="flex flex-col gap-2">
+      <CompareTable
+        columns={columns.map((c) => ({ key: c.id, label: c.name, color: c.color }))}
+        rows={rows.map((row) => ({
+          key: row.key,
+          label: row.name,
+          cells: row.cells.map((cell, index) => {
+            if (!cell) return null;
+            const quota =
+              summaries[index]?.data?.find((s) => s.habitId === cell.habit.id)?.quota ?? null;
+            return {
+              value: quota === null ? '–' : `${String(Math.round(quota * 100))} %`,
+              fraction: quota,
+            };
+          }),
+          onOpen: () => {
+            setOpen({ title: row.name, people: row.cells.filter((c) => c !== null) });
+          },
+        }))}
+      />
+      <p className="px-1 text-footnote text-text-muted">Prozent: letzte 4 Wochen</p>
+      <HabitCompareSheet
+        title={open?.title ?? ''}
+        people={open?.people ?? null}
+        onClose={() => {
+          setOpen(null);
+        }}
+      />
     </div>
   );
 }

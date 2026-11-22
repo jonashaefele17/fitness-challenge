@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, ChevronRightIcon, SegmentedControl, Sheet } from '@/shared/ui';
 import { useHabitDays, useHabitSummary, useHabitWeeks, useMyHabits } from '../api/useHabits';
 import { cellClass, mondayOf, percent } from '../cells';
-import { addDays, formatMinutes, todayKey } from '../dates';
-import type { Habit, HabitDefinition, HabitSummary, HabitWeek } from '../types';
+import { HabitCompareContext } from '../compare';
+import { figures, trend } from '../figures';
+import { addDays, todayKey } from '../dates';
+import type { Habit, HabitWeek } from '../types';
 import {
   HabitChecklistShare,
   HabitHeatmap,
@@ -12,25 +14,10 @@ import {
   HabitNights,
   HabitWeekBars,
 } from './HabitCharts';
+import { HabitCompareView } from './HabitCompareView';
 import { HabitsSettings } from './HabitsSettings';
 
 type Range = '4w' | '3m';
-
-/** ↑ / ↓ / = against the range before (5 points make a change). */
-function trend(summary: HabitSummary | undefined): { mark: string; label: string } | null {
-  if (summary?.quota == null || summary.previousQuota == null) return null;
-  const diff = summary.quota - summary.previousQuota;
-  if (diff > 0.05) return { mark: '↑', label: 'besser als davor' };
-  if (diff < -0.05) return { mark: '↓', label: 'schwächer als davor' };
-  return { mark: '=', label: 'wie davor' };
-}
-
-/** "23:27" from minutes after midnight. */
-function clock(minutes: number | null): string {
-  if (minutes === null) return '–';
-  const m = ((minutes % 1440) + 1440) % 1440;
-  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-}
 
 /**
  * Ich → Habits, as in the prototype: this week (a row per habit, Monday to Sunday and
@@ -298,72 +285,6 @@ function WeekSegments({ weeks }: { weeks: HabitWeek[] }) {
   );
 }
 
-/** The three figures that say most about a habit, by its kind. */
-function figures(
-  def: HabitDefinition,
-  s: HabitSummary | undefined,
-  weeks: HabitWeek[],
-): { label: string; value: string }[] {
-  const met = `${String(s?.met ?? 0)}/${String(s?.counted ?? 0)}`;
-  const amount = (v: number | null) =>
-    v === null
-      ? '–'
-      : def.inputType === 'duration'
-        ? formatMinutes(Math.round(v))
-        : `${v.toLocaleString('de', { maximumFractionDigits: 1 })}${def.unit ? ` ${def.unit}` : ''}`;
-  if (def.frequency === 'weekly') {
-    const counted = weeks.filter((w) => w.state === 'done' || w.state === 'missed');
-    const avg =
-      counted.length > 0 ? counted.reduce((sum, w) => sum + w.doneDays, 0) / counted.length : null;
-    return [
-      {
-        label: 'Ø pro Woche',
-        value: avg === null ? '–' : avg.toLocaleString('de', { maximumFractionDigits: 1 }),
-      },
-      { label: 'Wochen erreicht', value: met },
-      { label: 'Quote', value: percent(s?.quota ?? null) },
-    ];
-  }
-  switch (def.inputType) {
-    case 'time_pair':
-      return [
-        { label: 'Ø Schlaf', value: s?.avgDuration == null ? '–' : formatMinutes(s.avgDuration) },
-        { label: 'Ø ins Bett', value: clock(s?.avgStart ?? null) },
-        { label: 'im Ziel', value: met },
-      ];
-    case 'duration':
-    case 'number':
-      return [
-        { label: 'Ø pro Tag', value: amount(s?.avgValue ?? null) },
-        { label: 'im Ziel', value: met },
-        {
-          label: def.inputType === 'duration' ? 'Bester Tag' : 'Bestwert',
-          value: amount(s?.bestValue ?? null),
-        },
-      ];
-    case 'choice':
-      return def.options.map((o) => ({
-        label: o.label,
-        value: String(s?.choiceCounts[o.key] ?? 0),
-      }));
-    case 'checklist':
-      return [
-        {
-          label: 'vollständig',
-          value: `${String(s?.completeDays ?? 0)}/${String(s?.counted ?? 0)}`,
-        },
-        { label: 'Quote', value: percent(s?.quota ?? null) },
-        { label: 'Punkte', value: String(def.options.length) },
-      ];
-    default:
-      return [
-        { label: 'erfüllt', value: met },
-        { label: 'Quote', value: percent(s?.quota ?? null) },
-        { label: 'Trend', value: trend(s)?.label ?? '–' },
-      ];
-  }
-}
-
 /** One habit: three figures in plain words, then its chart; 4 weeks or 3 months. */
 function HabitDetailSheet({
   habit,
@@ -381,12 +302,20 @@ function HabitDetailSheet({
   const summary = (useHabitSummary(from, today).data ?? []).find((s) => s.habitId === habit?.id);
   const def = habit?.current;
   const t = trend(summary);
+  // Comparing with the others who keep the same habit (only with a provider from the app).
+  const compare = useContext(HabitCompareContext)(habit);
+  const [comparing, setComparing] = useState(false);
+  const canCompare = compare.me !== null && compare.people.length > 0 && habit !== null;
+  const showCompare = comparing && canCompare;
 
   return (
     <Sheet
       open={habit !== null}
       onOpenChange={(next) => {
-        if (!next) onClose();
+        if (!next) {
+          setComparing(false);
+          onClose();
+        }
       }}
       title={def?.name ?? 'Habit'}
     >
@@ -402,33 +331,55 @@ function HabitDetailSheet({
               { value: '3m', label: '3 Monate' },
             ]}
           />
-          <div className="grid grid-cols-3 gap-2">
-            {figures(def, summary, weeks).map((f) => (
-              <Figure key={f.label} label={f.label} value={f.value} />
-            ))}
-          </div>
-          {t && (
-            <p className="-mt-2 text-footnote text-text-muted">
-              {t.mark} {t.label} ({range === '4w' ? 'die 4 Wochen' : 'die 3 Monate'} davor:{' '}
-              {percent(summary?.previousQuota ?? null)})
-            </p>
+          {showCompare && compare.me ? (
+            <HabitCompareView
+              people={[{ ...compare.me, habit }, ...compare.people]}
+              range={range}
+              today={today}
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                {figures(def, summary, weeks).map((f) => (
+                  <Figure key={f.label} label={f.label} value={f.value} />
+                ))}
+              </div>
+              {t && (
+                <p className="-mt-2 text-footnote text-text-muted">
+                  {t.mark} {t.label} ({range === '4w' ? 'die 4 Wochen' : 'die 3 Monate'} davor:{' '}
+                  {percent(summary?.previousQuota ?? null)})
+                </p>
+              )}
+              <div className="rounded-card bg-surface-2 p-4">
+                {def.frequency === 'weekly' ? (
+                  <HabitWeekBars weeks={weeks} />
+                ) : def.inputType === 'number' || def.inputType === 'duration' ? (
+                  <HabitLine days={days} def={def} />
+                ) : def.inputType === 'time_pair' ? (
+                  <HabitNights days={days} def={def} />
+                ) : (
+                  <HabitHeatmap days={days} def={def} from={from} to={today} />
+                )}
+              </div>
+              {def.inputType === 'checklist' && (
+                <section className="flex flex-col gap-2">
+                  <h3 className="text-footnote font-semibold text-text-muted">Pro Punkt</h3>
+                  <HabitChecklistShare days={days} def={def} />
+                </section>
+              )}
+            </>
           )}
-          <div className="rounded-card bg-surface-2 p-4">
-            {def.frequency === 'weekly' ? (
-              <HabitWeekBars weeks={weeks} />
-            ) : def.inputType === 'number' || def.inputType === 'duration' ? (
-              <HabitLine days={days} def={def} />
-            ) : def.inputType === 'time_pair' ? (
-              <HabitNights days={days} def={def} />
-            ) : (
-              <HabitHeatmap days={days} def={def} from={from} to={today} />
-            )}
-          </div>
-          {def.inputType === 'checklist' && (
-            <section className="flex flex-col gap-2">
-              <h3 className="text-footnote font-semibold text-text-muted">Pro Punkt</h3>
-              <HabitChecklistShare days={days} def={def} />
-            </section>
+          {canCompare && (
+            <Button
+              variant="tinted"
+              onClick={() => {
+                setComparing(!comparing);
+              }}
+            >
+              {comparing
+                ? 'Nur meine Werte'
+                : `Vergleichen mit ${compare.people.map((p) => p.name).join(', ')}`}
+            </Button>
           )}
         </div>
       )}

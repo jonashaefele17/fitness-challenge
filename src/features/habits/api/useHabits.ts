@@ -1,4 +1,10 @@
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type { Json } from '@/shared/types/database';
@@ -229,10 +235,9 @@ export function usePromoteHabit() {
 }
 
 /** How my habits stand per day in a range. */
-export function useHabitDays(from: string, to: string, personId?: string) {
-  const userId = useUserId();
-  const person = personId ?? userId;
-  return useQuery({
+/** Query options for useHabitDays (also for several people at once). */
+export function habitDaysOptions(userId: string, from: string, to: string, person: string) {
+  return queryOptions({
     queryKey: [...habitKeys.days(userId, from, to), person],
     queryFn: async (): Promise<HabitDay[]> => {
       const { data, error } = await supabase.rpc('habit_days', {
@@ -260,11 +265,15 @@ export function useHabitDays(from: string, to: string, personId?: string) {
   });
 }
 
-/** Weekly habits per week (done days, target, state). */
-export function useHabitWeeks(from: string, to: string, personId?: string) {
+export function useHabitDays(from: string, to: string, personId?: string) {
   const userId = useUserId();
-  const person = personId ?? userId;
-  return useQuery({
+  return useQuery(habitDaysOptions(userId, from, to, personId ?? userId));
+}
+
+/** Weekly habits per week (done days, target, state). */
+/** Query options for useHabitWeeks (also for several people at once). */
+export function habitWeeksOptions(userId: string, from: string, to: string, person: string) {
+  return queryOptions({
     queryKey: [...habitKeys.weeks(userId, from, to), person],
     queryFn: async (): Promise<HabitWeek[]> => {
       const { data, error } = await supabase.rpc('habit_weeks', {
@@ -284,6 +293,11 @@ export function useHabitWeeks(from: string, to: string, personId?: string) {
       }));
     },
   });
+}
+
+export function useHabitWeeks(from: string, to: string, personId?: string) {
+  const userId = useUserId();
+  return useQuery(habitWeeksOptions(userId, from, to, personId ?? userId));
 }
 
 function useRefresh() {
@@ -464,10 +478,9 @@ export function useHabitStats(from: string, to: string) {
 }
 
 /** The figures of each habit in a range, in plain words (see habit_summary). */
-export function useHabitSummary(from: string, to: string, personId?: string) {
-  const userId = useUserId();
-  const person = personId ?? userId;
-  return useQuery({
+/** Query options for useHabitSummary (also for several people at once). */
+export function habitSummaryOptions(userId: string, from: string, to: string, person: string) {
+  return queryOptions({
     queryKey: [...habitKeys.all(userId), 'summary', from, to, person],
     queryFn: async (): Promise<HabitSummary[]> => {
       const { data, error } = await supabase.rpc('habit_summary', {
@@ -496,6 +509,11 @@ export function useHabitSummary(from: string, to: string, personId?: string) {
       }));
     },
   });
+}
+
+export function useHabitSummary(from: string, to: string, personId?: string) {
+  const userId = useUserId();
+  return useQuery(habitSummaryOptions(userId, from, to, personId ?? userId));
 }
 
 /** My check-in reminder times. */

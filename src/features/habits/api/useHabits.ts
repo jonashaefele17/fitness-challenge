@@ -297,3 +297,23 @@ export function useRemovePause() {
     onSettled: refresh,
   });
 }
+
+/** This week's weekly habits (e.g. Sport 2/4), for a glance on Heute. */
+export function useThisWeek() {
+  const today = todayKey();
+  const habits = (useMyHabits().data ?? []).filter((h) => !h.archived);
+  const weeks = useHabitWeeks(today, today).data ?? [];
+  return weeks.flatMap((week) => {
+    const habit = habits.find((h) => h.id === week.habitId);
+    return habit
+      ? [
+          {
+            name: habit.current.name,
+            doneDays: week.doneDays,
+            target: week.target,
+            state: week.state,
+          },
+        ]
+      : [];
+  });
+}

@@ -51,22 +51,17 @@ export function CheckIn() {
   if (items.length === 0) return null;
   const open = askable.filter(isOpen);
 
+  const done = items.filter(isDone).length;
+
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <h2 className="text-footnote font-semibold text-text-muted">Check-in</h2>
-        {askable.length > 0 && (
-          <Button
-            variant={open.length > 0 ? 'primary' : 'ghost'}
-            onClick={() => {
-              setStart(open[0] ? askable.indexOf(open[0]) : 0);
-            }}
-          >
-            {open.length > 0 ? `Starten · ${String(open.length)} offen` : 'Ändern'}
-          </Button>
-        )}
+    <section className="flex flex-col gap-3 rounded-card bg-surface-2 py-4">
+      <div className="flex items-baseline justify-between px-4">
+        <h2 className="text-body font-semibold">Check-in</h2>
+        <span className="text-footnote text-text-muted">
+          {done} von {items.length}
+        </span>
       </div>
-      <ul className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter">
+      <ul className="no-scrollbar flex gap-2 overflow-x-auto px-4">
         {items.map((item) => (
           <li key={item.habit.id} className="shrink-0">
             <Tile
@@ -82,6 +77,19 @@ export function CheckIn() {
           </li>
         ))}
       </ul>
+      {askable.length > 0 && (
+        <div className="px-4">
+          <Button
+            className="w-full"
+            variant={open.length > 0 ? 'primary' : 'ghost'}
+            onClick={() => {
+              setStart(open[0] ? askable.indexOf(open[0]) : 0);
+            }}
+          >
+            {open.length > 0 ? 'Check-in starten' : 'Erledigt ✓ · Ändern'}
+          </Button>
+        </div>
+      )}
       <CheckInFlow
         items={askable}
         start={start}
@@ -108,7 +116,7 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
       onClick={onOpen}
       className={cn(
         'flex h-24 w-28 flex-col justify-between rounded-card border p-3 text-left active:bg-surface-3',
-        done ? 'border-accent bg-accent/15' : 'border-border bg-surface-2',
+        done ? 'border-accent bg-accent/15' : 'border-border bg-surface-3',
       )}
     >
       <span

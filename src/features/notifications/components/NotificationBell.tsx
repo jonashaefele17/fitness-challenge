@@ -25,11 +25,23 @@ export interface OpenTargetOptions {
 export interface NotificationBellProps {
   /** Jumps to the object (composed in app, which knows the routes). */
   onOpenTarget: (target: TargetRef, options: OpenTargetOptions) => void;
+  /** Open from outside too (e.g. "Alle ›" on Heute); without it the bell keeps its own state. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** Bell with unread badge; opens the list of everything that concerns me. */
-export function NotificationBell({ onOpenTarget }: NotificationBellProps) {
-  const [open, setOpen] = useState(false);
+export function NotificationBell({
+  onOpenTarget,
+  open: openProp,
+  onOpenChange,
+}: NotificationBellProps) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = openProp ?? ownOpen;
+  const setOpen = (next: boolean) => {
+    setOwnOpen(next);
+    onOpenChange?.(next);
+  };
   const unread = useUnreadCount().data ?? 0;
 
   return (
@@ -129,7 +141,7 @@ function NotificationsSheet({
   );
 }
 
-function NotificationItem({
+export function NotificationItem({
   notification,
   onOpen,
 }: {

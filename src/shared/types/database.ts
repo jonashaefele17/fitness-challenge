@@ -2554,6 +2554,30 @@ export type Database = {
           unit: string;
         }[];
       };
+      habit_summary: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          avg_duration: number;
+          avg_end: number;
+          avg_start: number;
+          avg_value: number;
+          best_value: number;
+          choice_counts: Json;
+          complete_days: number;
+          counted: number;
+          habit_id: string;
+          item_counts: Json;
+          met: number;
+          previous_quota: number;
+          quota: number;
+        }[];
+      };
       habit_weeks: {
         Args: {
           p_from: string;

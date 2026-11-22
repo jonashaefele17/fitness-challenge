@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(30);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -153,6 +153,24 @@ select results_eq(
      where habit_id = tests.habit('Sport')$$,
   $$values ('weeks'::text, 1, 0)$$,
   'weekly habits count weeks that ended (not the running one)');
+select is(
+  (select best_streak from public.habit_stats('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-10', '2026-12-10')
+    where habit_id = tests.habit('Schlaf')),
+  2, 'one missed night does not end a run (two in a row do)');
+select results_eq(
+  $$select avg_value, best_value from public.habit_summary('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-02', '2026-12-10')
+     where habit_id = tests.habit('Screen-Time')$$,
+  $$values (120.0::numeric, 90::numeric)$$,
+  'average and best value (lowest for "at most")');
+select results_eq(
+  $$select avg_start, avg_duration from public.habit_summary('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-03', '2026-12-10')
+     where habit_id = tests.habit('Schlaf')$$,
+  $$values (1407, 473)$$,
+  'average bed time (23:27) and sleep (7:53), across midnight');
+select is(
+  (select choice_counts from public.habit_summary('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-01', '2026-12-10')
+    where habit_id = tests.habit('Ernährung')),
+  '{"partly": 1}'::jsonb, 'how often each choice');
 
 -- Private
 set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';

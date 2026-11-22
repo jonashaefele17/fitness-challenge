@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import { addDays, dayKey } from '../calendar';
+import type { IcsEvent, IcsSeries } from '../ics';
 import type { PlanChange, PlanDraft, PlanOccurrence } from '../types';
 import { trainingKeys } from './keys';
 
@@ -246,6 +247,60 @@ export function useNextPlanDate(planId: string | null) {
       const dates = (await options.queryFn()).filter((o) => o.planId === planId);
       const todayKey = dayKey(today);
       return dates.find((o) => o.onDate >= todayKey) ?? dates.at(-1) ?? null;
+    },
+  });
+}
+
+/**
+ * Everything a calendar file of a whole series needs: the series (weekdays, end), its
+ * cancelled and changed dates (left out), and the changed dates on their own.
+ */
+export function useLoadPlanSeries() {
+  const userId = useUserId();
+  return useMutation({
+    mutationFn: async (plan: PlanOccurrence): Promise<(IcsEvent | IcsSeries)[]> => {
+      const { data, error } = await supabase
+        .from('plans')
+        .select(
+          'starts_on, start_time, repeat_weekdays, repeat_until, note, training_focuses(name), plan_days(weekday)',
+        )
+        .eq('id', plan.planId)
+        .single();
+      if (error) throw error;
+      const from = new Date(`${data.starts_on}T12:00:00`);
+      // Open-ended: a year ahead is enough to find the changed dates.
+      const to = data.repeat_until
+        ? new Date(`${data.repeat_until}T12:00:00`)
+        : addDays(new Date(), 365);
+      const dates = await planOccurrencesOptions(userId, { from, to }, plan.userId).queryFn();
+      const own = dates.filter((d) => d.planId === plan.planId);
+      const changed = own.filter((d) => d.changed && d.status !== 'cancelled');
+      const title =
+        plan.kind === 'event' ? (plan.title ?? 'Event') : (plan.trainingType?.name ?? 'Training');
+      // One focus for the whole series only when the weekdays do not differ.
+      const focus = data.plan_days.length === 0 ? data.training_focuses?.name : null;
+      const time = data.start_time ? data.start_time.slice(0, 5) : null;
+      return [
+        {
+          uid: `${plan.planId}@fitness-challenge`,
+          summary: [title, focus].filter(Boolean).join(' · '),
+          description: data.note,
+          date: data.starts_on,
+          time,
+          weekdays: data.repeat_weekdays,
+          until: data.repeat_until,
+          exceptDates: own
+            .filter((d) => d.status === 'cancelled' || d.changed)
+            .map((d) => d.planDate),
+        },
+        ...changed.map((d) => ({
+          uid: `${plan.planId}-${d.planDate}@fitness-challenge`,
+          summary: [title, d.focus?.name].filter(Boolean).join(' · '),
+          description: d.note,
+          date: d.onDate,
+          time: d.startTime,
+        })),
+      ];
     },
   });
 }

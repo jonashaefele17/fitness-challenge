@@ -81,7 +81,12 @@ Beim Staging-Test prüfen:
 
 ### 5d – Export
 
-- [ ] Pro Termin „In Kalender übernehmen“: `.ics`-Datei für den Handykalender
+- [x] Pro Termin „In Kalender übernehmen“: `.ics`-Datei für den Handykalender (gebaut am 23.11.2026)
+  - Hinweis: einmalige Kopie, spätere Änderungen in der App kommen nicht automatisch in den Kalender
+  - Serie: „Ganze Serie“ (Wochentage, Enddatum, abgesagte Termine fehlen, geänderte einzeln) oder „Nur dieser Termin“
+  - Ohne Erinnerung (die App pusht selbst; Kalender haben eigene Standard-Erinnerungen)
+  - Auch für Eingeladene und andere aus der Gruppe
+- [ ] Auf dem iPhone testen: erscheint in der installierten App die Vorschau „Hinzufügen“? Falls nicht: Datei über einen geschützten Link vom Server ausliefern
 - Kalender-Abo (Link, der sich selbst aktualisiert) ist nur eine Idee (`docs/ideen.md`), nicht Teil von Version 1
 
 ## Offene Einschränkung aus 5a

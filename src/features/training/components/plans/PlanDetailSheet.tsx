@@ -4,6 +4,7 @@ import { Button, Sheet, TextField } from '@/shared/ui';
 import { useChangePlanDate, useDeletePlan, usePlan, useSkipPlanDate } from '../../api/usePlans';
 import { useTemplates } from '../../api/useTemplates';
 import type { PlanDraft, PlanOccurrence } from '../../types';
+import { CalendarExport } from './CalendarExport';
 import { PlanForm } from './PlanForm';
 import { PlanStartButton } from './PlanStartButton';
 import { PlanTargetPicker, type PlanTarget } from './PlanTargetPicker';
@@ -12,7 +13,8 @@ import { PlanSocialContext } from './social';
 
 const longDate = new Intl.DateTimeFormat('de', { weekday: 'long', day: 'numeric', month: 'long' });
 
-type Step = 'detail' | 'edit' | 'change' | 'redo' | 'confirm-cancel' | 'confirm-delete';
+type Step =
+  'detail' | 'edit' | 'change' | 'redo' | 'calendar' | 'confirm-cancel' | 'confirm-delete';
 
 /**
  * One planned date: what (type, focus, templates), when, and (mine) start, edit the series,
@@ -52,9 +54,11 @@ export function PlanDetailSheet({
         ? 'Nur diesen Termin'
         : step === 'redo'
           ? 'Nachholen'
-          : plan
-            ? planTitle(plan)
-            : 'Termin';
+          : step === 'calendar'
+            ? 'In Kalender übernehmen'
+            : plan
+              ? planTitle(plan)
+              : 'Termin';
 
   return (
     <Sheet
@@ -84,6 +88,17 @@ export function PlanDetailSheet({
           </div>
 
           {Detail && plan.status !== 'done' && <Detail plan={plan} />}
+
+          {plan.status === 'planned' && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setStep('calendar');
+              }}
+            >
+              In Kalender übernehmen
+            </Button>
+          )}
 
           {mine && (
             <div className="flex flex-col gap-2">
@@ -249,6 +264,14 @@ export function PlanDetailSheet({
         <PlanForm initial={redoDraft(draft, plan, today)} onSaved={close} />
       )}
       {step === 'change' && plan && <ChangeDateForm plan={plan} onSaved={close} />}
+      {step === 'calendar' && plan && (
+        <CalendarExport
+          plan={plan}
+          onDone={() => {
+            setStep('detail');
+          }}
+        />
+      )}
     </Sheet>
   );
 }

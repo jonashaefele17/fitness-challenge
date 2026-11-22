@@ -317,7 +317,20 @@ function PersonWeek({
         const workouts = map.get(key) ?? [];
         const plans = planMap.get(key) ?? [];
         const first = workouts[0];
-        if (!first && plans.length === 0) return <span key={key} className="min-h-tap" />;
+        // Empty: the whole cell opens the day (like the date above), e.g. to plan.
+        if (!first && plans.length === 0) {
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-label={`${row.name}, ${dayTitle.format(date)}`}
+              onClick={() => {
+                onDay(key);
+              }}
+              className="min-h-tap rounded-sm active:bg-surface-3"
+            />
+          );
+        }
         return (
           <button
             key={key}

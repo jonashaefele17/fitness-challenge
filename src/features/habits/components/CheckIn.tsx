@@ -92,7 +92,7 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
   const partial = !done && item.day.state === 'partial';
   const weekly = item.day.frequency === 'weekly';
   const detail = weekly
-    ? `${String(item.week?.doneDays ?? 0)}/${String(item.week?.target ?? item.habit.current.timesPerWeek ?? 0)} diese Woche`
+    ? `${String(item.week?.doneDays ?? 0)}/${String(item.week?.target ?? item.habit.current.timesPerWeek ?? 0)} Woche`
     : (valueText(item.habit.current, item.day.value) ?? 'offen');
   return (
     <button

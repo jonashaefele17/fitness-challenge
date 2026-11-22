@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { NotificationBell } from '@/features/notifications';
 import { LinkedPlanSheet, TemplatesView, WorkoutLog } from '@/features/training';
@@ -15,6 +15,13 @@ export function TrainingRoute() {
   // Linked from a notification: a plan to open.
   const [params, setParams] = useSearchParams();
   const openTarget = useOpenTarget();
+  // The calendar does not bounce (the other pages do).
+  useEffect(() => {
+    document.documentElement.setAttribute('data-no-bounce', '');
+    return () => {
+      document.documentElement.removeAttribute('data-no-bounce');
+    };
+  }, []);
   return (
     <Screen title="Training" accessory={<NotificationBell onOpenTarget={openTarget} />}>
       <div className="flex flex-col gap-4">

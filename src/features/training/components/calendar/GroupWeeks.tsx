@@ -202,7 +202,7 @@ export function GroupWeeks({
         <div
           ref={scroller}
           onScroll={onScroll}
-          className="relative no-scrollbar overflow-y-auto overscroll-contain px-1.5"
+          className="relative no-scrollbar overflow-y-auto overscroll-none px-1.5"
         >
           {mondays.map((monday) => {
             const days = Array.from({ length: 7 }, (_, index) => addDays(monday, index));

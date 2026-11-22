@@ -40,6 +40,13 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 - [ ] Check-in nicht automatisch in den Feed: Muss der tägliche Check-in überhaupt auf der Tageskarte erscheinen, oder nur Trainings, Wiegetag und Meilensteine? Offen, wenn Baustein 6 (Habits) dran ist, gemeinsam entscheiden.
 
+## Skalierung (erst bei vielen Nutzern)
+
+Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des Live-Trainings.
+
+- [ ] Feed, Kommentare und Mitteilungen von „Postgres Changes“ auf private Broadcast-Kanäle umstellen (z. B. ein Kanal pro Gruppe, wie beim Live-Training `live:<Sitzung>`). Heute prüft Supabase bei jeder Änderung für jeden verbundenen Zuhörer die Zugriffsregeln – bei 2–5 Leuten egal, bei vielen gleichzeitigen Nutzern eine Last für die Datenbank.
+- [ ] Live-Training: Meldungen bündeln – eine hinzugefügte Übung wird zu allen kopiert und löst mehrere Meldungen aus, jedes Handy lädt dann kurz mehrmals nach (harmlos).
+
 ## Feinschliff
 
 - [ ] Optional: Einstellung „App-Farbe: Limette / meine Personenfarbe“ (Ich → Einstellungen). Technisch einfach (Akzent-Token zur Laufzeit setzen, Schriftfarbe auf Knöpfen automatisch hell/dunkel, gedrückt/Glas abgeleitet; App-Icon und Ladebildschirm bleiben Limette). Standard bleibt Limette, weil Personenfarben in Gruppenansichten „diese Person“ bedeuten.

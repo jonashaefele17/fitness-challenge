@@ -32,6 +32,12 @@
     display: none;
   }
 
+  /* A screen that must stay put (the month calendar) sets this while it is shown. */
+  html[data-no-bounce],
+  html[data-no-bounce] body {
+    overscroll-behavior-y: none;
+  }
+
   button,
   a {
     -webkit-touch-callout: none;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn, showToast } from '@/shared/lib';
-import { Button, CheckIcon, ChevronLeftIcon, CloseIcon, Sheet } from '@/shared/ui';
+import { Button, CheckIcon, ChevronLeftIcon, Sheet } from '@/shared/ui';
 import { useHabitDays, useHabitWeeks, useMyHabits, useSetHabitEntry } from '../api/useHabits';
 import { todayKey } from '../dates';
 import { ruleText, startValue, valueText } from '../habitText';
@@ -102,6 +102,10 @@ export function CheckIn() {
   );
 }
 
+/**
+ * A quiet tile (as in the prototype): name small and grey, value bold. Done only tints the
+ * border and text; partly met keeps a hint of it; missed turns the value grey.
+ */
 function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
   const done = isDone(item);
   const partial = !done && item.day.state === 'partial';
@@ -114,28 +118,23 @@ function Tile({ item, onOpen }: { item: Item; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
+      aria-label={`${item.habit.current.name}: ${detail}`}
       className={cn(
-        'flex h-24 w-28 flex-col justify-between rounded-card border p-3 text-left active:bg-surface-3',
-        done ? 'border-accent bg-accent/15' : 'border-border bg-surface-3',
+        'flex h-20 w-24 flex-col items-center justify-center gap-1 rounded-card border bg-surface-3 px-2 text-center active:bg-surface-2',
+        done ? 'border-accent/30 text-accent' : 'border-border text-text-muted',
+        partial && 'border-accent/20',
       )}
     >
+      <span className="max-w-full truncate text-caption font-semibold">
+        {item.habit.current.name}
+      </span>
       <span
-        aria-hidden
         className={cn(
-          'flex size-6 items-center justify-center rounded-pill border-2',
-          done && 'border-accent bg-accent text-on-accent',
-          partial && 'border-accent',
-          missed && 'border-border text-text-subtle',
-          !done && !partial && !missed && 'border-border',
+          'max-w-full truncate text-footnote font-bold',
+          done ? 'text-accent' : missed || detail === 'offen' ? 'text-text-subtle' : 'text-text',
         )}
       >
-        {missed && <CloseIcon className="size-3.5" />}
-        {done && <CheckIcon className="size-4" />}
-        {partial && <span className="size-2.5 rounded-pill bg-accent" />}
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate text-subhead font-semibold">{item.habit.current.name}</span>
-        <span className="truncate text-caption text-text-muted">{detail}</span>
+        {detail}
       </span>
     </button>
   );

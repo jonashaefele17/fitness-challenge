@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useUserId } from '@/features/auth';
 import { CheckIn } from '@/features/habits';
-import { LiveTodayList } from '@/features/live-training';
 import { NotificationBell, RecentNotifications } from '@/features/notifications';
 import { useMyProfile } from '@/features/profile';
 import { Screen } from '@/shared/ui';
-import { paths } from '../paths';
 import { useOpenTarget } from '../targets';
 import { TodayHero } from '../today/TodayHero';
 import { WeekStrip } from '../today/WeekStrip';
@@ -20,7 +17,6 @@ const dateLine = new Intl.DateTimeFormat('de', { weekday: 'long', day: 'numeric'
 export function TodayRoute() {
   const profile = useMyProfile(useUserId());
   const openTarget = useOpenTarget();
-  const navigate = useNavigate();
   const [bellOpen, setBellOpen] = useState(false);
   const [today] = useState(() => dateLine.format(new Date()));
   const name = profile.data?.displayName;
@@ -35,12 +31,6 @@ export function TodayRoute() {
     >
       <div className="flex flex-col gap-4">
         <TodayHero />
-        {/* Plan dates of others I take part in: start or join them. */}
-        <LiveTodayList
-          onStarted={() => {
-            void navigate(paths.liveWorkout);
-          }}
-        />
         <CheckIn />
         <WeekStrip />
         <RecentNotifications

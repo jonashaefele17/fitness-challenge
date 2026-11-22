@@ -66,6 +66,15 @@ Beim Staging-Test prüfen:
 - Feed-Karte „mit …“ (im Browser noch nicht geprüft)
 - Eigene Trainingsarten des Besitzers: Mitmachen geht nur bei Standard-Trainingsarten (Studio, Laufen …)
 
+### Feedback zu 5c (23.11.2026) – umgesetzt am 23.11.2026, Branch `feat/live-together`
+
+- [x] „Starten“ gilt für alle, die zugesagt haben (egal wer startet, auch Eingeladene); die anderen bekommen eine Info-Push „hat euer Training gestartet“, Tippen öffnet das laufende Training. Wer „vielleicht“ gesagt hat oder gerade etwas anderes trainiert, wird nicht mitgestartet und sieht „Mitmachen“
+- [x] Knopf „Starten“ bei Terminen anderer genauso grün wie bei eigenen
+- [x] Ein Studio für alle: das Studio der Person, die startet; wechselt jemand das Studio, gilt es für alle (damit passen die Geräte, keine Frage „zu welchem Studio hinzufügen?“)
+- [x] Gemeinsame Übungen werden ganz kopiert: Gerät, Aufwärm- und Arbeitssätze, Wiederholungsbereich, Pausen, Seiten, Zielzeit – Gewichte und Wiederholungen nicht (die kommen aus dem eigenen Verlauf)
+- [x] Beenden: jede Person für sich (eigene Dauer, Zusammenfassung, Bestwerte); wer fertig ist, steht oben blass
+- [x] Glocke auch in den Tabs Training und Ich
+
 ### 5d – Export
 
 - [ ] Pro Termin „In Kalender übernehmen“: `.ics`-Datei für den Handykalender

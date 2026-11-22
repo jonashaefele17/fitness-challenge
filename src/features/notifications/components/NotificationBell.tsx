@@ -12,7 +12,7 @@ import {
   useNotifications,
   useUnreadCount,
 } from '../api/useNotifications';
-import { describeNotification } from '../settings';
+import { describeNotification, isReminder } from '../settings';
 import type { AppNotification } from '../types';
 
 export interface OpenTargetOptions {
@@ -163,8 +163,14 @@ export function NotificationItem({
       {actor ? <Avatar profile={actor} /> : <span className="size-10 shrink-0" />}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-subhead">
-          <span className="font-semibold">{actor?.displayName ?? 'Jemand'}</span>{' '}
-          {describeNotification(notification)}
+          {isReminder(notification.event) ? (
+            <span className="font-semibold">{describeNotification(notification)}</span>
+          ) : (
+            <>
+              <span className="font-semibold">{actor?.displayName ?? 'Jemand'}</span>{' '}
+              {describeNotification(notification)}
+            </>
+          )}
         </span>
         {notification.preview && (
           <span className="truncate text-footnote text-text-muted">„{notification.preview}“</span>

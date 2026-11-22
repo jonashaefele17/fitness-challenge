@@ -38,9 +38,15 @@ Beim Staging-Test prüfen:
 - [x] Entschieden: Quoten statt Serien in der Oberfläche (Jonas). Die Datenbank rechnet Serien „verzeihend“ (einmal verpassen unterbricht nicht, zweimal hintereinander schon) – für spätere Meilensteine im Feed (6d)
 - Später verfeinern (nach Pilot): Achsenbeschriftung, Wochenrückblick als Push/Feed (6d)
 
-### 6c – Erinnerungen
-- [ ] Check-in-Erinnerung (Push)
-- [ ] Supplements: Erinnerungszeit pro Eintrag
+### 6c – Erinnerungen (gebaut am 23.11.2026)
+- [x] Check-in-Erinnerung morgens/abends (Habits verwalten → Erinnerungen): Push nur, wenn Habits dieses Zeitpunkts noch offen sind („Check-in: noch offen – Screen-Time, Fokuszeit“)
+- [x] Supplements: Uhrzeit pro Punkt im Checklisten-Editor; Push nur, wenn der Punkt heute noch nicht abgehakt ist
+- [x] Höchstens einmal pro Tag, nie in Pausen, nie mehr als 2 Stunden zu spät; Zeitplan alle 5 Minuten in der Datenbank; Ruhezeit gilt wie bei allen Pushes
+- [x] Eine Erinnerungszeit einzustellen schaltet die Kategorie automatisch ein
+- [x] Antippen öffnet „Heute“ mit dem Check-in direkt beim Habit
+- [x] Datenbank-Tests (10)
+
+Beim Staging-Test prüfen: Kommt die Push zur eingestellten Zeit (max. 5 Minuten später)? Supplement-Zeit setzen und nicht abhaken.
 
 ### 6d – Gruppe
 - [ ] Teilen pro Habit: privat / nur erledigt / mit Werten

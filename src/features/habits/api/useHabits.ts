@@ -10,6 +10,7 @@ import type {
   HabitDefinition,
   HabitOption,
   HabitPause,
+  HabitReminders,
   HabitStats,
   HabitSummary,
   HabitTemplate,
@@ -378,5 +379,42 @@ export function useHabitSummary(from: string, to: string) {
         completeDays: row.complete_days,
       }));
     },
+  });
+}
+
+/** My check-in reminder times. */
+export function useReminders() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: [...habitKeys.all(userId), 'reminders'],
+    queryFn: async (): Promise<HabitReminders> => {
+      const { data, error } = await supabase
+        .from('habit_reminders')
+        .select('morning_at, evening_at')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        morningAt: data?.morning_at ? data.morning_at.slice(0, 5) : null,
+        eveningAt: data?.evening_at ? data.evening_at.slice(0, 5) : null,
+      };
+    },
+  });
+}
+
+export function useSaveReminders() {
+  const userId = useUserId();
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: async (reminders: HabitReminders) => {
+      const { error } = await supabase.from('habit_reminders').upsert({
+        user_id: userId,
+        morning_at: reminders.morningAt,
+        evening_at: reminders.eveningAt,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSettled: refresh,
   });
 }

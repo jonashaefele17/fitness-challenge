@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useUserId } from '@/features/auth';
 import { CheckIn } from '@/features/habits';
 import { NotificationBell, RecentNotifications } from '@/features/notifications';
 import { useMyProfile } from '@/features/profile';
 import { Screen } from '@/shared/ui';
-import { useOpenTarget } from '../targets';
+import { targetParams, useOpenTarget } from '../targets';
 import { TodayHero } from '../today/TodayHero';
 import { WeekStrip } from '../today/WeekStrip';
 
@@ -18,6 +19,8 @@ export function TodayRoute() {
   const profile = useMyProfile(useUserId());
   const openTarget = useOpenTarget();
   const [bellOpen, setBellOpen] = useState(false);
+  // Opened from a reminder: the check-in at that habit.
+  const [params, setParams] = useSearchParams();
   const [today] = useState(() => dateLine.format(new Date()));
   const name = profile.data?.displayName;
 
@@ -31,7 +34,12 @@ export function TodayRoute() {
     >
       <div className="flex flex-col gap-4">
         <TodayHero />
-        <CheckIn />
+        <CheckIn
+          openHabitId={params.get(targetParams.checkin)}
+          onOpened={() => {
+            setParams({}, { replace: true });
+          }}
+        />
         <WeekStrip />
         <RecentNotifications
           onOpenTarget={openTarget}

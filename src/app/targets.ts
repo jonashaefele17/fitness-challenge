@@ -20,6 +20,8 @@ export const targetParams = {
   comment: 'kommentar',
   /** Plan whose next date to open (training tab). */
   plan: 'termin',
+  /** Habit to open in today's check-in (reminders). */
+  checkin: 'checkin',
 } as const;
 
 export interface OpenTargetOptions {
@@ -55,6 +57,8 @@ export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetO
       if (thread && commentId) params.set(targetParams.comment, commentId);
       return `${paths.group}?${params.toString()}`;
     }
+    case 'habit':
+      return `${paths.today}?${new URLSearchParams({ [targetParams.checkin]: target.id }).toString()}`;
     case 'live_workout':
       return paths.liveWorkout;
     case 'plan':

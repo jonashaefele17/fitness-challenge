@@ -18,6 +18,14 @@ export interface HabitOption {
   label: string;
   /** Choice: how far it meets the habit (1, 0.5, 0). */
   score?: number;
+  /** Checklist: remind me at this time ("08:00") if not ticked yet. */
+  remindAt?: string;
+}
+
+/** When to be reminded of the check-in ("21:00"), or null for not. */
+export interface HabitReminders {
+  morningAt: string | null;
+  eveningAt: string | null;
 }
 
 /** What a habit asks and how it is judged (a template or a version). */

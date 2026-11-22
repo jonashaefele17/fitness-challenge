@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { showToast } from '@/shared/lib';
-import { Button, ChevronRightIcon, CloseIcon, PlusIcon, Sheet, TextField } from '@/shared/ui';
+import {
+  Button,
+  ChevronRightIcon,
+  CloseIcon,
+  PlusIcon,
+  Sheet,
+  Switch,
+  TextField,
+} from '@/shared/ui';
 import {
   useAddPause,
   useArchiveHabit,
@@ -8,6 +16,8 @@ import {
   useMyHabits,
   usePauses,
   useRemovePause,
+  useReminders,
+  useSaveReminders,
   useSaveHabit,
 } from '../api/useHabits';
 import { todayKey } from '../dates';
@@ -122,6 +132,8 @@ export function HabitsSettings() {
         )}
       </section>
 
+      <Reminders />
+
       <Pauses />
 
       <Sheet open={libraryOpen} onOpenChange={setLibraryOpen} title="Habit hinzufügen">
@@ -219,6 +231,60 @@ function Library({
 }
 
 /** Ill or on holiday: those days count neither way, week targets shrink. */
+/**
+ * Check-in reminders: in the morning and in the evening, each on or off with its time. A
+ * push only comes when something of that time of day is still open.
+ */
+function Reminders() {
+  const saved = useReminders().data;
+  const save = useSaveReminders();
+  if (!saved) return null;
+  const rows = [
+    { key: 'morningAt' as const, label: 'Morgens', fallback: '08:00' },
+    { key: 'eveningAt' as const, label: 'Abends', fallback: '21:00' },
+  ];
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-footnote font-semibold text-text-muted">Erinnerungen</h2>
+      <p className="text-footnote text-text-muted">
+        Eine Push zum Check-in, wenn zu der Zeit noch etwas offen ist. Supplements haben ihre eigene
+        Uhrzeit pro Punkt (im Habit einstellen).
+      </p>
+      <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
+        {rows.map((row) => {
+          const value = saved[row.key];
+          return (
+            <li key={row.key} className="flex min-h-tap items-center gap-3 px-4 py-2">
+              <span className="flex-1">
+                <Switch
+                  label={row.label}
+                  checked={value !== null}
+                  onCheckedChange={(on) => {
+                    save.mutate({ ...saved, [row.key]: on ? row.fallback : null });
+                  }}
+                />
+              </span>
+              {value !== null && (
+                <input
+                  type="time"
+                  aria-label={`Uhrzeit ${row.label}`}
+                  value={value}
+                  onChange={(event) => {
+                    if (event.target.value) {
+                      save.mutate({ ...saved, [row.key]: event.target.value });
+                    }
+                  }}
+                  className="h-tap rounded-sm bg-surface-3 px-2 text-subhead tabular-nums"
+                />
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 function Pauses() {
   const pauses = usePauses().data ?? [];
   const add = useAddPause();

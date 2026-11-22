@@ -71,6 +71,10 @@ function describe(item: PushItem): string {
       return 'hat einen Termin abgesagt';
     case 'live_started':
       return 'hat euer Training gestartet';
+    case 'checkin_reminder':
+      return 'Check-in: noch offen';
+    case 'supplement_reminder':
+      return 'Zeit für deine Supplements';
     case 'comment':
       return item.category === 'comments_on_mine'
         ? `hat ${ownObject(item.target)} kommentiert`
@@ -86,7 +90,8 @@ export function buildPayload(items: PushItem[], unread: number) {
   if (!latest) throw new Error('empty delivery');
   if (items.length === 1) {
     return {
-      title: `${latest.actorName ?? 'Jemand'} ${describe(latest)}`,
+      // Reminders come from no one: their sentence stands alone.
+      title: latest.actorName ? `${latest.actorName} ${describe(latest)}` : describe(latest),
       body: latest.preview ?? '',
       tag: `${latest.target.type}:${latest.target.id}`,
       target: latest.target,

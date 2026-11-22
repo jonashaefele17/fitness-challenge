@@ -215,7 +215,26 @@ export function HabitEditor({
                     key={o.key}
                     className="flex min-h-tap items-center justify-between gap-3 pl-4"
                   >
-                    <span className="truncate text-subhead">{o.label}</span>
+                    <span className="min-w-0 flex-1 truncate text-subhead">{o.label}</span>
+                    {/* Optional reminder time for this item (e.g. a supplement). */}
+                    <input
+                      type="time"
+                      aria-label={`Erinnerung für ${o.label}`}
+                      value={o.remindAt ?? ''}
+                      onChange={(event) => {
+                        const at = event.target.value;
+                        set({
+                          options: def.options.map((x) =>
+                            x.key === o.key
+                              ? at
+                                ? { ...x, remindAt: at }
+                                : { key: x.key, label: x.label }
+                              : x,
+                          ),
+                        });
+                      }}
+                      className="h-9 w-24 rounded-sm bg-surface-3 px-2 text-footnote tabular-nums"
+                    />
                     <button
                       type="button"
                       aria-label={`${o.label} entfernen`}

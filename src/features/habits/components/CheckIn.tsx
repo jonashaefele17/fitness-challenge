@@ -43,11 +43,24 @@ function isDone(item: Item): boolean {
  * Heute: one tile per habit due today with its state; the check-in asks one question per
  * screen (under 20 seconds). Habits fed from trainings only show their state.
  */
-export function CheckIn() {
+export function CheckIn({
+  openHabitId = null,
+  onOpened,
+}: {
+  /** Open the check-in right at this habit (from a reminder). */
+  openHabitId?: string | null;
+  onOpened?: () => void;
+} = {}) {
   const [today] = useState(todayKey);
   const items = useToday(today);
   const [start, setStart] = useState<number | null>(null);
   const askable = items.filter((i) => i.day.source !== 'training');
+  // From a reminder: open at that habit once today's habits are known.
+  const linked = openHabitId ? askable.findIndex((i) => i.habit.id === openHabitId) : -1;
+  if (linked >= 0 && start === null) {
+    setStart(linked);
+    onOpened?.();
+  }
   if (items.length === 0) return null;
   const open = askable.filter(isOpen);
 

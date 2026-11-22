@@ -25,6 +25,8 @@ Noch zu tun für 5a: Staging-Test durch Jonas, Feedback einarbeiten.
 
 ## Offen
 
+Reihenfolge getauscht (Jonas, 23.11.2026): erst Live-Training (5c), dann Export (5d). Stand nach 5b (`feat/planning`) ist die saubere Version fürs Pilotprojekt; 5c entsteht auf einem eigenen Branch.
+
 ### 5b – Einladungen (soziales Modul `invitations`) – gebaut am 23.11.2026
 
 - [x] Teilnehmende aus der Gruppe einladen: beim Planen („Mit wem?“) und nachträglich im Termin („Leute einladen“ / „Einladung ändern“)
@@ -42,16 +44,11 @@ Noch zu tun für 5a: Staging-Test durch Jonas, Feedback einarbeiten.
 
 Entschieden: Eine Einladung gilt für die ganze Serie; absagen oder eine andere Zeit vorschlagen geht pro Termin.
 
-Bewusst noch nicht drin (kommt mit 5d): Termine anderer, zu denen ich eingeladen bin, unter „Heute geplant“ mit „Starten“ – das gemeinsame Starten gehört zum Live-Training.
+Bewusst noch nicht drin (kommt mit 5c): Termine anderer, zu denen ich eingeladen bin, unter „Heute geplant“ mit „Starten“ – das gemeinsame Starten gehört zum Live-Training.
 
 Beim Staging-Test prüfen: Nach „Übernehmen“ zeigt das offene Termin-Detail noch die alte Zeit, bis man es neu öffnet.
 
-### 5c – Export
-
-- [ ] Pro Termin „In Kalender übernehmen“: `.ics`-Datei für den Handykalender
-- Kalender-Abo (Link, der sich selbst aktualisiert) ist nur eine Idee (`docs/ideen.md`), nicht Teil von Version 1
-
-### 5d – Gemeinsames Live-Training (soziales Modul `live-training`)
+### 5c – Gemeinsames Live-Training (soziales Modul `live-training`)
 
 Vor dem Bau den Mechanismus klären und einen Plan vorlegen.
 
@@ -63,6 +60,11 @@ Vor dem Bau den Mechanismus klären und einen Plan vorlegen.
 - [ ] Am Ende hat jede Person ihr eigenes Training, verknüpft als „mit …“; im Feed auf beiden Karten
 
 Offene Frage: Wie fügt man eine Übung **nur für sich** hinzu (ohne sie in die gemeinsame Liste zu setzen)?
+
+### 5d – Export
+
+- [ ] Pro Termin „In Kalender übernehmen“: `.ics`-Datei für den Handykalender
+- Kalender-Abo (Link, der sich selbst aktualisiert) ist nur eine Idee (`docs/ideen.md`), nicht Teil von Version 1
 
 ## Offene Einschränkung aus 5a
 

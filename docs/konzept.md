@@ -359,7 +359,7 @@ Version 1 enthält alles in diesem Dokument und geht erst live, wenn sie steht; 
 2. **Generische Kerne:** Objekt-Referenzen, Kommentare, Reaktionen, Feed-Events, Benachrichtigungs-Engine mit Push.
 3. **Training:** Katalog (Orte, Geräte, Übungen, Stufen, Einstellungen), Trainingsarten, Vorlagen, Trainingsablauf, Light-Eintrag, Progression, Zusammenfassung.
 4. **Feed:** Tageskarten, Detail, Kommentare bis Satzebene, Glocke, Sprung an die Stelle.
-5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, .ics, gemeinsames Live-Training.
+5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, gemeinsames Live-Training, .ics.
 6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Veröffentlichen, Habit-Challenges.
 7. **Körper:** Wiegetag, Gewicht in %, Maße, Fortschrittsfotos.
 8. **Ziele & Saisons:** Ziel-Engine, Saison-Lebenszyklus, Vergleich, Rückblicke, Archiv.

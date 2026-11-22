@@ -131,6 +131,8 @@ export interface ActiveWorkout {
   focusId: string | null;
   /** Template the workout was started with. */
   templateId: string | null;
+  /** The plan date it was started from (its planned date). */
+  plan: { id: string; onDate: string } | null;
   items: WorkoutItem[];
 }
 

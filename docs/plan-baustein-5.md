@@ -74,6 +74,10 @@ Beim Staging-Test prüfen:
 - [x] Gemeinsame Übungen werden ganz kopiert: Gerät, Aufwärm- und Arbeitssätze, Wiederholungsbereich, Pausen, Seiten, Zielzeit – Gewichte und Wiederholungen nicht (die kommen aus dem eigenen Verlauf)
 - [x] Beenden: jede Person für sich (eigene Dauer, Zusammenfassung, Bestwerte); wer fertig ist, steht oben blass
 - [x] Glocke auch in den Tabs Training und Ich
+- [x] Wird ein Training für mich gestartet, merkt die App das sofort (Mini-Leiste + Hinweis „Euer Training läuft · Öffnen“), ohne Neustart
+- [x] Läuft ein Termin schon, steht „Läuft · Öffnen“ statt „Starten“ (Heute geplant, Heute mit anderen, Termin-Detail)
+- [x] Eigener Zeitvorschlag ist im Termin-Detail sichtbar („Dein Vorschlag: …“)
+- [ ] Push antippen öffnet den Termin: lokal nicht nachstellbar (Glocke geht, Kommentar-Pushes gehen); zwei Absicherungen eingebaut (Ziel kommt direkt mit, App prüft auch bei focus/pageshow) – auf dem iPhone erneut testen
 
 ### 5d – Export
 

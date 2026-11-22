@@ -75,7 +75,8 @@ self.addEventListener('notificationclick', (event) => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       const client = windows[0];
       if (client) {
-        client.postMessage({ type: PUSH_TARGET_MESSAGE });
+        // The target goes along too, in case the app reads it before the cache is visible.
+        client.postMessage({ type: PUSH_TARGET_MESSAGE, pending: data });
         await client.focus();
       } else {
         await self.clients.openWindow(self.registration.scope);

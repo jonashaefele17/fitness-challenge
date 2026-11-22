@@ -13,8 +13,8 @@ export interface LiveToday {
   running: boolean;
   /** Who trains it right now. */
   memberIds: string[];
-  /** I train it (or trained it) already. */
-  mine: boolean;
+  /** My workout of it (running or done), if I take part already. */
+  myWorkoutId: string | null;
 }
 
 /** The done sets of one person at one shared exercise. */

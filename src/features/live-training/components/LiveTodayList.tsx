@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useUserId } from '@/features/auth';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
 import { Avatar } from '@/features/profile';
-import { TrainingTypeIcon } from '@/features/training';
+import { TrainingTypeIcon, useActiveWorkout } from '@/features/training';
 import { Button } from '@/shared/ui';
-import { useLiveStart, useLiveToday } from '../api/useLive';
+import { liveKeys, useLiveStart, useLiveToday } from '../api/useLive';
 
 function todayKey(): string {
   const now = new Date();
@@ -16,10 +18,20 @@ function todayKey(): string {
  */
 export function LiveTodayList({ onStarted }: { onStarted: () => void }) {
   const [today] = useState(todayKey);
-  const dates = (useLiveToday(today).data ?? []).filter((d) => !d.mine);
+  // A date I trained already (and finished) is gone; one I train right now says so.
+  const activeId = useActiveWorkout().data?.id ?? null;
+  const dates = (useLiveToday(today).data ?? []).filter(
+    (d) => d.myWorkoutId === null || d.myWorkoutId === activeId,
+  );
   const { group } = useActiveGroup();
   const members = useGroupMembers(group.id).data ?? [];
   const start = useLiveStart();
+  // A workout started for me (or ended): the list is re-read.
+  const userId = useUserId();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    void queryClient.invalidateQueries({ queryKey: liveKeys.today(userId, today) });
+  }, [activeId, queryClient, userId, today]);
   if (dates.length === 0) return null;
 
   return (
@@ -44,14 +56,16 @@ export function LiveTodayList({ onStarted }: { onStarted: () => void }) {
                   {[date.typeName, date.focusName].filter(Boolean).join(' · ')}
                 </span>
                 <span className="truncate text-footnote text-text-muted">
-                  {date.running
-                    ? `${training.map((m) => m.displayName).join(', ')} trainiert gerade`
-                    : [
-                        owner ? `mit ${owner.displayName}` : null,
-                        date.startTime && `${date.startTime} Uhr`,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
+                  {date.myWorkoutId
+                    ? 'Läuft gerade'
+                    : date.running
+                      ? `${training.map((m) => m.displayName).join(', ')} trainiert gerade`
+                      : [
+                          owner ? `mit ${owner.displayName}` : null,
+                          date.startTime && `${date.startTime} Uhr`,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
                 </span>
               </span>
               {date.running && (
@@ -64,13 +78,17 @@ export function LiveTodayList({ onStarted }: { onStarted: () => void }) {
               <Button
                 loading={start.isPending && start.variables.planId === date.planId}
                 onClick={() => {
+                  if (date.myWorkoutId) {
+                    onStarted();
+                    return;
+                  }
                   start.mutate(
                     { planId: date.planId, planOn: date.planOn },
                     { onSuccess: onStarted },
                   );
                 }}
               >
-                {date.running ? 'Mitmachen' : 'Starten'}
+                {date.myWorkoutId ? 'Öffnen' : date.running ? 'Mitmachen' : 'Starten'}
               </Button>
             </li>
           );

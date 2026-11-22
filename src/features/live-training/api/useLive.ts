@@ -157,7 +157,7 @@ export function useLiveToday(day: string) {
         focusName: row.focus_name,
         running: (row.session_id as string | null) !== null && row.member_ids.length > 0,
         memberIds: row.member_ids,
-        mine: (row.my_workout_id as string | null) !== null,
+        myWorkoutId: (row.my_workout_id as string | null) ?? null,
       }));
     },
   });

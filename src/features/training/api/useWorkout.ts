@@ -19,7 +19,7 @@ import { trainingKeys } from './keys';
 
 const ACTIVE_SELECT = `
   id, user_id, started_at, ended_at, duration_seconds, paused_at, paused_seconds, focus_id,
-  template_id,
+  template_id, plan_id, plan_on,
   training_types!inner(id, name, kind, guided, catalog, focus_ids),
   locations(id, name, owner_id),
   workout_items(
@@ -53,6 +53,7 @@ function toActiveWorkout(data: WorkoutRow): ActiveWorkout {
     pausedSeconds: data.paused_seconds,
     focusId: data.focus_id,
     templateId: data.template_id,
+    plan: data.plan_id && data.plan_on ? { id: data.plan_id, onDate: data.plan_on } : null,
     location: data.locations
       ? {
           id: data.locations.id,

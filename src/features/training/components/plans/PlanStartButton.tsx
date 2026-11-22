@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Button, Sheet } from '@/shared/ui';
 import { useTemplates } from '../../api/useTemplates';
-import { useStartWorkout } from '../../api/useWorkout';
+import { useActiveWorkout, useStartWorkout } from '../../api/useWorkout';
 import type { PlanOccurrence } from '../../types';
 import { OpenLiveWorkoutContext } from './open-live';
 
@@ -25,6 +25,9 @@ export function PlanStartButton({
   const templates = useTemplates().data ?? [];
   const [choosing, setChoosing] = useState(false);
   const options = plan.templateIds.flatMap((id) => templates.filter((t) => t.id === id));
+  // Already running (e.g. started for me by someone I train with): open it instead.
+  const active = useActiveWorkout().data;
+  const running = active?.plan?.id === plan.planId && active.plan.onDate === plan.planDate;
 
   function go(templateId: string | undefined) {
     if (!plan.trainingType) return;
@@ -41,6 +44,20 @@ export function PlanStartButton({
           openLive?.();
         },
       },
+    );
+  }
+
+  if (running) {
+    return (
+      <Button
+        size={size}
+        onClick={() => {
+          onStarted?.();
+          openLive?.();
+        }}
+      >
+        {size === 'lg' ? 'Training läuft · Öffnen' : 'Läuft · Öffnen'}
+      </Button>
     );
   }
 

@@ -51,14 +51,15 @@ export function CheckIn() {
   if (items.length === 0) return null;
   const open = askable.filter(isOpen);
 
-  const done = items.filter(isDone).length;
+  // Counted: what the check-in asks (sport comes from trainings and has its tile only).
+  const done = askable.filter(isDone).length;
 
   return (
     <section className="flex flex-col gap-3 rounded-card bg-surface-2 py-4">
       <div className="flex items-baseline justify-between px-4">
         <h2 className="text-body font-semibold">Check-in</h2>
         <span className="text-footnote text-text-muted">
-          {done} von {items.length}
+          {done} von {askable.length}
         </span>
       </div>
       <ul className="no-scrollbar flex gap-2 overflow-x-auto px-4">

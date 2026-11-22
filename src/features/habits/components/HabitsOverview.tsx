@@ -66,7 +66,9 @@ function cellClass(day: HabitDay | undefined): string {
  */
 export function HabitsOverview() {
   const [today] = useState(todayKey);
-  const habits = (useMyHabits().data ?? []).filter((h) => !h.archived);
+  const all = useMyHabits().data ?? [];
+  const habits = all.filter((h) => !h.archived);
+  const archived = all.filter((h) => h.archived);
   const [managing, setManaging] = useState(false);
   const [open, setOpen] = useState<Habit | null>(null);
 
@@ -81,6 +83,29 @@ export function HabitsOverview() {
           <ThisWeek habits={habits} today={today} onOpen={setOpen} />
           <StickingWithIt habits={habits} today={today} onOpen={setOpen} />
         </>
+      )}
+      {archived.length > 0 && (
+        <details className="rounded-card bg-surface-2 px-4">
+          <summary className="flex min-h-tap cursor-pointer items-center text-subhead font-semibold text-text-muted">
+            Archiviert ({archived.length})
+          </summary>
+          <ul className="flex flex-col pb-2">
+            {archived.map((habit) => (
+              <li key={habit.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(habit);
+                  }}
+                  className="flex min-h-tap w-full items-center justify-between gap-3 text-left text-subhead active:bg-surface-3"
+                >
+                  <span className="truncate">{habit.current.name}</span>
+                  <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
       <Button
         variant="tinted"
@@ -208,6 +233,7 @@ function StickingWithIt({
   const from = addDays(today, -27);
   const days = useHabitDays(from, today).data ?? [];
   const summary = useHabitSummary(from, today).data ?? [];
+  const weeks = useHabitWeeks(from, today).data ?? [];
   const dates = Array.from({ length: 28 }, (_, i) => addDays(from, i));
 
   return (
@@ -242,23 +268,60 @@ function StickingWithIt({
                     <ChevronRightIcon aria-hidden className="text-text-subtle" />
                   </span>
                 </span>
-                <span className="grid grid-cols-[repeat(28,minmax(0,1fr))] gap-0.5" aria-hidden>
-                  {dates.map((date) => (
-                    <span
-                      key={date}
-                      className={cn(
-                        'h-2 rounded-xs',
-                        cellClass(own.find((d) => d.onDate === date)),
-                      )}
-                    />
-                  ))}
-                </span>
+                {habit.current.frequency === 'weekly' ? (
+                  <WeekSegments weeks={weeks.filter((w) => w.habitId === habit.id).slice(-4)} />
+                ) : (
+                  <span className="grid grid-cols-[repeat(28,minmax(0,1fr))] gap-0.5" aria-hidden>
+                    {dates.map((date) => (
+                      <span
+                        key={date}
+                        className={cn(
+                          'rounded-xs h-2',
+                          cellClass(own.find((d) => d.onDate === date)),
+                        )}
+                      />
+                    ))}
+                  </span>
+                )}
               </button>
             </li>
           );
         })}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Weekly goals over 4 weeks: one bar per week, filled as far as it got (1/3, 2/3 …);
+ * green when met, grey when not, dashed for a week of pause.
+ */
+function WeekSegments({ weeks }: { weeks: HabitWeek[] }) {
+  return (
+    <span className="grid grid-cols-4 gap-1">
+      {weeks.map((week) => (
+        <span
+          key={week.weekStart}
+          aria-label={`${String(week.doneDays)} von ${String(week.target)}`}
+          className={cn(
+            'rounded-xs h-2 overflow-hidden',
+            week.state === 'paused' ? 'border border-dashed border-text-subtle' : 'bg-surface-3',
+          )}
+        >
+          {week.state !== 'paused' && (
+            <span
+              className={cn(
+                'rounded-xs block h-full',
+                week.state === 'done' ? 'bg-accent' : 'bg-text-subtle',
+              )}
+              style={{
+                width: `${String(Math.min(100, (week.doneDays / Math.max(1, week.target)) * 100))}%`,
+              }}
+            />
+          )}
+        </span>
+      ))}
+    </span>
   );
 }
 

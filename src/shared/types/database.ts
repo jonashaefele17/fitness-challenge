@@ -684,6 +684,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      habit_reminder_log: {
+        Row: {
+          key: string;
+          kind: string;
+          on_date: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          kind: string;
+          on_date: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          key?: string;
+          kind?: string;
+          on_date?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      habit_reminders: {
+        Row: {
+          evening_at: string | null;
+          morning_at: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          evening_at?: string | null;
+          morning_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          evening_at?: string | null;
+          morning_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       habit_templates: {
         Row: {
           description: string | null;

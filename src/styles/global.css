@@ -4,7 +4,10 @@
 @layer base {
   html {
     overflow-x: clip;
-    overscroll-behavior: none;
+    /* Pages bounce up and down like iOS, never sideways. */
+    overscroll-behavior-x: none;
+    /* No visible scrollbar on the pages – like native iOS. */
+    scrollbar-width: none;
     color-scheme: dark;
     background-color: var(--color-bg);
     -webkit-text-size-adjust: 100%;
@@ -19,9 +22,20 @@
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     -webkit-font-smoothing: antialiased;
-    overscroll-behavior: none;
+    overscroll-behavior-x: none;
     /* The page never moves sideways (rows and wheels handle horizontal gestures). */
     overflow-x: clip;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* A screen that must stay put (the month calendar) sets this while it is shown. */
+  html[data-no-bounce],
+  html[data-no-bounce] body {
+    overscroll-behavior-y: none;
   }
 
   button,

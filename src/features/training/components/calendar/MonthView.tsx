@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { ChevronLeftIcon, ChevronRightIcon } from '@/shared/ui';
@@ -36,6 +36,13 @@ export function MonthView({
   const [month, setMonth] = useState(() => startOfMonth(today));
   const [day, setDay] = useState<string | null>(null);
   const swipe = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  // The month fits on the screen: it stays put instead of bouncing.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-no-bounce', '');
+    return () => {
+      document.documentElement.removeAttribute('data-no-bounce');
+    };
+  }, []);
 
   const mondays = monthWeeks(month);
   const range = { from: mondays[0] ?? month, to: addDays(mondays.at(-1) ?? month, 7) };

@@ -25,7 +25,7 @@ import {
 } from '../api/useWorkout';
 import { formatDuration, formatKg, formatSet } from '../format';
 import type { ExerciseMeasure, PreviousSet, WorkoutItem, WorkoutSet } from '../types';
-import { NumberWheel } from './NumberWheel';
+import { NumberWheel } from '@/shared/ui';
 import { Sparkline } from './Sparkline';
 
 const STEP = { weight: 2.5, reps: 1, duration: 5 } as const;

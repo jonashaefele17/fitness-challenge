@@ -197,3 +197,21 @@ export function useTemplateExerciseLists(templateIds: string[]) {
     },
   });
 }
+
+/** Names of templates by id (mine or a group mate's: whatever I may see). */
+export function useTemplateNames(templateIds: string[]) {
+  const userId = useUserId();
+  const ids = [...templateIds].sort();
+  return useQuery({
+    queryKey: [...templateKeys.all(userId), 'names', ids],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<{ id: string; name: string }[]> => {
+      const { data, error } = await supabase
+        .from('workout_templates')
+        .select('id, name')
+        .in('id', ids);
+      if (error) throw error;
+      return data;
+    },
+  });
+}

@@ -43,6 +43,11 @@ export function ownObject(target?: { type: string; index?: number | null }): str
   }
 }
 
+/** Reminders come from no one: their sentence stands alone. */
+export function isReminder(event: string): boolean {
+  return event === 'checkin_reminder' || event === 'supplement_reminder';
+}
+
 export function describeNotification(
   notification: Pick<AppNotification, 'event' | 'category'> & {
     emoji?: string | null;
@@ -82,6 +87,10 @@ export function describeNotification(
       return 'hat einen Termin abgesagt';
     case 'live_started':
       return 'hat euer Training gestartet';
+    case 'checkin_reminder':
+      return 'Check-in: noch offen';
+    case 'supplement_reminder':
+      return 'Zeit für deine Supplements';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

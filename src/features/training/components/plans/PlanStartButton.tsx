@@ -13,10 +13,13 @@ export function PlanStartButton({
   plan,
   size = 'md',
   label = 'Starten',
+  variant = 'primary',
   onStarted,
 }: {
   plan: PlanOccurrence;
   size?: 'md' | 'lg';
+  /** tinted: a quieter button in a list of rows. */
+  variant?: 'primary' | 'tinted';
   label?: string;
   onStarted?: () => void;
 }) {
@@ -51,6 +54,7 @@ export function PlanStartButton({
     return (
       <Button
         size={size}
+        variant={variant}
         onClick={() => {
           onStarted?.();
           openLive?.();
@@ -65,6 +69,7 @@ export function PlanStartButton({
     <>
       <Button
         size={size}
+        variant={variant}
         loading={start.isPending && !choosing}
         onClick={() => {
           if (options.length > 1) setChoosing(true);

@@ -20,7 +20,7 @@ import { trainingKeys } from './keys';
 const ACTIVE_SELECT = `
   id, user_id, started_at, ended_at, duration_seconds, paused_at, paused_seconds, focus_id,
   template_id, plan_id, plan_on,
-  training_types!inner(id, name, kind, guided, catalog, focus_ids),
+  training_types!inner(id, name, kind, icon, guided, catalog, focus_ids),
   locations(id, name, owner_id),
   workout_items(
     id, position, note, rep_min, rep_max, target_seconds, rest_seconds, per_side,
@@ -64,6 +64,7 @@ function toActiveWorkout(data: WorkoutRow): ActiveWorkout {
     trainingType: {
       id: data.training_types.id,
       name: data.training_types.name,
+      icon: data.training_types.icon,
       kind: data.training_types.kind === 'duration' ? 'duration' : 'exercises',
       guided: data.training_types.guided,
       catalog: data.training_types.catalog === 'mobility' ? 'mobility' : 'strength',

@@ -21,3 +21,4 @@ export {
 } from './components/NotificationBell';
 export { NotificationSettingsPanel } from './components/NotificationSettingsPanel';
 export type { AppNotification, NotificationPrefs, Preset, PushStatus } from './types';
+export { RecentNotifications } from './components/RecentNotifications';

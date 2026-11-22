@@ -604,6 +604,309 @@ export type Database = {
           },
         ];
       };
+      habit_entries: {
+        Row: {
+          habit_id: string;
+          on_date: string;
+          source: string;
+          updated_at: string;
+          value: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          habit_id: string;
+          on_date: string;
+          source?: string;
+          updated_at?: string;
+          value: NonNullable<Json>;
+        };
+        Update: {
+          habit_id?: string;
+          on_date?: string;
+          source?: string;
+          updated_at?: string;
+          value?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'habit_entries_habit_id_fkey';
+            columns: ['habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      habit_input_types: {
+        Row: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          sort?: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          sort?: number;
+        };
+        Relationships: [];
+      };
+      habit_pauses: {
+        Row: {
+          created_at: string;
+          from_date: string;
+          id: string;
+          note: string | null;
+          to_date: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          from_date: string;
+          id?: string;
+          note?: string | null;
+          to_date: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          from_date?: string;
+          id?: string;
+          note?: string | null;
+          to_date?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      habit_reminder_log: {
+        Row: {
+          key: string;
+          kind: string;
+          on_date: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          kind: string;
+          on_date: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          key?: string;
+          kind?: string;
+          on_date?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      habit_reminders: {
+        Row: {
+          evening_at: string | null;
+          morning_at: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          evening_at?: string | null;
+          morning_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          evening_at?: string | null;
+          morning_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      habit_templates: {
+        Row: {
+          description: string | null;
+          frequency: string;
+          id: string;
+          input_type: string;
+          key: string | null;
+          name: string;
+          options: NonNullable<Json>;
+          rule: NonNullable<Json>;
+          sort: number;
+          source: string;
+          time_of_day: string;
+          times_per_week: number | null;
+          unit: string | null;
+          weekdays: number[];
+        };
+        ComputedFields: never;
+        Insert: {
+          description?: string | null;
+          frequency?: string;
+          id?: string;
+          input_type: string;
+          key?: string | null;
+          name: string;
+          options?: NonNullable<Json>;
+          rule?: NonNullable<Json>;
+          sort?: number;
+          source?: string;
+          time_of_day?: string;
+          times_per_week?: number | null;
+          unit?: string | null;
+          weekdays?: number[];
+        };
+        Update: {
+          description?: string | null;
+          frequency?: string;
+          id?: string;
+          input_type?: string;
+          key?: string | null;
+          name?: string;
+          options?: NonNullable<Json>;
+          rule?: NonNullable<Json>;
+          sort?: number;
+          source?: string;
+          time_of_day?: string;
+          times_per_week?: number | null;
+          unit?: string | null;
+          weekdays?: number[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'habit_templates_input_type_fkey';
+            columns: ['input_type'];
+            isOneToOne: false;
+            referencedRelation: 'habit_input_types';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      habit_versions: {
+        Row: {
+          created_at: string;
+          frequency: string;
+          habit_id: string;
+          id: string;
+          input_type: string;
+          name: string;
+          options: NonNullable<Json>;
+          rule: NonNullable<Json>;
+          source: string;
+          time_of_day: string;
+          times_per_week: number | null;
+          unit: string | null;
+          valid_from: string;
+          weekdays: number[];
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          frequency: string;
+          habit_id: string;
+          id?: string;
+          input_type: string;
+          name: string;
+          options?: NonNullable<Json>;
+          rule?: NonNullable<Json>;
+          source: string;
+          time_of_day: string;
+          times_per_week?: number | null;
+          unit?: string | null;
+          valid_from: string;
+          weekdays?: number[];
+        };
+        Update: {
+          created_at?: string;
+          frequency?: string;
+          habit_id?: string;
+          id?: string;
+          input_type?: string;
+          name?: string;
+          options?: NonNullable<Json>;
+          rule?: NonNullable<Json>;
+          source?: string;
+          time_of_day?: string;
+          times_per_week?: number | null;
+          unit?: string | null;
+          valid_from?: string;
+          weekdays?: number[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'habit_versions_habit_id_fkey';
+            columns: ['habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'habit_versions_input_type_fkey';
+            columns: ['input_type'];
+            isOneToOne: false;
+            referencedRelation: 'habit_input_types';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      habits: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          share_level: string;
+          sort: number;
+          source_habit_id: string | null;
+          template_id: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          share_level?: string;
+          sort?: number;
+          source_habit_id?: string | null;
+          template_id?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          share_level?: string;
+          sort?: number;
+          source_habit_id?: string | null;
+          template_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'habits_source_habit_id_fkey';
+            columns: ['source_habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'habits_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'habit_templates';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       invites: {
         Row: {
           code_hash: string;
@@ -2110,10 +2413,15 @@ export type Database = {
         Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      adopt_habit: {
+        Args: { p_def: Json; p_source_id: string; p_valid_from: string };
+        Returns: string;
+      };
       answer_join_request: {
         Args: { p_accept: boolean; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      archive_habit: { Args: { p_archive: boolean; p_habit_id: string }; Returns: undefined };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -2268,6 +2576,88 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      habit_days: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          due: boolean;
+          frequency: string;
+          habit_id: string;
+          input_type: string;
+          name: string;
+          on_date: string;
+          paused: boolean;
+          score: number;
+          source: string;
+          state: string;
+          time_of_day: string;
+          value: Json;
+          version_id: string;
+        }[];
+      };
+      habit_stats: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          best_streak: number;
+          counted: number;
+          current_streak: number;
+          habit_id: string;
+          met: number;
+          quota: number;
+          unit: string;
+        }[];
+      };
+      habit_summary: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          avg_duration: number;
+          avg_end: number;
+          avg_start: number;
+          avg_value: number;
+          best_value: number;
+          choice_counts: Json;
+          complete_days: number;
+          counted: number;
+          habit_id: string;
+          item_counts: Json;
+          met: number;
+          previous_quota: number;
+          quota: number;
+        }[];
+      };
+      habit_weeks: {
+        Args: {
+          p_from: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+          p_user_id: string;
+        };
+        Returns: {
+          done_days: number;
+          habit_id: string;
+          state: string;
+          target: number;
+          week_start: string;
+        }[];
+      };
       live_keep_private: { Args: { p_item_id: string }; Returns: undefined };
       live_peer_sets: {
         Args: { p_workout_id: string };
@@ -2394,6 +2784,7 @@ export type Database = {
           workout_started_at: string;
         }[];
       };
+      promote_habit_to_template: { Args: { p_habit_id: string }; Returns: string };
       redeem_invite: {
         Args: { p_code: string; p_display_name?: string; p_home_gym?: string };
         Returns: string;
@@ -2418,6 +2809,10 @@ export type Database = {
         Returns: undefined;
       };
       restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
+      save_habit: {
+        Args: { p_def: Json; p_habit_id: string; p_template_id: string; p_valid_from: string };
+        Returns: string;
+      };
       save_template: {
         Args: {
           p_focus_id: string;
@@ -2437,6 +2832,10 @@ export type Database = {
           measure: Database['public']['Enums']['exercise_measure'];
           name: string;
         }[];
+      };
+      set_habit_entry: {
+        Args: { p_habit_id: string; p_on_date: string; p_source?: string; p_value: Json };
+        Returns: undefined;
       };
       set_item_positions: {
         Args: { p_item_ids: string[]; p_workout_id: string };

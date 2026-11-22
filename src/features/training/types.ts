@@ -126,7 +126,10 @@ export interface ActiveWorkout {
   durationSeconds: number | null;
   pausedAt: string | null;
   pausedSeconds: number;
-  trainingType: Pick<TrainingType, 'id' | 'name' | 'kind' | 'guided' | 'catalog' | 'focusIds'>;
+  trainingType: Pick<
+    TrainingType,
+    'id' | 'name' | 'kind' | 'icon' | 'guided' | 'catalog' | 'focusIds'
+  >;
   location: Place | null;
   focusId: string | null;
   /** Template the workout was started with. */

@@ -46,6 +46,12 @@ describe('targetPath', () => {
     );
   });
 
+  it('opens a habit in the check-in on Heute (reminders)', () => {
+    expect(targetPath({ groupId: 'g', type: 'habit', id: 'h1' }, { thread: false })).toBe(
+      '/heute?checkin=h1',
+    );
+  });
+
   it('opens a plan in the training tab', () => {
     expect(targetPath({ groupId: 'g', type: 'plan', id: 'p1' }, { thread: false })).toBe(
       '/training?termin=p1',

@@ -12,7 +12,7 @@ import {
   useNotifications,
   useUnreadCount,
 } from '../api/useNotifications';
-import { describeNotification } from '../settings';
+import { describeNotification, isReminder } from '../settings';
 import type { AppNotification } from '../types';
 
 export interface OpenTargetOptions {
@@ -25,11 +25,23 @@ export interface OpenTargetOptions {
 export interface NotificationBellProps {
   /** Jumps to the object (composed in app, which knows the routes). */
   onOpenTarget: (target: TargetRef, options: OpenTargetOptions) => void;
+  /** Open from outside too (e.g. "Alle ›" on Heute); without it the bell keeps its own state. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** Bell with unread badge; opens the list of everything that concerns me. */
-export function NotificationBell({ onOpenTarget }: NotificationBellProps) {
-  const [open, setOpen] = useState(false);
+export function NotificationBell({
+  onOpenTarget,
+  open: openProp,
+  onOpenChange,
+}: NotificationBellProps) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = openProp ?? ownOpen;
+  const setOpen = (next: boolean) => {
+    setOwnOpen(next);
+    onOpenChange?.(next);
+  };
   const unread = useUnreadCount().data ?? 0;
 
   return (
@@ -129,7 +141,7 @@ function NotificationsSheet({
   );
 }
 
-function NotificationItem({
+export function NotificationItem({
   notification,
   onOpen,
 }: {
@@ -151,8 +163,14 @@ function NotificationItem({
       {actor ? <Avatar profile={actor} /> : <span className="size-10 shrink-0" />}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-subhead">
-          <span className="font-semibold">{actor?.displayName ?? 'Jemand'}</span>{' '}
-          {describeNotification(notification)}
+          {isReminder(notification.event) ? (
+            <span className="font-semibold">{describeNotification(notification)}</span>
+          ) : (
+            <>
+              <span className="font-semibold">{actor?.displayName ?? 'Jemand'}</span>{' '}
+              {describeNotification(notification)}
+            </>
+          )}
         </span>
         {notification.preview && (
           <span className="truncate text-footnote text-text-muted">„{notification.preview}“</span>

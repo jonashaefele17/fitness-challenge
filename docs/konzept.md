@@ -17,6 +17,10 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 20.11.2026 | 1.2 | Persönliche und soziale Module getrennt (siehe Entscheidungen) |
 | 21.11.2026 | 1.3 | Push: Bündeln standardmäßig aus (pro Person einschaltbar, Fenster 3 Min.), Pushes werden sofort ausgelöst |
 | 21.11.2026 | 1.5 | Training: Ort pro Trainingsart, vergleichbare Geräte, Varianten, Startkatalog FitX Neuperlach Süd |
+| 23.11.2026 | 1.39 | Habit-Challenges aus Version 1 genommen (Wettbewerb über Saisons); 6d = Teilen und Vergleich, Vorlagen veröffentlichen, Wochenzusammenfassung und Meilensteine im Feed; Teilen standardmäßig privat mit Frage beim Anlegen |
+| 23.11.2026 | 1.40 | Ein Habit-Katalog (Standard-Vorlagen + geteilte Habits der Gruppe „von X“, übernehmen mit eigenen Zielen, Super-Admin macht daraus Standard); Vergleich als Matrix (Zeile pro Habit, Spalte pro Person, 4-Wochen-Quote) mit Detailvergleich, derselbe auf der Ich-Seite über „Vergleichen mit …“; Feed: Wochenrückblick montags ab 7 Uhr und Meilensteine (7/30/100/365 Tage, 4/12/26/52 Wochen), nur geteilte Habits |
+| 23.11.2026 | 1.38 | Habit-Auswertung: Übersicht „Diese Woche“ und „Dranbleiben“ (wie im Prototyp), Detail mit drei Kennzahlen in Klartext und Trend; Quoten statt Serien in der Oberfläche, Serien in der Datenbank verzeihend (einmal verpassen unterbricht nicht) |
+| 23.11.2026 | 1.37 | Habits (Baustein 6) festgelegt: Ruhetage gestrichen, Pausen mit anteiligem Wochenziel, Supplements als eigenes Checklisten-Habit, Quelle pro Eintrag (Hand/App/extern), Check-in nicht im Feed, gleiche Habits direkt vergleichbar, Aufteilung 6a–6d |
 | 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
 | 23.11.2026 | 1.35 | Gemeinsames Training nach erstem Test: Starten gilt für alle mit Zusage (Info-Push statt Frage), ein Studio für alle (Wechsel gilt für alle), gemeinsame Übungen samt Gerät und Satzstruktur, Beenden jede Person für sich; Glocke in allen Tabs |
 | 23.11.2026 | 1.34 | Gemeinsames Live-Training: Start aus einem Termin mit Teilnehmenden, Mitmachen über „Heute mit anderen“ (kein Push), gemeinsame Übungsliste mit „Für alle“-Schalter, Löschen und Sortieren für alle (Übungen mit abgehakten Sätzen bleiben), Sätze der anderen live, „mit …“ im Feed; Reihenfolge in Baustein 5: Live-Training vor .ics-Export |
@@ -189,11 +193,9 @@ Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfal
 - „Heute“ zeigt anstehende besondere Tage („Morgen Wiegetag“, „Noch 5 Tage bis Saisonende“).
 - Technik: Steckplatz „Tages-Marker“ im Kalender; Saisons, Körper und Planung liefern ihre Marker, wenn sie gebaut werden. Marker werden berechnet, nicht gespeichert (außer eigenen Events).
 
-**Ruhetage – nie einzeln anklicken müssen:**
-1. Standard: nichts eintragen. Ein Tag ohne Training ist einfach frei; Sport wird pro Woche bewertet („4× pro Woche“), Streaks und Konsistenz zählen Wochen.
-2. Fester Rhythmus einmal einstellen (z. B. „Sonntag immer frei“); diese Tage zählen bei täglich gewerteten Habits automatisch als erfüllt.
-3. Längere Pausen (Krankheit, Urlaub) einmal als Zeitraum „von – bis“; zählen weder für noch gegen die Konsistenz.
-4. Einzelner bewusster Ruhetag nur bei Bedarf über das „+“ im Tages-Sheet.
+**Ruhetage – gibt es nicht als eigenes Konzept (entschieden 23.11.2026):**
+1. Ein Tag ohne Training ist einfach frei; Sport wird pro Woche bewertet („4× pro Woche“), Streaks und Konsistenz zählen Wochen.
+2. Krankheit oder Urlaub einmal als Pause „von – bis“ (Ich → Habits). Tägliche Habits: Pausentage zählen weder dafür noch dagegen und unterbrechen keine Serie. Wochenziele schrumpfen anteilig (4× pro Woche, 3 Tage Pause → 4 × 4/7 aufgerundet = 3×); eine ganze Woche Pause zählt nicht.
 
 ## Feed, Kommentare und Benachrichtigungen
 
@@ -233,11 +235,12 @@ Habits sind ein Baukasten: Jeder definiert seine eigenen, Jonas' 5 Säulen (Spor
 | Häufigkeit | täglich · bestimmte Wochentage · x-mal pro Woche |
 | Zeitpunkt | morgens / abends (Reihenfolge im Check-in, Erinnerung) |
 | Automatisch | optional aus der App, z. B. Sport aus Trainings |
-| Ausnahmen | Ruhetage aus dem eingestellten Rhythmus oder einzeln geplant zählen als erfüllt; Pausen-Zeiträume zählen nicht |
+| Quelle | von Hand (Check-in) · automatisch aus der App (z. B. Sport aus Trainings) · extern (später über einen persönlichen Zugangsschlüssel, z. B. Kurzbefehl); jeder Eintrag merkt sich seine Quelle |
+| Ausnahmen | Pausen-Zeiträume (krank, Urlaub) zählen weder dafür noch dagegen; Wochenziele schrumpfen anteilig |
 | Fortschritt teilen | privat · nur „erledigt“ · mit Werten |
 | Als Vorlage veröffentlichen | ja/nein (landet in der Habit-Bibliothek der Gruppe) |
 
-**Beispiele aus Jonas' Säulen:** Schlaf = Uhrzeit-Paar, Ziel „≥ 7 h und Bett vor 23:15“, morgens · Screen-Time = Dauer, „≤ 2 h“, abends · Ernährung = Auswahl gehalten/teilweise/nicht plus Checkliste Supplements mit eigener Erinnerungszeit pro Eintrag · Sport = automatisch, Ruhetag zählt.
+**Beispiele aus Jonas' Säulen:** Schlaf = Uhrzeit-Paar, Ziel „≥ 7 h und Bett vor 23:15“, morgens · Screen-Time = Dauer, „≤ 2 h“, abends · Ernährung = Auswahl gehalten/teilweise/nicht · Supplements = eigenes Habit als Checkliste mit eigener Erinnerungszeit pro Eintrag · Sport = automatisch aus Trainings, x-mal pro Woche.
 
 **Check-in:** Auf „Heute“ eine Zeile Kacheln mit Status; ein Tap startet den Check-in mit einer Frage pro Bildschirm, automatisch aus den eigenen Habits gebaut und nach Zeitpunkt sortiert. Ziel: unter 20 Sekunden.
 
@@ -245,7 +248,9 @@ Habits sind ein Baukasten: Jeder definiert seine eigenen, Jonas' 5 Säulen (Spor
 
 **Einrichten und ändern:** aus einer Vorlagen-Bibliothek wählen oder selbst anlegen (empfohlen 3–7). Änderungen gelten ab dem Tag (versioniert), alte Tage bleiben nach alter Regel bewertet; nicht mehr genutzte Habits werden archiviert, nicht gelöscht.
 
-**Gruppe:** verglichen wird nur die Erfüllungsquote, nie der Inhalt. Optional gemeinsame Habit-Challenges (z. B. 30 Tage kein Alkohol), bei denen alle dieselbe Regel haben.
+**Gruppe:** verglichen wird die Erfüllungsquote; nutzen zwei dieselbe Vorlage (z. B. Schritte) und teilen „mit Werten“, auch die Werte direkt. Der tägliche Check-in erscheint nicht im Feed, nur Meilensteine (z. B. „30 Tage am Stück“) und eine Wochenzusammenfassung. Gemeinsame Habit-Challenges sind nicht Teil von Version 1 (der Wettbewerb läuft über Saisons und ihre Ziele); siehe Ideenliste.
+
+**Umsetzung in Teilen:** 6a Baukasten, Vorlagen, Versionierung, Sport automatisch, Pausen, Check-in · 6b Auswertung · 6c Erinnerungen (Check-in, Supplements) · 6d Gruppe (6d-1 Teilen und Vergleich inkl. gleiche Habits direkt · 6d-2 Vorlagen veröffentlichen · 6d-3 Wochenzusammenfassung und Meilensteine im Feed). Teilen ist standardmäßig privat; beim Anlegen fragt die App, ob die Gruppe es sehen soll.
 
 ## Ziele, Saisons und Vergleich
 
@@ -363,7 +368,7 @@ Version 1 enthält alles in diesem Dokument und geht erst live, wenn sie steht; 
 3. **Training:** Katalog (Orte, Geräte, Übungen, Stufen, Einstellungen), Trainingsarten, Vorlagen, Trainingsablauf, Light-Eintrag, Progression, Zusammenfassung.
 4. **Feed:** Tageskarten, Detail, Kommentare bis Satzebene, Glocke, Sprung an die Stelle.
 5. **Planung:** Kalender, Termine, Einladungen mit Gegenvorschlag, „Ich komm mit“, gemeinsames Live-Training, .ics.
-6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Veröffentlichen, Habit-Challenges.
+6. **Habits:** Baukasten, Vorlagen-Bibliothek, Check-in, Auswertung, Supplements, Teilen und Vergleich, Veröffentlichen, Wochenzusammenfassung im Feed.
 7. **Körper:** Wiegetag, Gewicht in %, Maße, Fortschrittsfotos.
 8. **Ziele & Saisons:** Ziel-Engine, Saison-Lebenszyklus, Vergleich, Rückblicke, Archiv.
 9. **PC & Admin:** Dashboard, Vorlagen-Editor, Geräte-Katalog, Saison-Verwaltung, Export.
@@ -427,11 +432,13 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 21.11.2026 | Bearbeiten speichert sofort (wie live); „Änderungen verwerfen“ ist die erlaubte Ausnahme mit Rückfrage. Kommentare und Reaktionen werden mit ihrem Objekt gelöscht, nichts zeigt ins Leere |
 | 22.11.2026 | Termine (Baustein 5): wiederkehrende Termine gehören zu Version 1; auch allein geplante Termine sieht die Gruppe (Grundlage für „Ich komm mit“) |
 | 22.11.2026 | Gemeinsames Live-Training: kein Push „beitreten?“ beim Trainingsstart (man ist dann schon im Studio). Beitreten über den Termin bzw. selbst aktiv |
+| 23.11.2026 | Habits: keine Ruhetage; Sport als Wochenziel aus Trainings; Krankheit/Urlaub als Pause (tägliche Habits zählen nicht, Wochenziele anteilig) |
+| 23.11.2026 | Habits: Check-in nicht im Feed, nur Meilensteine und Wochenzusammenfassung; gleiche Habits (gleiche Vorlage, „mit Werten“) direkt vergleichbar |
+| 23.11.2026 | Habit-Einträge haben eine Quelle (von Hand, aus der App, extern); externe Quellen später über einen persönlichen Zugangsschlüssel |
 
 **Offen (zu zweit klären)**
 
 - [ ] Gemeinsames Live-Training (5d): gemeinsame Übungsliste, aber auch eigene Übungen nur für sich hinzufügen können – Mechanismus vor 5d festlegen.
-- [ ] Ruhetage und Habit-Bewertung nochmal durchdenken: Eine Woche ganz ohne Sport darf nicht über Ruhetage positiv zählen (z. B. Ruhetage nur als Ausnahme, wenn das Wochenziel trotzdem erreicht ist, oder höchstens n pro Woche). Spätestens mit Baustein 6 (Habits) entscheiden.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?
 - [ ] Wiegetag: welcher Wochentag, morgens nüchtern?

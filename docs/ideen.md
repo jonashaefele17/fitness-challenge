@@ -38,7 +38,10 @@ Grundgedanke: An die eigenen Daten kommt man immer ran, und die persönlichen Mo
 
 ## Feed / Habits (zu Baustein 6 besprechen)
 
-- [ ] Check-in nicht automatisch in den Feed: Muss der tägliche Check-in überhaupt auf der Tageskarte erscheinen, oder nur Trainings, Wiegetag und Meilensteine? Offen, wenn Baustein 6 (Habits) dran ist, gemeinsam entscheiden.
+- [x] Check-in nicht im Feed – entschieden 23.11.2026: nur Meilensteine und Wochenzusammenfassung (Konzept 1.37)
+- [ ] Habit-Challenges: jemand startet eine Challenge mit Regel und Zeitraum (z. B. „30 Tage kein Alkohol“), andere treten bei und bekommen dasselbe Habit, Rangliste der erfüllten Tage, Start/Ende im Feed. Aus Version 1 genommen (23.11.2026) – der Wettbewerb läuft erstmal über Saisons.
+- [ ] Kalorien: Tageswert eintippen mit Tagesziel und zusätzlich Wochenziel (Summe pro Woche). Tageswert geht schon mit „Zahl mit Einheit“; die Wochensumme wäre eine neue Ziel-Regel. Erst, wenn klar ist, wie Kalorien getrackt werden (Konzept: Ernährung außer Supplements nicht in Version 1).
+- [ ] Externe Quellen für Habits: persönlicher Zugangsschlüssel (Einstellungen), der nur Habit-Einträge schreiben darf; z. B. iPhone-Kurzbefehl schickt abends Schritte/Kalorien aus Apple Health. Datenmodell ist vorbereitet (Quelle pro Eintrag, eine Schreib-Funktion).
 
 ## Skalierung (erst bei vielen Nutzern)
 
@@ -53,6 +56,7 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Sync-Wolke: kleines Wolken-Symbol (z. B. oben rechts), das zeigt, ob alles gespeichert und die Live-Verbindung (Realtime) steht: Haken = synchron, drehend = speichert gerade (offene Änderungen in der Warteschlange), durchgestrichen = keine Verbindung. Antippen stößt einen Abgleich an (alle Daten neu laden, Realtime neu verbinden). Kein Offline-Modus (siehe Konzept-Entscheidung), nur Anzeige und manueller Anstoß.
 - [ ] Pillen-Navigation wie iOS 26: beim Runterscrollen zu einer kompakten Pille zusammenschrumpfen (nur Symbole bzw. aktiver Tab), beim Hochscrollen oder Antippen wieder aufklappen; mit Federanimation, „Bewegung reduzieren“ respektieren. Erst mit echtem langem Inhalt (Feed, Kalender) abstimmen.
 - [ ] Bundle nach Tabs aufteilen (Code-Splitting), aktuell ~290 kB gzip.
+- [ ] Sheets wie in modernen iOS-Apps (z. B. Claude-App): Das Sheet öffnet in einer mittleren Höhe. Scrollt man im Inhalt nach oben, wächst das Sheet zuerst bis zur maximalen Höhe, erst danach scrollt der Inhalt. Scrollt man nach unten (Inhalt schon ganz oben), wird das Sheet kleiner bis zum Schließen; ein kräftiger Wisch schließt direkt. Stapelung (hinteres Sheet kleiner/dunkler) bleibt. Umsetzung z. B. mit Vaul (baut auf Radix Dialog auf) oder selbst mit Motion. Vorsicht bei Gesten im Sheet: Zahlenrad, Drag & Drop, seitliche Chips, Tastatur. Jedes Sheet auf dem iPhone durchprobieren. Geplant zusammen mit dem ersten Pilot-Feedback (Jonas, 23.11.2026).
 - [ ] Prüfen, sobald Seiten lang genug zum Scrollen sind: Gleitet die Tab-Linse nach dem Runterscrollen seitlich (Fix `layoutRoot` vom 21.11.2026) statt von unten einzufliegen?
 
 ## Training
@@ -65,7 +69,7 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Optional später: Satzpause-Erinnerung per Push (falls doch gewünscht; PWA kann im Hintergrund nicht selbst klingeln)
 
 - [ ] Laufentwicklung (nach hinten gestellt): Lauf-Fokus als Daten wie der Trainingsfokus (Easy Run, Long Run, Tempo, Intervalle …), daraus Pace pro Lauf-Art, km pro Woche, Bestzeiten; unter Ich → Training neben der Kraftentwicklung. Datenmodell offen halten (Distanz, Dauer, Variante sind schon da).
-- [ ] Habits direkt vergleichen (nicht nur Erfüllungsquote), wenn beide dieselbe Vorlage nutzen und „mit Werten“ teilen (z. B. Schritte) – zu Baustein 6 klären.
+- [x] Habits direkt vergleichen bei gleicher Vorlage und „mit Werten“ – entschieden 23.11.2026, kommt in 6d
 
 - [ ] Trainingsdaten für Claude (Pläne erstellen, Schwächen erkennen), in dieser Reihenfolge:
   1. **Export „Für KI“** unter Ich → Einstellungen: kompakter Textbericht (letzte 8–12 Wochen: Trainings pro Woche, pro Übung Verlauf des besten Satzes, Volumen pro Muskelgruppe, Fokus-Verteilung, Vorlagen) zum Kopieren in Claude. Volle Kontrolle, keine Kosten.

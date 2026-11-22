@@ -86,8 +86,11 @@ export {
   PlanSocialContext,
   type PlanAnswer,
   type PlanPerson,
+  type PlanRef,
   type PlanSocialSlots,
 } from './components/plans/social';
 export { PlanAnswerMark, PlanPeopleAvatars } from './components/plans/PlanPeople';
 export { LinkedPlanSheet } from './components/plans/LinkedPlanSheet';
 export { LiveWorkoutContext, type LiveWorkoutSlots } from './components/live';
+export { PlanStartButton } from './components/plans/PlanStartButton';
+export { planTitle } from './components/plans/planText';

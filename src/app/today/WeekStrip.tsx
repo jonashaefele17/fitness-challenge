@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useUserId } from '@/features/auth';
 import { useThisWeek } from '@/features/habits';
-import { TrainingTypeIcon, workoutsInRangeOptions } from '@/features/training';
+import { TrainingTypeIcon, usePlanOccurrences, workoutsInRangeOptions } from '@/features/training';
 import { cn } from '@/shared/lib';
 
 const LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];
@@ -18,7 +18,10 @@ function sameDay(a: Date, b: Date): boolean {
   return a.toDateString() === b.toDateString();
 }
 
-/** "Diese Woche": seven days with the trainings done, and weekly goals (e.g. Sport 2/4). */
+/**
+ * "Diese Woche": seven days with the trainings done (filled) and planned (outline, faded),
+ * and weekly goals (e.g. Sport 2/4).
+ */
 export function WeekStrip() {
   const userId = useUserId();
   const [now] = useState(() => new Date());
@@ -33,6 +36,11 @@ export function WeekStrip() {
   const workouts =
     useQuery(workoutsInRangeOptions(userId, { from: monday, to: sunday })).data ?? [];
   const goals = useThisWeek();
+  // Planned dates of the week (the range ends on its last day).
+  const lastDay = new Date(sunday);
+  lastDay.setDate(sunday.getDate() - 1);
+  const [planRange] = useState(() => ({ from: monday, to: lastDay }));
+  const plans = (usePlanOccurrences(planRange).data ?? []).filter((p) => p.status === 'planned');
 
   return (
     <section className="flex flex-col gap-3 rounded-card bg-surface-2 p-4">
@@ -56,6 +64,9 @@ export function WeekStrip() {
         {days.map((day, index) => {
           const done = workouts.filter((w) => sameDay(new Date(w.startedAt), day));
           const first = done[0];
+          const planned = first
+            ? undefined
+            : plans.find((p) => sameDay(new Date(`${p.onDate}T12:00:00`), day));
           const today = sameDay(day, now);
           return (
             <li key={day.toISOString()} className="flex flex-col items-center gap-1">
@@ -66,6 +77,7 @@ export function WeekStrip() {
                 className={cn(
                   'flex size-9 items-center justify-center rounded-pill text-footnote tabular-nums',
                   first ? 'bg-accent text-on-accent' : 'bg-surface-3 text-text-subtle',
+                  planned && 'text-accent',
                   today && !first && 'ring-2 ring-accent',
                 )}
               >
@@ -75,6 +87,18 @@ export function WeekStrip() {
                     variant="filled"
                     className="size-5"
                   />
+                ) : planned ? (
+                  // Planned: the outline icon, faded (as in the calendar).
+                  <span className="flex opacity-55">
+                    {planned.kind === 'event' ? (
+                      <span aria-hidden>★</span>
+                    ) : (
+                      <TrainingTypeIcon
+                        icon={planned.trainingType?.icon ?? 'generic'}
+                        className="size-5"
+                      />
+                    )}
+                  </span>
                 ) : (
                   day.getDate()
                 )}

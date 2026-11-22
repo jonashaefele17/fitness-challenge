@@ -81,7 +81,7 @@ export function CheckIn() {
         <div className="px-4">
           <Button
             className="w-full"
-            variant={open.length > 0 ? 'primary' : 'ghost'}
+            variant={open.length > 0 ? 'tinted' : 'ghost'}
             onClick={() => {
               setStart(open[0] ? askable.indexOf(open[0]) : 0);
             }}

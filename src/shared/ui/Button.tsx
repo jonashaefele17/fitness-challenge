@@ -3,7 +3,7 @@ import { forwardRef, type ReactNode } from 'react';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { cn, showToast } from '@/shared/lib';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'tinted' | 'ghost' | 'danger';
 type Size = 'md' | 'lg';
 
 export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
@@ -23,6 +23,8 @@ export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'>
 const variantClasses: Record<Variant, string> = {
   primary: 'bg-accent text-on-accent active:bg-accent-pressed',
   secondary: 'bg-surface-2 text-text active:bg-surface-3',
+  // Second action on a card: dark surface, thin border, accent label.
+  tinted: 'border border-border bg-surface-3 text-accent active:bg-surface-2',
   ghost: 'bg-transparent text-accent active:bg-surface-2',
   danger: 'bg-surface-2 text-danger active:bg-surface-3',
 };

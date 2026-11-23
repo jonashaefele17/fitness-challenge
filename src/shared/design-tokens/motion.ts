@@ -35,3 +35,10 @@ export const sheetBehind = {
 
 /** Drag distance (px) or velocity (px/s) after which a sheet dismisses. */
 export const sheetDismiss = { offset: 120, velocity: 500 } as const;
+
+/**
+ * Sheet heights: a long sheet opens at `medium` (share of the screen) and grows to full
+ * height when its content is pushed up; `slack` px more than medium is not worth a step.
+ * A flick faster than `flick` (px/s) goes straight to full height or closes.
+ */
+export const sheetDetent = { medium: 0.6, slack: 48, flick: 900, lock: 8 } as const;

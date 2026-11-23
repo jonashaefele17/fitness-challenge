@@ -1,7 +1,23 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { fade, sheetBehind, sheetBehindScale, sheetDismiss, spring } from '@/shared/design-tokens';
+import { animate, AnimatePresence, motion, useMotionValue, useReducedMotion } from 'motion/react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  fade,
+  sheetBehind,
+  sheetBehindScale,
+  sheetDetent,
+  sheetDismiss,
+  spring,
+} from '@/shared/design-tokens';
 import { cn } from '@/shared/lib';
 
 export interface SheetProps {
@@ -12,7 +28,7 @@ export interface SheetProps {
   hideTitle?: boolean;
   description?: string;
   children?: ReactNode;
-  /** Pinned below the scrolling content, e.g. a comment composer. */
+  /** Pinned below the scrolling content, e.g. a comment composer (opens at full height). */
   footer?: ReactNode;
   /** Button(s) at the right of the title, e.g. "+" to add something. */
   action?: ReactNode;
@@ -22,9 +38,26 @@ export interface SheetProps {
 /** Lets a sheet opened inside another one push its parent back (iOS sheet stack). */
 const SheetStackContext = createContext<((covered: boolean) => void) | null>(null);
 
+/** Places that drag vertically themselves: the sheet leaves them alone. */
+const OWN_GESTURE = '[data-wheel], [aria-roledescription="sortable"], [data-sheet-no-drag]';
+
+interface Gesture {
+  x: number;
+  y: number;
+  /** Sheet offset when the sheet took over. */
+  from: number;
+  /** Finger position when the sheet took over. */
+  anchor: number;
+  mode: 'undecided' | 'sheet' | 'native';
+  samples: { y: number; t: number }[];
+}
+
 /**
- * Bottom sheet: springs up, can be dragged down by its handle/header to dismiss.
- * Built on Radix Dialog for focus trapping, Escape and aria wiring.
+ * Bottom sheet as in iOS apps: a long one opens at medium height; pushing its content up
+ * grows it to full height first, then the content scrolls; pulling down with the content at
+ * the top shrinks it and closes it (a flick closes at once). Short sheets fit their content.
+ * Sideways swipes stay with the content (chips), number wheels and sort handles keep their
+ * own drag. Built on Radix Dialog for focus trapping, Escape and aria wiring.
  */
 export function Sheet({
   open,
@@ -37,12 +70,25 @@ export function Sheet({
   action,
   className,
 }: SheetProps) {
-  const dragControls = useDragControls();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  // Radix mounts the portal a moment later: effects wait for the element itself.
+  const [sheetEl, setSheetEl] = useState<HTMLDivElement | null>(null);
+  /** Moved by hand: content arriving later no longer changes the height. */
+  const touched = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const setParentCovered = useContext(SheetStackContext);
   const stacked = setParentCovered !== null;
-  // Another sheet is open on top of this one.
-  const [covered, setCovered] = useState(false);
+  // How many sheets are open on top of this one (siblings can be open at the same time).
+  const [covers, setCovers] = useState(0);
+  const covered = covers > 0;
+  const setCovered = useCallback((on: boolean) => {
+    setCovers((n) => Math.max(0, n + (on ? 1 : -1)));
+  }, []);
+  const reduceMotion = useReducedMotion();
+  /** Offset from full height (px): 0 = full, `medium` = the middle step. */
+  const y = useMotionValue(0);
+  const medium = useRef<number | null>(null);
+  const atMedium = useRef(false);
 
   useEffect(() => {
     if (!open || !setParentCovered) return;
@@ -52,10 +98,197 @@ export function Sheet({
     };
   }, [open, setParentCovered]);
 
-  function handleDragEnd(_: unknown, info: PanInfo) {
-    if (info.offset.y > sheetDismiss.offset || info.velocity.y > sheetDismiss.velocity) {
-      onOpenChange(false);
+  // Covered by another sheet: up to full height behind it (so it peeks out above), back to
+  // where it was when the one on top closes.
+  const wasMedium = useRef(false);
+  useEffect(() => {
+    if (!open) return;
+    if (covered) {
+      wasMedium.current = atMedium.current;
+      if (atMedium.current) settle(0);
+    } else if (wasMedium.current && medium.current !== null) {
+      wasMedium.current = false;
+      settle(medium.current);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts to being covered only
+  }, [covered]);
+
+  function settle(to: number, velocity = 0) {
+    atMedium.current = medium.current !== null && to === medium.current;
+    void animate(y, to, reduceMotion ? { duration: 0 } : { ...spring.sheet, velocity });
+  }
+
+  // Where the middle step is: only for sheets clearly taller than it, and not with a footer.
+  function measure(): number | null {
+    const sheet = contentRef.current;
+    // A sheet over a sheet (and one with a footer) opens at full height, as before.
+    if (!sheet || footer || stacked) return null;
+    const height = sheet.offsetHeight;
+    const target = window.innerHeight * sheetDetent.medium;
+    return height > target + sheetDetent.slack ? height - target : null;
+  }
+
+  // Opening: slide in from below to the middle step (or full height).
+  useLayoutEffect(() => {
+    const sheet = sheetEl;
+    if (!open || !sheet) return;
+    touched.current = false;
+    medium.current = measure();
+    y.set(sheet.offsetHeight);
+    settle(medium.current ?? 0);
+    // Content arriving later changes the height: keep the visible part where it was.
+    const observer = new ResizeObserver(() => {
+      const next = measure();
+      const before = medium.current;
+      medium.current = next;
+      if (atMedium.current) {
+        if (next === null) settle(0);
+        else y.set(next);
+      } else if (!touched.current && next !== null && before === null) {
+        // Grew past the middle step before anyone touched it: open at the middle step.
+        settle(next);
+      }
+    });
+    observer.observe(sheet);
+    return () => {
+      observer.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening
+  }, [open, sheetEl]);
+
+  // Typing: full height, so the field is not hidden behind the keyboard.
+  useEffect(() => {
+    const sheet = sheetEl;
+    if (!open || !sheet) return;
+    const onFocus = (event: FocusEvent) => {
+      const target = event.target as HTMLElement;
+      if (atMedium.current && target.matches('input, textarea, [contenteditable="true"]')) {
+        settle(0);
+      }
+    };
+    sheet.addEventListener('focusin', onFocus);
+    return () => {
+      sheet.removeEventListener('focusin', onFocus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- settle is stable enough
+  }, [open, sheetEl]);
+
+  // Touch: grow, shrink, close – or leave it to the content.
+  useEffect(() => {
+    const sheet = sheetEl;
+    if (!open || !sheet) return;
+    let g: Gesture | null = null;
+
+    const release = () => {
+      if (g?.mode !== 'sheet') {
+        g = null;
+        return;
+      }
+      const recent = g.samples.slice(-4);
+      const first = recent[0];
+      const last = recent.at(-1);
+      const dt = first && last ? Math.max(1, last.t - first.t) : 1;
+      const velocity = first && last ? ((last.y - first.y) / dt) * 1000 : 0;
+      const offset = y.get();
+      const mid = medium.current;
+      g = null;
+      if (velocity > sheetDetent.flick || offset > (mid ?? 0) + sheetDismiss.offset) {
+        onOpenChange(false);
+      } else if (velocity < -sheetDetent.flick || mid === null || offset < mid / 2) {
+        settle(0, velocity);
+      } else {
+        settle(mid, velocity);
+      }
+    };
+
+    const onStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch || event.touches.length > 1) return;
+      const target = event.target as Element;
+      if (target.closest(OWN_GESTURE)) return;
+      g = {
+        x: touch.clientX,
+        y: touch.clientY,
+        from: y.get(),
+        anchor: touch.clientY,
+        mode: 'undecided',
+        samples: [{ y: touch.clientY, t: event.timeStamp }],
+      };
+    };
+
+    const onMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!g || !touch) return;
+      const dx = touch.clientX - g.x;
+      const dy = touch.clientY - g.y;
+      const scroller = scrollRef.current;
+      const inScroller = scroller?.contains(event.target as Node) ?? false;
+      const atTop = !inScroller || (scroller?.scrollTop ?? 0) <= 0;
+      if (g.mode === 'undecided') {
+        if (Math.abs(dx) < sheetDetent.lock && Math.abs(dy) < sheetDetent.lock) return;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          g.mode = 'native';
+          return;
+        }
+        // Up while not at full height, or down with the content at its top: the sheet moves.
+        const grow = dy < 0 && y.get() > 0;
+        const shrink = dy > 0 && atTop;
+        g.mode = grow || shrink ? 'sheet' : 'native';
+        g.from = y.get();
+        g.anchor = touch.clientY;
+      }
+      if (g.mode !== 'sheet') return;
+      event.preventDefault();
+      touched.current = true;
+      const next = g.from + (touch.clientY - g.anchor);
+      if (next < 0) {
+        // Full height reached: the rest of the push scrolls the content.
+        y.set(0);
+        if (scroller) scroller.scrollTop = -next;
+      } else {
+        y.set(next);
+      }
+      g.samples.push({ y: touch.clientY, t: event.timeStamp });
+    };
+
+    sheet.addEventListener('touchstart', onStart, { passive: true });
+    sheet.addEventListener('touchmove', onMove, { passive: false });
+    sheet.addEventListener('touchend', release);
+    sheet.addEventListener('touchcancel', release);
+    return () => {
+      sheet.removeEventListener('touchstart', onStart);
+      sheet.removeEventListener('touchmove', onMove);
+      sheet.removeEventListener('touchend', release);
+      sheet.removeEventListener('touchcancel', release);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlers read refs
+  }, [open, sheetEl]);
+
+  // Mouse (desktop): drag the handle/header as before.
+  function onHeaderPointerDown(event: React.PointerEvent) {
+    if (event.pointerType !== 'mouse') return;
+    touched.current = true;
+    const startY = event.clientY;
+    const from = y.get();
+    let last = { y: startY, t: event.timeStamp };
+    let velocity = 0;
+    const move = (e: PointerEvent) => {
+      velocity = ((e.clientY - last.y) / Math.max(1, e.timeStamp - last.t)) * 1000;
+      last = { y: e.clientY, t: e.timeStamp };
+      y.set(Math.max(0, from + e.clientY - startY));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      const offset = y.get();
+      const mid = medium.current;
+      if (velocity > sheetDismiss.velocity || offset > (mid ?? 0) + sheetDismiss.offset) {
+        onOpenChange(false);
+      } else if (mid === null || offset < mid / 2) settle(0);
+      else settle(mid);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
   }
 
   return (
@@ -87,30 +320,25 @@ export function Sheet({
                 }}
               >
                 <motion.div
-                  ref={contentRef}
+                  ref={(el) => {
+                    contentRef.current = el;
+                    setSheetEl(el);
+                  }}
                   className={cn(
                     'absolute inset-x-0 bottom-0 flex max-h-(--spacing-sheet-max) origin-top flex-col rounded-t-sheet border-t border-border bg-surface pb-safe outline-none',
                     stacked && 'max-h-(--spacing-sheet-stacked)',
                     className,
                   )}
-                  initial={{ y: '100%' }}
+                  style={{ y }}
                   // Behind another sheet it stays where it is and only shrinks back a little
                   // (dimmed by the new sheet's overlay): calm, no height change.
-                  animate={{ y: 0, scale: covered ? sheetBehindScale : 1 }}
+                  animate={{ scale: covered ? sheetBehindScale : 1 }}
                   exit={{ y: '100%' }}
                   transition={spring.sheet}
-                  drag="y"
-                  dragListener={false}
-                  dragControls={dragControls}
-                  dragConstraints={{ top: 0, bottom: 0 }}
-                  dragElastic={{ top: 0, bottom: 0.7 }}
-                  onDragEnd={handleDragEnd}
                 >
                   <div
-                    className="shrink-0 cursor-grab touch-none px-gutter pt-2 pb-3"
-                    onPointerDown={(event) => {
-                      dragControls.start(event);
-                    }}
+                    className="shrink-0 cursor-grab px-gutter pt-2 pb-3"
+                    onPointerDown={onHeaderPointerDown}
                   >
                     <div
                       aria-hidden
@@ -140,7 +368,10 @@ export function Sheet({
                       </Dialog.Description>
                     )}
                   </div>
-                  <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-4">
+                  <div
+                    ref={scrollRef}
+                    className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-4"
+                  >
                     <SheetStackContext.Provider value={setCovered}>
                       {children}
                     </SheetStackContext.Provider>

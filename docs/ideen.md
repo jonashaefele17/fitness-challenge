@@ -94,3 +94,16 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Pro Person: Anzahl Trainings, Gesamtvolumen, neue Rekorde, größte Kraftzuwächse (Anfang → Ende der Saison in %), meisttrainierte Muskelgruppen, Lieblingsgerät, längste Serie; später Habits, Gewicht, erreichte Saisonziele.
 - [ ] Gruppe: Auszeichnungen wie „Meiste Trainings“, „Größter Kraftzuwachs“, „Meiste Rekorde“, „Volumen-Monster“. Vergleich über Zuwachs in % (fair unabhängig davon, wer absolut stärker ist); dafür ggf. geschätztes 1RM nur intern.
 - [ ] Darstellung wie „Wrapped“: Karten zum Durchwischen, am Saisonende per Push, als Bild teilbar.
+
+## KI-Coach (MCP, nur lesen)
+
+Besprochen am 24.11.2026. Ziel: ein Personal Trainer mit Zeit, der alle eigenen Daten kennt – Einschätzung statt Eintragen: Was läuft gut, was schlecht? Wie entwickle ich mich? Welche Muskelgruppe kommt zu kurz, welche Übung sollte ich einbauen, was kann ich verbessern – mit konkreten Vorschlägen.
+
+- [ ] Weg A (empfohlen): eigener MCP-Server als Supabase Edge Function, **nur lesend**, mit den Rechten der Person (RLS: eigene Daten und was andere teilen). Genutzt in der Claude-App als Gespräch – keine API-Kosten, nichts kann verändert werden.
+- [ ] Zugang: persönlicher Zugangsschlüssel pro Person (gehasht gespeichert, widerrufbar, nur Lesen) für Claude Code/Desktop; für einen claude.ai-Konnektor wäre OAuth nötig – vorher prüfen, was Supabase dafür anbietet.
+- [ ] Werkzeuge (ca. 8): Überblick (Trainingsarten, Studio, Geräte) · Trainings im Zeitraum · Verlauf einer Übung (Lombardi-Schätzung, Volumen) · Bestwerte · Sätze pro Muskelgruppe und Woche · Übungskatalog fürs eigene Studio (mit Muskelgruppen) · Habits-Zusammenfassung (Schlaf, Schritte, Ernährung → Erholung) · Pläne.
+- [ ] Neue SQL-Funktion „Sätze pro Muskelgruppe pro Woche“ (deckt sich mit der Muskelgruppen-Wochenübersicht unter Training – bekommt die App gleich mit).
+- [ ] Coach-Anleitung im MCP (Prompt/Ressource): wie die Zahlen gemeint sind – Lombardi-Schätzung, Messart pro Übung, Gerätestufen, verzeihende Serien, Quoten.
+- [ ] Datenlücken für bessere Ratschläge: eigene Ziele (Ziele-Modul), Körpergewicht/Maße (Körper-Modul), wie schwer sich ein Satz angefühlt hat (RPE/RIR, bisher nicht erfasst); Verletzungen und Vorlieben bleiben Gesprächsstoff.
+- [ ] Später Weg B obendrauf: Coach-Kommentar in der App (z. B. montags im Wochenrückblick) über die Claude API – kostet pro Aufruf.
+- [ ] Offizieller Supabase-MCP-Server nur für Entwicklung auf Staging (Admin-Zugriff aufs ganze Projekt), nie mit Live-Daten.

@@ -283,6 +283,7 @@ function ExerciseSettingsSheet({
 
   return (
     <Sheet
+      fullHeight
       open={item !== null}
       onOpenChange={(next) => {
         if (!next) close();

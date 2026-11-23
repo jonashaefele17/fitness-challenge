@@ -32,6 +32,11 @@ export interface SheetProps {
   footer?: ReactNode;
   /** Button(s) at the right of the title, e.g. "+" to add something. */
   action?: ReactNode;
+  /**
+   * Forms and flows (buttons at the bottom): open at full height / fitting the content,
+   * never at the middle step. The middle step is for things to look through.
+   */
+  fullHeight?: boolean;
   className?: string;
 }
 
@@ -50,6 +55,8 @@ interface Gesture {
   anchor: number;
   mode: 'undecided' | 'sheet' | 'native';
   samples: { y: number; t: number }[];
+  /** The push went on past full height into the content. */
+  scrolled: boolean;
 }
 
 /**
@@ -68,6 +75,7 @@ export function Sheet({
   children,
   footer,
   action,
+  fullHeight = false,
   className,
 }: SheetProps) {
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -122,7 +130,7 @@ export function Sheet({
   function measure(): number | null {
     const sheet = contentRef.current;
     // A sheet over a sheet (and one with a footer) opens at full height, as before.
-    if (!sheet || footer || stacked) return null;
+    if (!sheet || footer || stacked || fullHeight) return null;
     const height = sheet.offsetHeight;
     const target = window.innerHeight * sheetDetent.medium;
     return height > target + sheetDetent.slack ? height - target : null;
@@ -155,6 +163,16 @@ export function Sheet({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per opening
   }, [open, sheetEl]);
+
+  // Below full height every vertical move belongs to the sheet: the content stays put.
+  useEffect(() => {
+    const lock = (offset: number) => {
+      const scroller = scrollRef.current;
+      if (scroller) scroller.style.overflowY = offset > 0.5 ? 'hidden' : '';
+    };
+    lock(y.get());
+    return y.on('change', lock);
+  }, [y, sheetEl]);
 
   // Typing: full height, so the field is not hidden behind the keyboard.
   useEffect(() => {
@@ -191,7 +209,26 @@ export function Sheet({
       const velocity = first && last ? ((last.y - first.y) / dt) * 1000 : 0;
       const offset = y.get();
       const mid = medium.current;
+      const scrolled = g.scrolled;
       g = null;
+      const scroller = scrollRef.current;
+      if (scrolled && scroller && offset === 0) {
+        // Handed over to the content: let it glide on as a scroll would.
+        if (velocity < 0) {
+          void animate(scroller.scrollTop, scroller.scrollTop - velocity * 0.35, {
+            type: 'inertia',
+            velocity: -velocity,
+            power: 0.35,
+            timeConstant: 325,
+            min: 0,
+            max: scroller.scrollHeight - scroller.clientHeight,
+            onUpdate: (v) => {
+              scroller.scrollTop = v;
+            },
+          });
+        }
+        return;
+      }
       if (velocity > sheetDetent.flick || offset > (mid ?? 0) + sheetDismiss.offset) {
         onOpenChange(false);
       } else if (velocity < -sheetDetent.flick || mid === null || offset < mid / 2) {
@@ -213,6 +250,7 @@ export function Sheet({
         anchor: touch.clientY,
         mode: 'undecided',
         samples: [{ y: touch.clientY, t: event.timeStamp }],
+        scrolled: false,
       };
     };
 
@@ -225,14 +263,19 @@ export function Sheet({
       const inScroller = scroller?.contains(event.target as Node) ?? false;
       const atTop = !inScroller || (scroller?.scrollTop ?? 0) <= 0;
       if (g.mode === 'undecided') {
-        if (Math.abs(dx) < sheetDetent.lock && Math.abs(dy) < sheetDetent.lock) return;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          g.mode = 'native';
-          return;
-        }
         // Up while not at full height, or down with the content at its top: the sheet moves.
         const grow = dy < 0 && y.get() > 0;
         const shrink = dy > 0 && atTop;
+        const vertical = Math.abs(dy) >= Math.abs(dx);
+        if (Math.abs(dx) < sheetDetent.lock && Math.abs(dy) < sheetDetent.lock) {
+          // Not decided yet, but keep Safari from starting its own scroll or bounce first.
+          if (vertical && (grow || shrink)) event.preventDefault();
+          return;
+        }
+        if (!vertical) {
+          g.mode = 'native';
+          return;
+        }
         g.mode = grow || shrink ? 'sheet' : 'native';
         g.from = y.get();
         g.anchor = touch.clientY;
@@ -244,7 +287,11 @@ export function Sheet({
       if (next < 0) {
         // Full height reached: the rest of the push scrolls the content.
         y.set(0);
-        if (scroller) scroller.scrollTop = -next;
+        if (scroller) {
+          scroller.style.overflowY = '';
+          scroller.scrollTop = -next;
+          g.scrolled = true;
+        }
       } else {
         y.set(next);
       }

@@ -92,6 +92,7 @@ export function TrainingSettings() {
       </Button>
 
       <Sheet
+        fullHeight
         open={editing !== null}
         onOpenChange={(open) => {
           if (!open) setEditing(null);

@@ -84,6 +84,7 @@ export function TemplatesView({ onStarted }: { onStarted: () => void }) {
       />
 
       <Sheet
+        fullHeight
         open={editing !== null}
         onOpenChange={(next) => {
           if (!next) setEditing(null);

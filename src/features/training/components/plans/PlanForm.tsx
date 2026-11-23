@@ -266,6 +266,7 @@ export function PlanForm({ initial, onSaved }: { initial: PlanDraft; onSaved: ()
       </Button>
 
       <Sheet
+        fullHeight
         open={editDay !== null}
         onOpenChange={(open) => {
           if (!open) setEditDay(null);

@@ -181,6 +181,7 @@ export function DaySheet({
             </div>
           </Sheet>
           <Sheet
+            fullHeight
             open={adding === 'plan'}
             onOpenChange={(open) => {
               if (!open) setAdding(null);

@@ -178,6 +178,7 @@ export function HabitsSettings() {
       </Sheet>
 
       <Sheet
+        fullHeight
         open={editing !== null}
         onOpenChange={(open) => {
           if (!open) setEditing(null);
@@ -439,7 +440,7 @@ function Pauses() {
           ))}
         </ul>
       )}
-      <Sheet open={open} onOpenChange={setOpen} title="Pause eintragen">
+      <Sheet fullHeight open={open} onOpenChange={setOpen} title="Pause eintragen">
         <form
           className="flex flex-col gap-6 pt-1"
           onSubmit={(event) => {

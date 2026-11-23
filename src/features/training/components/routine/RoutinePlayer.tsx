@@ -451,6 +451,7 @@ function EmptyRoutine({
         Beenden
       </Button>
       <Sheet
+        fullHeight
         open={creating}
         onOpenChange={setCreating}
         title="Neue Routine"

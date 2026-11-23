@@ -197,6 +197,7 @@ function CheckInFlow({
 
   return (
     <Sheet
+      fullHeight
       open={start !== null}
       onOpenChange={(open) => {
         if (!open) onClose();

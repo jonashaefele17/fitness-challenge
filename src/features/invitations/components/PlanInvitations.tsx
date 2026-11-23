@@ -214,7 +214,7 @@ function InviteButton({
       >
         {invited.length > 0 ? 'Einladung ändern' : 'Leute einladen'}
       </Button>
-      <Sheet open={open} onOpenChange={setOpen} title="Einladen">
+      <Sheet fullHeight open={open} onOpenChange={setOpen} title="Einladen">
         <div className="flex flex-col gap-6 pt-1">
           <InviteField value={value} onChange={setValue} />
           {plan.recurring && (
@@ -365,7 +365,7 @@ function ProposeSheet({
   const [time, setTime] = useState(plan.startTime ?? '');
   const respond = useRespond();
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="Andere Zeit">
+    <Sheet fullHeight open={open} onOpenChange={onOpenChange} title="Andere Zeit">
       <form
         className="flex flex-col gap-6 pt-1"
         onSubmit={(event) => {

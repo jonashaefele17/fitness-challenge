@@ -648,7 +648,7 @@ export function WorkoutScreen({
         )}
 
         {editing && (
-          <Sheet open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">
+          <Sheet fullHeight open={timeOpen} onOpenChange={setTimeOpen} title="Tag, Uhrzeit & Dauer">
             {timeOpen && (
               <WorkoutTimeForm
                 workout={workout}
@@ -661,6 +661,7 @@ export function WorkoutScreen({
         )}
 
         <Sheet
+          fullHeight
           open={summary !== null}
           onOpenChange={(open) => {
             if (!open) onClose();
@@ -843,6 +844,7 @@ function SortableChip({
 function NoteSheet({ item, onClose }: { item: WorkoutItem | null; onClose: () => void }) {
   return (
     <Sheet
+      fullHeight
       open={item !== null}
       onOpenChange={(open) => {
         if (!open) onClose();

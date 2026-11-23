@@ -41,6 +41,7 @@ export function LogPastSheet({
   const [type, setType] = useState<TrainingType | null>(null);
   return (
     <Sheet
+      fullHeight
       open={open}
       onOpenChange={onOpenChange}
       title={type ? `${type.name} nachtragen` : 'Training nachtragen'}

@@ -21,7 +21,13 @@ export function CardHabits({ card }: { card: FeedCard }) {
     const count = field(e.data, 'milestone');
     const unit = field(e.data, 'unit');
     return typeof name === 'string' && typeof count === 'number'
-      ? [{ id: e.id, name, text: `${String(count)} ${unit === 'weeks' ? 'Wochen' : 'Tage'} drangeblieben` }]
+      ? [
+          {
+            id: e.id,
+            name,
+            text: `${String(count)} ${unit === 'weeks' ? 'Wochen' : 'Tage'} drangeblieben`,
+          },
+        ]
       : [];
   });
   if (typeof weekStart !== 'string' && milestones.length === 0) return null;

@@ -23,6 +23,47 @@ export type Database = {
   };
   public: {
     Tables: {
+      body_reminder_log: {
+        Row: {
+          on_date: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          on_date: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          on_date?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_settings: {
+        Row: {
+          updated_at: string;
+          user_id: string;
+          weigh_reminder_at: string | null;
+          weigh_reminder_days: number[];
+        };
+        ComputedFields: never;
+        Insert: {
+          updated_at?: string;
+          user_id?: string;
+          weigh_reminder_at?: string | null;
+          weigh_reminder_days?: number[];
+        };
+        Update: {
+          updated_at?: string;
+          user_id?: string;
+          weigh_reminder_at?: string | null;
+          weigh_reminder_days?: number[];
+        };
+        Relationships: [];
+      };
       comment_mentions: {
         Row: {
           comment_id: string;
@@ -1878,6 +1919,37 @@ export type Database = {
           },
         ];
       };
+      scales: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          is_main: boolean;
+          name: string;
+          offset_kg: number;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_main?: boolean;
+          name: string;
+          offset_kg?: number;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_main?: boolean;
+          name?: string;
+          offset_kg?: number;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       target_types: {
         Row: {
           can_view_fn: unknown;
@@ -2053,6 +2125,51 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'exercises';
             referencedColumns: ['id'];
+          },
+        ];
+      };
+      weigh_ins: {
+        Row: {
+          created_at: string;
+          id: string;
+          measured_at: string;
+          measured_on: string;
+          scale_id: string | null;
+          source: string;
+          updated_at: string;
+          user_id: string;
+          weight_kg: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          measured_at?: string;
+          measured_on: string;
+          scale_id?: string | null;
+          source?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_kg: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          measured_at?: string;
+          measured_on?: string;
+          scale_id?: string | null;
+          source?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_kg?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'weigh_ins_scale_id_user_id_fkey';
+            columns: ['scale_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'scales';
+            referencedColumns: ['id', 'user_id'];
           },
         ];
       };
@@ -2824,6 +2941,14 @@ export type Database = {
         };
         Returns: string;
       };
+      scale_offset_suggestion: {
+        Args: { p_scale_id: string };
+        Returns: {
+          common_days: number;
+          scale_id: string;
+          suggested_offset_kg: number;
+        }[];
+      };
       search_exercises: {
         Args: { p_catalog?: string; p_limit?: number; p_query: string };
         Returns: {
@@ -2841,6 +2966,7 @@ export type Database = {
         Args: { p_item_ids: string[]; p_workout_id: string };
         Returns: undefined;
       };
+      set_main_scale: { Args: { p_scale_id: string }; Returns: undefined };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
       set_plan_participants: {
         Args: { p_group_id: string; p_plan_id: string; p_user_ids: string[] };
@@ -2917,6 +3043,31 @@ export type Database = {
       update_workout_time: {
         Args: { p_duration_seconds: number; p_started_at: string; p_workout_id: string };
         Returns: undefined;
+      };
+      weight_days: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          entries: number;
+          on_date: string;
+          trend_kg: number;
+          weight_kg: number;
+        }[];
+      };
+      weight_summary: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          change_kg: number;
+          change_pct: number;
+          current_on: string;
+          current_trend_kg: number;
+          days_with_entries: number;
+          latest_adjusted_kg: number;
+          latest_kg: number;
+          latest_on: string;
+          latest_scale_id: string;
+          start_on: string;
+          start_trend_kg: number;
+        }[];
       };
       workout_records: {
         Args: { p_workout_id: string };

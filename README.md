@@ -67,3 +67,16 @@ Groups are tenants (`groups`, `group_members` n:m with role `admin | member`). I
 ## Credits
 
 - Training type icons (barbell, run, bike, football, table tennis, yoga) from [Tabler Icons](https://tabler.io/icons), MIT License, © Paweł Kuna.
+
+## Catalogue images
+
+Device types and exercises show rendered illustrations. The WebP files are kept in
+`supabase/catalog-images/` and served from the public Storage bucket `catalog`; the
+`image_path` columns hold the path inside the bucket.
+
+- Upload (once per Supabase project, after the migrations):
+  `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run catalog:images`
+- New or changed images: see `tools/exercise-renders/README.md`.
+
+The figure is rendered from the Z-Anatomy model (https://www.z-anatomy.com/, CC BY-SA 4.0),
+which is based on BodyParts3D (© The Database Center for Life Science, CC BY-SA 2.1 Japan).

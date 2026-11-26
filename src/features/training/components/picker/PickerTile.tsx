@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { cn } from '@/shared/lib';
-import type { ExerciseHistory } from '../../api/useCatalog';
+import { catalogImageUrl, type ExerciseHistory } from '../../api/useCatalog';
 import { Sparkline } from '../Sparkline';
 
 export function SectionTitle({ children }: { children: ReactNode }) {
@@ -11,10 +11,52 @@ export function SectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-/** Tile with image area (placeholder until illustrations exist), title, subtitle, trend. */
+/**
+ * Catalogue illustration (transparent WebP) on the image backdrop; falls back to the first
+ * letter while there is no image or it fails to load (e.g. offline before it was cached).
+ */
+export function CatalogImage({
+  path,
+  name,
+  className,
+}: {
+  path: string | null | undefined;
+  name: string;
+  className?: string;
+}) {
+  const url = catalogImageUrl(path);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'flex items-center justify-center image-backdrop text-large-title font-bold text-accent/70',
+        className,
+      )}
+    >
+      {url && url !== failedUrl ? (
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="size-full object-contain"
+          onError={() => {
+            setFailedUrl(url);
+          }}
+        />
+      ) : (
+        name.charAt(0).toUpperCase()
+      )}
+    </span>
+  );
+}
+
+/** Tile with image area (letter placeholder without an illustration), title, subtitle, trend. */
 export function PickerTile({
   title,
   subtitle,
+  imagePath,
   trend,
   selected = false,
   muted = false,
@@ -23,6 +65,8 @@ export function PickerTile({
 }: {
   title: string;
   subtitle: string;
+  /** Path in the catalogue image bucket. */
+  imagePath?: string | null | undefined;
   trend?: ExerciseHistory['trend'] | undefined;
   selected?: boolean;
   /** Dimmed, e.g. a device type that is already at this place. */
@@ -42,12 +86,7 @@ export function PickerTile({
           muted && 'opacity-60',
         )}
       >
-        <span
-          aria-hidden
-          className="flex aspect-[4/3] items-center justify-center image-backdrop text-large-title font-bold text-accent/70"
-        >
-          {title.charAt(0).toUpperCase()}
-        </span>
+        <CatalogImage path={imagePath} name={title} className="aspect-[4/3]" />
         <span className="flex flex-col gap-1 p-3">
           <span className="line-clamp-2 text-subhead font-semibold">{title}</span>
           <span className="line-clamp-2 text-caption text-text-muted">{subtitle}</span>

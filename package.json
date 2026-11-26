@@ -23,7 +23,8 @@
     "db:types": "supabase gen types typescript --local > src/shared/types/database.ts && prettier --write src/shared/types/database.ts",
     "invite": "node scripts/invite.mjs",
     "vapid": "node scripts/vapid-keys.mjs",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "catalog:images": "node scripts/upload-catalog-images.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

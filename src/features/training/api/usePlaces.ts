@@ -145,13 +145,14 @@ export function useDeviceTypes() {
       const { data, error } = await supabase
         .from('device_types')
         .select(
-          'id, name, default_weight_step, comparable, setting_fields, device_type_exercises(exercises!inner(id, name, measure))',
+          'id, name, image_path, default_weight_step, comparable, setting_fields, device_type_exercises(exercises!inner(id, name, measure))',
         );
       if (error) throw error;
       return data
         .map((row): DeviceType => ({
           id: row.id,
           name: row.name,
+          imagePath: row.image_path,
           weightStep: row.default_weight_step,
           comparable: row.comparable,
           settingFields: row.setting_fields,

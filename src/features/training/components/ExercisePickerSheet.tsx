@@ -3,6 +3,7 @@ import { Button, SegmentedControl, Sheet, TextField } from '@/shared/ui';
 import {
   fitsFocus,
   historyFor,
+  useExerciseImages,
   useExerciseOverview,
   useExerciseSearch,
   usePrimaryMuscleIndex,
@@ -448,6 +449,7 @@ function DevicesGrid({
           <PickerTile
             key={device.id}
             title={device.name}
+            imagePath={device.imagePath}
             subtitle={
               only
                 ? history
@@ -612,6 +614,7 @@ function ExercisesGrid({
   const search = useExerciseSearch(query, catalog);
   const overview = useExerciseOverview().data;
   const muscles = usePrimaryMuscleIndex();
+  const images = useExerciseImages();
   const results = search.data ?? [];
   const fitting = results.filter((exercise) => fitsFocus(focus, muscles.get(exercise.id)));
   // Most recently done first (in the shared scope), then alphabetical.
@@ -634,6 +637,7 @@ function ExercisesGrid({
             <PickerTile
               key={exercise.id}
               title={exercise.name}
+              imagePath={images.get(exercise.id)}
               subtitle={
                 history
                   ? lastDoneText(history, exercise)

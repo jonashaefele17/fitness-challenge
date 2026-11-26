@@ -37,6 +37,8 @@ export interface Device {
   typeId: string;
   /** Name of the device type. */
   name: string;
+  /** Illustration of the type: path in the catalogue image bucket; null: none yet. */
+  imagePath: string | null;
   /** Effective weight step: own override or the type's default. */
   weightStep: number | null;
   /** The type's default step (an override equal to it is not stored). */
@@ -63,6 +65,7 @@ export interface DeviceWithExercises extends Device {
 export interface DeviceType {
   id: string;
   name: string;
+  imagePath: string | null;
   weightStep: number | null;
   comparable: boolean;
   settingFields: string[];

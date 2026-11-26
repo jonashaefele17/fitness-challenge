@@ -6,13 +6,13 @@ import {
   formatSignedKg,
   parseKg,
   isoWeekday,
-  measuredAtFor,
+  measuredAtOn,
   offsetText,
   parseOffsetAmount,
   periodRange,
   reminderSummary,
   sameOffset,
-  stepKg,
+  timeOf,
   weighDue,
   weighWindowStart,
 } from './format';
@@ -72,20 +72,6 @@ describe('periodRange', () => {
   });
 });
 
-describe('stepKg', () => {
-  it('steps by 0,1 with a German comma', () => {
-    expect(stepKg('80,3', 0.1)).toBe('80,4');
-    expect(stepKg('80', -0.1)).toBe('79,9');
-    expect(stepKg('80.9', 0.1)).toBe('81,0');
-  });
-
-  it('leaves what it cannot read', () => {
-    expect(stepKg('', 0.1)).toBe('');
-    expect(stepKg('80,', 0.1)).toBe('80,');
-    expect(stepKg('20', -0.1)).toBe('20');
-  });
-});
-
 describe('offsets', () => {
   it('reads the amount', () => {
     expect(parseOffsetAmount('0,6')).toBe(0.6);
@@ -114,10 +100,10 @@ describe('days', () => {
     expect(isoWeekday('2026-11-29')).toBe(7);
   });
 
-  it('dates a back-filled entry on its day at the current time', () => {
-    const now = new Date(2026, 10, 27, 7, 30);
-    expect(measuredAtFor('2026-11-27', now)).toBe(now.toISOString());
-    expect(measuredAtFor('2026-11-20', now)).toBe(new Date(2026, 10, 20, 7, 30).toISOString());
+  it('stores an entry at its local day and time', () => {
+    expect(measuredAtOn('2026-11-20', '07:30')).toBe(new Date(2026, 10, 20, 7, 30).toISOString());
+    expect(timeOf(new Date(2026, 10, 20, 7, 5))).toBe('07:05');
+    expect(timeOf(measuredAtOn('2026-11-20', '21:45'))).toBe('21:45');
   });
 });
 

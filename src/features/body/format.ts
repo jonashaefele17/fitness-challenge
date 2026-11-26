@@ -68,14 +68,6 @@ export function periodRange(
   return { from: dayKey(date), to: today };
 }
 
-/** ±0,1 kg steps in the weigh-in: "80,3" + 0.1 → "80,4"; unreadable input stays as it is. */
-export function stepKg(input: string, delta: number): string {
-  const value = parseKg(input);
-  if (value === null) return input;
-  const next = Math.round((value + delta) * 10) / 10;
-  return parseKg(String(next)) === null ? input : formatKg(next);
-}
-
 /**
  * How much a scale shows more or less than the main scale (the amount only, the direction is
  * chosen separately: the iPhone's decimal keypad has no minus). "0,6" → 0.6; 0 … 20.
@@ -104,16 +96,15 @@ export function isoWeekday(day: string): number {
   return ((new Date(`${day}T12:00:00`).getDay() + 6) % 7) + 1;
 }
 
-/**
- * The time to store for an entry on `day`: now for today, else that day at the current
- * clock time (so entries of a day sort as they were made).
- */
-export function measuredAtFor(day: string, now: Date = new Date()): string {
-  if (day === dayKey(now)) return now.toISOString();
-  const [y, m, d] = day.split('-').map(Number);
-  const at = new Date(now);
-  at.setFullYear(y ?? at.getFullYear(), (m ?? 1) - 1, d ?? 1);
-  return at.toISOString();
+/** Local clock time "HH:MM" of a moment. */
+export function timeOf(moment: Date | string): string {
+  const date = typeof moment === 'string' ? new Date(moment) : moment;
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+/** The moment to store for an entry: local `day` at local `time` ("HH:MM"). */
+export function measuredAtOn(day: string, time: string): string {
+  return new Date(`${day}T${time}:00`).toISOString();
 }
 
 /** Short weekday names, Monday first (index + 1 = ISO weekday). */

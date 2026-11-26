@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { showToast } from '@/shared/lib';
-import { Button, Chip, FieldGroup, Sheet } from '@/shared/ui';
+import { Button, Chip, FieldGroup, NumberWheel, Sheet } from '@/shared/ui';
 import {
   newWeighIn,
   useAddWeighIn,
@@ -8,9 +8,10 @@ import {
   useRestoreWeighIn,
   useScales,
   useUpdateWeighIn,
+  useWeighIns,
   useWeightSummary,
 } from '../api/useWeight';
-import { formatKg, measuredAtFor, parseKg, stepKg, todayKey } from '../format';
+import { formatKg, measuredAtOn, parseKg, periodRange, timeOf, todayKey } from '../format';
 import type { Scale, WeighIn } from '../types';
 
 const dayTitle = new Intl.DateTimeFormat('de', {
@@ -19,12 +20,20 @@ const dayTitle = new Intl.DateTimeFormat('de', {
   month: 'long',
 });
 
-const stepButton =
-  'flex size-tap shrink-0 items-center justify-center rounded-pill bg-surface-2 text-subhead font-semibold tabular-nums active:bg-surface-3';
+/** Time offered for a back-filled entry when there is no earlier one to go by. */
+const DEFAULT_TIME = '07:00';
+
+interface WeighInInput {
+  weightKg: number;
+  scaleId: string | null;
+  day: string;
+  /** Local clock time "HH:MM". */
+  time: string;
+}
 
 /**
- * Enter or change one weigh-in (under 10 seconds): the last value is already there, ±0,1 for
- * the usual small difference, the keyboard for the rest. Saving closes at once; "Rückgängig"
+ * Enter or change one weigh-in (under 10 seconds): the last value is already there on a
+ * wheel in 0,1 steps, a tap on it types instead. Saving closes at once; "Rückgängig"
  * in the toast. Used from Ich, Heute and the calendar's day sheet.
  */
 export function WeighInSheet({
@@ -50,18 +59,28 @@ export function WeighInSheet({
     showToast('Gewicht konnte nicht gespeichert werden.');
   };
 
-  function save(input: { weightKg: number; scaleId: string | null; day: string }) {
+  function save(input: WeighInInput) {
     onOpenChange(false);
     if (entry) {
       const before = entry;
       update.mutate(
-        { id: entry.id, weightKg: input.weightKg, scaleId: input.scaleId },
+        {
+          id: entry.id,
+          weightKg: input.weightKg,
+          scaleId: input.scaleId,
+          measuredAt: measuredAtOn(input.day, input.time),
+        },
         { onError: failed },
       );
       showToast('Eintrag geändert', {
         label: 'Rückgängig',
         onAction: () => {
-          update.mutate({ id: before.id, weightKg: before.weightKg, scaleId: before.scaleId });
+          update.mutate({
+            id: before.id,
+            weightKg: before.weightKg,
+            scaleId: before.scaleId,
+            measuredAt: before.measuredAt,
+          });
         },
       });
       return;
@@ -70,7 +89,7 @@ export function WeighInSheet({
       scaleId: input.scaleId,
       measuredOn: input.day,
       weightKg: input.weightKg,
-      measuredAt: measuredAtFor(input.day),
+      measuredAt: measuredAtOn(input.day, input.time),
     });
     add.mutate(created, { onError: failed });
     showToast('Gewicht eingetragen', {
@@ -135,14 +154,18 @@ function WeighInForm({
 }: {
   day: string;
   entry: WeighIn | null;
-  onSave: (input: { weightKg: number; scaleId: string | null; day: string }) => void;
+  onSave: (input: WeighInInput) => void;
   onDelete: (() => void) | undefined;
 }) {
   const scales = activeScales(useScales().data ?? []);
   const summary = useWeightSummary(null, todayKey()).data;
+  const [range] = useState(() => periodRange('3m'));
+  const lastEntry = useWeighIns(range.from, range.to).data?.[0];
   // Untouched: the last value (or the entry's) shows as soon as it is known.
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraft] = useState<number | null>(null);
   const [pickedScale, setPickedScale] = useState<string | null | undefined>(undefined);
+  const [pickedTime, setPickedTime] = useState<string | null>(null);
+  const [now] = useState(() => timeOf(new Date()));
 
   const main = scales.find((s) => s.isMain) ?? scales[0];
   const latestScale = scales.find((s) => s.id === summary?.latestScaleId);
@@ -150,56 +173,30 @@ function WeighInForm({
     ? (entry.scaleId ?? main?.id ?? null)
     : (latestScale?.id ?? main?.id ?? null);
   const scaleId = pickedScale === undefined ? preselected : pickedScale;
-  const prefill = entry
-    ? formatKg(entry.weightKg)
-    : summary?.latestKg != null
-      ? formatKg(summary.latestKg)
-      : '';
-  const text = draft ?? prefill;
-  const value = parseKg(text);
+  const value = draft ?? entry?.weightKg ?? summary?.latestKg ?? null;
+  // Today: now. Another day: when I usually weigh myself (my last entry's time).
+  const usual = lastEntry ? timeOf(lastEntry.measuredAt) : DEFAULT_TIME;
+  const time = pickedTime ?? (entry ? timeOf(entry.measuredAt) : day === todayKey() ? now : usual);
 
   return (
     <div className="flex flex-col gap-5 pt-2">
-      <div className="flex items-center justify-center gap-3">
-        <button
-          type="button"
-          aria-label="0,1 kg weniger"
-          className={stepButton}
-          onClick={() => {
-            setDraft(stepKg(text, -0.1));
+      <div className="flex flex-col items-center gap-1 rounded-card bg-surface-2 py-3">
+        <span className="text-footnote text-text-muted">Gewicht in kg</span>
+        <NumberWheel
+          value={value}
+          suggested={false}
+          step={0.1}
+          label="Gewicht in kg"
+          format={formatKg}
+          parse={(text) => parseKg(text) ?? Number.NaN}
+          onChange={(next) => {
+            // The wheel can roll past what a person weighs; keep the last valid value.
+            if (parseKg(String(next)) !== null) setDraft(next);
           }}
-        >
-          −0,1
-        </button>
-        <label className="flex min-w-0 items-baseline justify-center gap-1.5 rounded-card bg-surface-2 px-4 py-2">
-          <span className="sr-only">Gewicht in kg</span>
-          <input
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            enterKeyHint="done"
-            placeholder="0,0"
-            value={text}
-            onChange={(event) => {
-              setDraft(event.target.value);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') event.currentTarget.blur();
-            }}
-            className="w-28 bg-transparent text-center text-large-title font-bold tabular-nums placeholder:text-text-subtle focus:outline-none"
-          />
-          <span className="text-title-3 text-text-muted">kg</span>
-        </label>
-        <button
-          type="button"
-          aria-label="0,1 kg mehr"
-          className={stepButton}
-          onClick={() => {
-            setDraft(stepKg(text, 0.1));
-          }}
-        >
-          +0,1
-        </button>
+        />
+        {value === null && (
+          <span className="text-footnote text-text-subtle">Antippen und Gewicht eingeben</span>
+        )}
       </div>
 
       {scales.length >= 2 && (
@@ -220,6 +217,19 @@ function WeighInForm({
         </FieldGroup>
       )}
 
+      <div className="flex min-h-tap items-center justify-between gap-3 rounded-card bg-surface-2 px-4 py-2">
+        <span className="text-body">Uhrzeit</span>
+        <input
+          type="time"
+          aria-label="Uhrzeit des Wiegens"
+          value={time}
+          onChange={(event) => {
+            if (event.target.value) setPickedTime(event.target.value);
+          }}
+          className="h-tap rounded-sm bg-surface-3 px-2 text-subhead tabular-nums"
+        />
+      </div>
+
       <p className="text-center text-footnote text-text-subtle">Am besten morgens nüchtern</p>
 
       <div className="flex flex-col gap-2">
@@ -228,7 +238,7 @@ function WeighInForm({
           fullWidth
           disabled={value === null}
           onClick={() => {
-            if (value !== null) onSave({ weightKg: value, scaleId, day });
+            if (value !== null) onSave({ weightKg: value, scaleId, day, time });
           }}
         >
           {entry ? 'Speichern' : 'Eintragen'}

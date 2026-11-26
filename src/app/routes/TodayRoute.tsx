@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useUserId } from '@/features/auth';
+import { WeighTodayCard } from '@/features/body';
 import { CheckIn } from '@/features/habits';
 import { NotificationBell, RecentNotifications } from '@/features/notifications';
 import { useMyProfile } from '@/features/profile';
@@ -40,6 +41,7 @@ export function TodayRoute() {
             setParams({}, { replace: true });
           }}
         />
+        <WeighTodayCard />
         <WeekStrip />
         <RecentNotifications
           onOpenTarget={openTarget}

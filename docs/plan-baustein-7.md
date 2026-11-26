@@ -2,7 +2,7 @@
 
 Branch: `feat/body`. Grundlage: Konzept (Version 1.46) – „Module und Navigation“ (Ich → Körper), „Vergleich“ (Gewicht), „Datenmodell“ (Körper). Der Prototyp zeigt dazu nur drei Stellen: den Reiter „Gewicht“ im Vergleich (Kurve in %), einen Feed-Eintrag zum Gewicht und die Einstellung „Sichtbarkeit: Gewicht nur in %“. Alles andere ist hier neu entworfen.
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026, noch nichts gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -32,17 +32,24 @@ Jonas will mit seinen Freunden eine Saison über 6 Monate starten, mit Regeln wi
 - **Rhythmen sind eine allgemeine Funktion:** „wöchentlich wiegen“ und „Zwischenstand alle 4 Wochen“ sind persönliche Einstellungen und gelten auch ohne Saison, damit die App nach einer Saison weiter nutzbar ist. Eine Saison gibt sie nur vor.
 - **Kalender-Marker** für Wiegetag und Zwischenstand kommen mit der Saison, nicht in diesem Baustein.
 
-## 7a – Gewicht
+## 7a – Gewicht (gebaut am 27.11.2026, Staging-Test offen)
 
-- Eintragen in unter 10 Sekunden: Zahl mit einer Nachkommastelle, vorbelegt mit dem letzten Wert; die zuletzt benutzte Waage ist vorausgewählt. Mehrere Einträge pro Tag sind möglich (z. B. morgens zuhause, abends im Studio); für den Tag zählt der Durchschnitt. Ändern und löschen mit „Rückgängig“.
-- Einstiege: Ich → Körper („+“), Karte auf „Heute“ am Tag der Erinnerung, Tages-Sheet im Kalender (auch zum Nachtragen).
-- **Waagen:** eigene Liste (z. B. „Zuhause“, „Studio“), eine ist die Hauptwaage. Abgleich: Hat man sich am selben Tag auf beiden gewogen, schlägt die App den Unterschied vor (z. B. „Studio zeigt 0,6 kg mehr“); man kann ihn auch von Hand eintragen. Kurve und Kennzahlen rechnen mit dem abgeglichenen Wert, der eingegebene Wert bleibt gespeichert. Wer nur eine Waage hat, sieht davon nichts.
-- Ich → Körper: aktueller Wert (Durchschnitt über 7 Tage), Veränderung im Zeitraum in kg und %, Kurve mit den einzelnen Messungen als Punkten und der geglätteten Linie; Zeitraum 4 Wochen / 3 Monate / 1 Jahr / Alles; Liste aller Einträge mit Waage.
-- Erinnerung: freiwillig, Wochentage und Uhrzeit einstellbar; Push nur, wenn heute noch kein Eintrag da ist; neue Push-Kategorie „Körper“ (als Daten, abschaltbar, Ruhezeit gilt).
-- Tages-Sheet im Kalender zeigt das Gewicht des Tages unter „Besonderes“.
-- Datenbank: `scales`, `weigh_ins`, `body_settings`; Abgleich, Glättung und Veränderung als SQL-Funktionen berechnet, nicht gespeichert; Zugriffsregeln und Tests (nur die eigene Person).
+- [x] Eintragen: Zahl mit einer Nachkommastelle, vorbelegt mit dem letzten Wert, Schritte −0,1 / +0,1; mehrere Einträge pro Tag möglich, für den Tag zählt der Durchschnitt; ändern und löschen mit „Rückgängig“
+- [x] Einstiege: Ich → Körper, Karte auf „Heute“, Tages-Sheet im Kalender (auch zum Nachtragen)
+- [x] Waagen: eigene Liste, eine ist die Hauptwaage; Unterschied zur Hauptwaage von Hand oder per Vorschlag aus Tagen, an denen man auf beiden gewogen hat; Kurve und Kennzahlen rechnen mit dem abgeglichenen Wert, der eingegebene bleibt gespeichert. Wer keine oder eine Waage hat, sieht davon nichts und wählt nie eine aus; die Auswahl erscheint erst ab zwei Waagen, vorausgewählt ist die zuletzt benutzte
+- [x] Ich → Körper: aktueller Wert (Durchschnitt über 7 Tage), Veränderung im Zeitraum in kg und %, Kurve mit Tageswerten als Punkten und geglätteter Linie, Zeitraum 4 Wochen / 3 Monate / 1 Jahr / Alles, Liste der Einträge
+- [x] Erinnerung: freiwillig, Wochentage und Uhrzeit; Push nur einmal am Wiegetag und nur, wenn noch nichts eingetragen ist; Kategorie „Körper“; Antippen öffnet Ich → Körper mit dem Eintragen-Sheet
+- [x] Karte auf „Heute“ nur am Wiegetag („heute noch offen“). Verpasst: Sie bleibt als „nachholen“ stehen, bis man sich wiegt (jeder Tag zählt), „Auslassen“ tippt oder der nächste Wiegetag kommt. „Auslassen“ gilt nur auf diesem Gerät
+- [x] Datenbank: `scales`, `weigh_ins`, `body_settings`; Abgleich, Glättung und Veränderung berechnet; nur die eigene Person; Datenbank-Tests (60)
 
-Beim Staging-Test prüfen: Eingabe auf dem iPhone angenehm? Stimmt der vorgeschlagene Abgleich zwischen deinen zwei Waagen? Kurve nach wenigen Einträgen schon brauchbar?
+Für die Saison (Baustein 8) vorgemerkt: „wöchentlich wiegen“ zählt pro Woche, nicht pro Tag – erfüllt, wenn es in der Woche mindestens einen Eintrag gibt.
+
+Beim Staging-Test prüfen:
+- Eingabe auf dem iPhone angenehm (Zahlenfeld, Sheet mit Tastatur)?
+- Passen die vier Reiter unter „Ich“ (Training · Habits · Körper · Einstellungen) in der Breite? Die Beschriftung ist dafür etwas kleiner geworden; sonst „Einstellungen“ als Zahnrad
+- Kurve nach wenigen Einträgen brauchbar? Mit vielen Einträgen nicht zu dicht?
+- Erinnerung kommt zur eingestellten Zeit, Antippen landet beim Eintragen
+- Zwei Waagen anlegen, Unterschied eintragen, Hauptwaage wechseln
 
 ## 7b – Gewicht in der Gruppe
 

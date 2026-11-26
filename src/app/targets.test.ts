@@ -52,6 +52,12 @@ describe('targetPath', () => {
     );
   });
 
+  it('opens the weigh-in under Ich → Körper (weigh reminder)', () => {
+    expect(targetPath({ groupId: 'g', type: 'body', id: 'u1' }, { thread: false })).toBe(
+      '/ich?wiegen=1',
+    );
+  });
+
   it('opens a plan in the training tab', () => {
     expect(targetPath({ groupId: 'g', type: 'plan', id: 'p1' }, { thread: false })).toBe(
       '/training?termin=p1',

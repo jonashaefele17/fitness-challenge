@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useSignOut, useUserId } from '@/features/auth';
+import { BodyOverview } from '@/features/body';
 import { groupKeys, useActiveGroup, useGroupMembers } from '@/features/groups';
 import { HabitsOverview } from '@/features/habits';
 import {
@@ -12,11 +14,11 @@ import { Avatar, ColorPicker, useMyProfile, useSetMyColor } from '@/features/pro
 import { MyExercises, TrainingSettings, useHomeStudio, usePlaces } from '@/features/training';
 import { showToast } from '@/shared/lib';
 import { Button, Card, Screen, SegmentedControl } from '@/shared/ui';
-import { useOpenTarget } from '../targets';
+import { targetParams, useOpenTarget } from '../targets';
 
 const roleLabels = { admin: 'Admin', member: 'Mitglied' } as const;
 
-type Section = 'training' | 'habits' | 'settings';
+type Section = 'training' | 'habits' | 'body' | 'settings';
 
 /** "Wie entwickle ich mich?": my training progress, habits and all settings. */
 export function MeRoute() {
@@ -27,6 +29,10 @@ export function MeRoute() {
   const home = (usePlaces().data ?? []).find((place) => place.id === homeId);
   const [section, setSection] = useState<Section>('training');
   const openTarget = useOpenTarget();
+  // Opened from the weigh reminder: Körper with the weigh-in open.
+  const [params, setParams] = useSearchParams();
+  const weigh = params.get(targetParams.weigh) === '1';
+  if (weigh && section !== 'body') setSection('body');
 
   return (
     <Screen title="Ich" accessory={<NotificationBell onOpenTarget={openTarget} />}>
@@ -51,12 +57,21 @@ export function MeRoute() {
           options={[
             { value: 'training', label: 'Training' },
             { value: 'habits', label: 'Habits' },
+            { value: 'body', label: 'Körper' },
             { value: 'settings', label: 'Einstellungen' },
           ]}
         />
 
         {section === 'training' && <MyExercises />}
         {section === 'habits' && <HabitsOverview />}
+        {section === 'body' && (
+          <BodyOverview
+            openNew={weigh}
+            onOpened={() => {
+              setParams({}, { replace: true });
+            }}
+          />
+        )}
         {section === 'settings' && <Settings userId={userId} />}
       </div>
     </Screen>

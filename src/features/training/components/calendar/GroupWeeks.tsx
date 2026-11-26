@@ -29,11 +29,14 @@ export function GroupWeeks({
   shownIds,
   headerEnd,
   onOpen,
+  special,
 }: {
   today: Date;
   /** Group mates to show next to me. */
   shownIds: string[];
   headerEnd: ReactNode;
+  /** "Besonderes" in the day sheet (see DaySheet). */
+  special?: ((day: string) => ReactNode) | undefined;
   onOpen: (workoutId: string) => void;
 }) {
   const [past, setPast] = useState(STEP_WEEKS);
@@ -276,6 +279,7 @@ export function GroupWeeks({
         plans={dayPlans}
         showNames
         peopleOf={peopleOf}
+        special={special}
         onClose={() => {
           setDay(null);
         }}

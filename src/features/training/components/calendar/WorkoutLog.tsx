@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, type ReactNode } from 'react';
 import { startOfDay } from '../../calendar';
 import { WorkoutDetailSheet } from '../workout-detail/WorkoutDetailSheet';
 import { GroupPicker } from './GroupPicker';
@@ -23,7 +23,12 @@ function readShown(): string[] {
  * chosen (the "Gruppe" pill unfolds to pick them): the group's weeks like the iOS calendar, one row per
  * person. The choice is remembered.
  */
-export function WorkoutLog() {
+export function WorkoutLog({
+  daySpecial,
+}: {
+  /** "Besonderes" in a day's sheet (e.g. the day's weight), plugged in by the app. */
+  daySpecial?: (day: string) => ReactNode;
+} = {}) {
   const [today] = useState(() => startOfDay(new Date()));
   const [shownIds, setShownIds] = useState(readShown);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -59,9 +64,20 @@ export function WorkoutLog() {
   return (
     <>
       {groupView ? (
-        <GroupWeeks today={today} shownIds={shownIds} headerEnd={groupButton} onOpen={setOpenId} />
+        <GroupWeeks
+          today={today}
+          shownIds={shownIds}
+          headerEnd={groupButton}
+          onOpen={setOpenId}
+          special={daySpecial}
+        />
       ) : (
-        <MonthView today={today} color={group.myColor ?? ACCENT} headerEnd={groupButton} />
+        <MonthView
+          today={today}
+          color={group.myColor ?? ACCENT}
+          headerEnd={groupButton}
+          special={daySpecial}
+        />
       )}
 
       <WorkoutDetailSheet

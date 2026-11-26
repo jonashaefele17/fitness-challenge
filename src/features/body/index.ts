@@ -28,3 +28,7 @@ export {
   periodRange,
   todayKey,
 } from './format';
+export { BodyOverview } from './components/BodyOverview';
+export { DayWeight } from './components/DayWeight';
+export { WeighInSheet } from './components/WeighInSheet';
+export { WeighTodayCard } from './components/WeighTodayCard';

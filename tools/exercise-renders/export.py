@@ -1,9 +1,11 @@
 """Crops the transparent renders in ausgabe/ and writes them as WebP into supabase/catalog-images/.
 
-Usage (from the repo root):  python tools/exercise-renders/export.py
+Usage (from the repo root):  python tools/exercise-renders/export.py [render-id ...]
+Without ids everything is exported; with ids only those (keeps untouched files byte-identical).
 File names are the storage paths the catalogue migration refers to.
 """
 import os
+import sys
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,6 +19,8 @@ DEVICE_TYPES = {
     "rudermaschine": "rudermaschine", "seitheben": "seithebe-maschine", "beinpresse": "beinpresse",
     "beinstrecker": "beinstrecker", "beinbeuger": "beinbeuger",
     "adduktoren": "adduktoren-maschine", "abduktoren": "abduktoren-maschine",
+    "laufband": "laufband", "fahrrad": "fahrrad-ergometer", "klimmzugstange": "klimmzugstange",
+    "ringe": "ringe", "hantelbank": "hantelbank", "matte": "boden-matte",
 }
 EXERCISES = {
     "schraegbank": "schraegbankdruecken-mit-kurzhanteln", "bizepscurls": "bizepscurls-mit-kurzhanteln",
@@ -27,6 +31,7 @@ EXERCISES = {
     "rudermaschine": "rudern-an-der-maschine", "seitheben": "seitheben-an-der-maschine",
     "beinpresse": "beinpresse", "beinstrecker": "beinstrecken", "beinbeuger": "beinbeugen",
     "adduktoren": "adduktoren", "abduktoren": "abduktoren",
+    "laufband": "laufen-auf-dem-laufband", "fahrrad": "radfahren-auf-dem-ergometer",
 }
 
 
@@ -42,8 +47,16 @@ def export(source: str, target: str) -> None:
     square.resize((640, 640), Image.LANCZOS).save(target, quality=84, method=6)
 
 
+ONLY = set(sys.argv[1:])
+count = 0
 for render_id, name in DEVICE_TYPES.items():
+    if ONLY and render_id not in ONLY:
+        continue
+    count += 1
     export(os.path.join(SRC, f"{render_id}_geraet.png"), os.path.join(OUT, "device-types", f"{name}.webp"))
 for render_id, name in EXERCISES.items():
+    if ONLY and render_id not in ONLY:
+        continue
+    count += 1
     export(os.path.join(SRC, f"{render_id}_bild.png"), os.path.join(OUT, "exercises", f"{name}.webp"))
-print(f"exported {len(DEVICE_TYPES) + len(EXERCISES)} images")
+print(f"exported {count} images")

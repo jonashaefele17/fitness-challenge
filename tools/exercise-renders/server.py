@@ -12,6 +12,10 @@ class Handler(SimpleHTTPRequestHandler):
         with open(os.path.join("ausgabe", m.group(1)), "wb") as f:
             f.write(data)
         self.send_response(204); self.end_headers()
+    def end_headers(self):
+        # Never cache: edited modules must reach the browser on the next reload.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
     def log_message(self, *a): pass
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

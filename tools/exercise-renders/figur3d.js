@@ -26,7 +26,8 @@ function oberhalb(geo, grenze) {
 }
 
 // Gelenke in der Ruhehaltung des Modells (Meter, Y nach oben, Z nach vorn).
-const GELENKE = { torso: V(0, 0, 0), kopf: V(0, 1.47, -0.025) };
+// torso = Becken (Wurzel); bauch und brust sind die Drehpunkte der Wirbelsäule (Lende, Brustkorb).
+const GELENKE = { torso: V(0, 0, 0), bauch: V(0, 1.0, -0.03), brust: V(0, 1.2, -0.03), kopf: V(0, 1.47, -0.025) };
 for (const s of [-1, 1]) Object.assign(GELENKE, {
   ["oberarm" + s]: V(s * 0.17, 1.385, -0.03), ["unterarm" + s]: V(s * 0.225, 1.10, -0.025),
   ["hand" + s]: V(s * 0.272, 0.856, 0.005), ["finger" + s]: V(s * 0.289, 0.766, 0.02), ["spitzen" + s]: V(s * 0.295, 0.716, 0.022),
@@ -56,7 +57,14 @@ const BEIN_GRUPPE = /thigh|of leg|foot|gluteal|hallucis|iliopsoas/i;
 const DAUMEN_AB = 0.3;
 const SCHULTERGUERTEL = /pectoralis major|latissimus|teres|infraspinatus|supraspinatus|subscapularis/i;
 
-// Verteilt jeden Punkt eines Muskels auf höchstens zwei Knochen; rund um ein Gelenk wird weich überblendet.
+// Rumpf entlang der Wirbelsäule: Becken → Bauch → Brustkorb, weich überblendet (Anteile je Knochen)
+function rumpf(y) {
+  if (y < 1.12) { const t = stufe(0.97, 1.07, y); return [["torso", 1 - t], ["bauch", t]]; }
+  const t = stufe(1.17, 1.27, y);
+  return [["bauch", 1 - t], ["brust", t]];
+}
+
+// Verteilt jeden Punkt eines Muskels auf Knochen; rund um ein Gelenk wird weich überblendet.
 function gewichte(geo, name, gruppe, index) {
   const pos = geo.attributes.position;
   geo.computeBoundingBox();
@@ -84,7 +92,13 @@ function gewichte(geo, name, gruppe, index) {
       else if (y > 0.5 * (y0("unterschenkel") + y0("fuss"))) { a = "oberschenkel" + s; b = "unterschenkel" + s; w = 1 - stufe(y0("unterschenkel") - 0.03, y0("unterschenkel") + 0.04, y); }
       else { a = "unterschenkel" + s; b = "fuss" + s; w = 1 - stufe(y0("fuss") - 0.01, y0("fuss") + 0.055, y); }
     } else if (guertel) ueber(stufe(0.08, 0.25, x) * (/latissimus|teres/i.test(name) ? 0.5 : 0.74), "schulter" + s, "oberarm" + s); // Rückenmuskeln folgen dem Arm nur halb
-    idx[i * 4] = index[a]; idx[i * 4 + 1] = index[b]; gew[i * 4] = 1 - w; gew[i * 4 + 1] = w;
+    // Anteile sammeln; der Rumpf-Anteil verteilt sich je nach Höhe auf Becken, Bauch und Brustkorb
+    const anteile = new Map();
+    for (const [knochen, anteil] of [[a, 1 - w], [b, w]]) {
+      if (anteil <= 0) continue;
+      for (const [k, g] of knochen === "torso" ? rumpf(y) : [[knochen, 1]]) if (g > 0) anteile.set(k, (anteile.get(k) || 0) + anteil * g);
+    }
+    [...anteile].slice(0, 4).forEach(([k, g], n) => { idx[i * 4 + n] = index[k]; gew[i * 4 + n] = g; });
   }
   geo.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(idx, 4));
   geo.setAttribute("skinWeight", new THREE.Float32BufferAttribute(gew, 4));
@@ -160,13 +174,31 @@ export async function ladeFigur(muskelUrl, hautUrl) {
   const laenge = (a, b) => GELENKE[a].distanceTo(GELENKE[b]);
 
   // pose: { hand: {"-1": Vector3, "1": Vector3}, ellbogenPol, fuss, kniePol } – alles im Körper-System.
+  // Wirbelsäule: wirbel = { beuge, dreh, seit } in Bogenmaß für den ganzen Rumpf (positiv: nach vorn beugen,
+  // nach links drehen, zur linken Seite neigen); je zur Hälfte an Lende und Brustkorb.
+  function wirbelsaeule(wirbel = {}) {
+    const halb = new THREE.Quaternion().setFromEuler(new THREE.Euler((wirbel.beuge || 0) / 2, (wirbel.dreh || 0) / 2, (wirbel.seit || 0) / 2, "YXZ"));
+    const L = GELENKE.bauch, B = GELENKE.brust;
+    const bauch = v => v.clone().sub(L).applyQuaternion(halb).add(L);
+    const brust = v => bauch(v.clone().sub(B).applyQuaternion(halb).add(B));
+    return { halb, ganz: halb.clone().multiply(halb), bauch, brust };
+  }
+  /** Punkt des Brustkorbs (z. B. eine Schulter in Ruhe) für eine Wirbelsäulen-Stellung, im Körper-System. */
+  const amBrustkorb = (punkt, wirbel) => wirbelsaeule(wirbel).brust(punkt);
+
   function pose(p) {
-    const griffe = {};
+    const griffe = {}, ws = wirbelsaeule(p.wirbel);
+    knochen.bauch.position.copy(GELENKE.bauch); knochen.bauch.quaternion.copy(ws.halb);
+    knochen.brust.position.copy(ws.bauch(GELENKE.brust)); knochen.brust.quaternion.copy(ws.ganz);
+    // Kopf sitzt auf dem Brustkorb; kopf = { nick, dreh } dreht ihn zusätzlich (positiv: nach unten, nach links)
+    const kopfDreh = new THREE.Quaternion().setFromEuler(new THREE.Euler(p.kopf?.nick || 0, p.kopf?.dreh || 0, 0, "YXZ"));
+    knochen.kopf.position.copy(ws.brust(GELENKE.kopf)); knochen.kopf.quaternion.copy(ws.ganz).multiply(kopfDreh);
     for (const s of [-1, 1]) {
-      const schulter = GELENKE["oberarm" + s];
+      const schulter = ws.brust(GELENKE["oberarm" + s]);
+      knochen["schulter" + s].position.copy(schulter);
       const [ellbogen, hand] = kette(schulter, p.hand[s], laenge("oberarm" + s, "unterarm" + s), laenge("unterarm" + s, "hand" + s), p.ellbogenPol[s]);
       const qArm = ziele("oberarm" + s, "unterarm" + s, schulter, ellbogen);
-      knochen["schulter" + s].quaternion.identity().slerp(qArm, 0.5);
+      knochen["schulter" + s].quaternion.copy(ws.ganz).slerp(qArm, 0.5);
       let q = ziele("unterarm" + s, "hand" + s, ellbogen, hand).clone();
       if (p.handflaeche) { // Unterarm so verdrehen, dass die Handfläche in die gewünschte Richtung zeigt
         const achse = hand.clone().sub(ellbogen).normalize(), quer = v => v.addScaledVector(achse, -v.dot(achse)).normalize();
@@ -175,6 +207,8 @@ export async function ladeFigur(muskelUrl, hautUrl) {
         knochen["unterarm" + s].quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(achse, winkel / 2)); // Unterarm dreht halb mit
         q = new THREE.Quaternion().setFromAxisAngle(achse, winkel).multiply(q);
       }
+      // handBeuge (Bogenmaß): Handgelenk abknicken, z. B. zum Aufstützen (negativ: Handrücken zum Unterarm)
+      if (p.handBeuge) q.multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), p.handBeuge));
       // Hand läuft starr mit dem Unterarm mit; mit "griff" schließen sich die Finger um einen Griff.
       const beuge = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), p.griff ? -1.25 : 0);
       const qFinger = q.clone().multiply(beuge), qSpitzen = qFinger.clone().multiply(beuge);
@@ -192,15 +226,21 @@ export async function ladeFigur(muskelUrl, hautUrl) {
       const [knie, knoechel] = kette(huefte, fussZiel, laenge("oberschenkel" + s, "unterschenkel" + s), laenge("unterschenkel" + s, "fuss" + s), kniePol);
       const qBein = ziele("oberschenkel" + s, "unterschenkel" + s, huefte, knie);
       knochen["huefte" + s].quaternion.identity().slerp(qBein, 0.5);
-      ziele("unterschenkel" + s, "fuss" + s, knie, knoechel);
+      const qSchienbein = ziele("unterschenkel" + s, "fuss" + s, knie, knoechel).clone();
       knochen["fuss" + s].position.copy(knoechel);
-      knochen["fuss" + s].quaternion.copy(p.fussDrehung || new THREE.Quaternion());
+      // fussDrehung: eine Drehung für beide Füße oder je Seite { "-1": q, "1": q }
+      // fussBeugung (je Seite, Bogenmaß): der Fuß folgt dem Unterschenkel, positiv = Fußspitze gestreckt
+      const beugung = p.fussBeugung ? p.fussBeugung[s] : undefined;
+      const fq = beugung !== undefined
+        ? qSchienbein.multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), beugung))
+        : p.fussDrehung && (p.fussDrehung.isQuaternion ? p.fussDrehung : p.fussDrehung[s]);
+      knochen["fuss" + s].quaternion.copy(fq || new THREE.Quaternion());
     }
     wurzel.updateMatrixWorld(true);
     // Griffpunkt: Mitte der Handfläche, etwas vor den Fingergrundgelenken
     return { griff: s => wurzel.localToWorld(griffe[s].clone()) };
   }
-  return { wurzel, faerbe, pose, GELENKE, anzahl: teile.length };
+  return { wurzel, faerbe, pose, amBrustkorb, GELENKE, anzahl: teile.length };
 }
 
 export function kurzhantel() {

@@ -616,3 +616,119 @@ export function hantelablage(hantel) {
   });
   return g;
 }
+
+// Konsole mit Bildschirm: zeigt zum Nutzer (-z) und ist um "neigung" nach hinten gelehnt (Oberkante vom Nutzer weg)
+function konsole(g, x, y, z, breite, hoehe, neigung) {
+  const M = MATERIAL, normale = V(0, Math.sin(neigung), -Math.cos(neigung));
+  const gehaeuse = kasten(breite, hoehe, 0.06, M.verkleidung, 0.03); gehaeuse.position.set(x, y, z); gehaeuse.rotation.x = neigung; g.add(gehaeuse);
+  const bild = kasten(breite * 0.82, hoehe * 0.72, 0.008, M.blende, 0.004); bild.position.set(x, y, z).addScaledVector(normale, 0.031); bild.rotation.x = neigung; g.add(bild);
+}
+
+// Laufband (Technogym Excite Live Run, nach Foto): flaches breites Deck mit abgerundetem Heck und gelbem Logo,
+// zwei wuchtige Arme, die vorn aufsteigen und als Handlauf nach hinten abknicken, Konsole auf einem Hals dazwischen.
+// Die Figur läuft nach +z; LAUFBAND.hoehe ist die Oberkante des Gurts.
+export const LAUFBAND = { hoehe: 0.2 };
+export function laufband3d() {
+  const g = new THREE.Group(), M = MATERIAL, H = LAUFBAND.hoehe;
+  const dazu = (netz, x, y, z) => { netz.position.set(x, y, z); g.add(netz); return netz; };
+  const flach = (p, q, breite, dicke) => {
+    const netz = kasten(breite, p.distanceTo(q) + dicke, dicke, M.rahmen, 0.035);
+    netz.position.copy(p).lerp(q, 0.5); netz.quaternion.setFromUnitVectors(V(0, 1, 0), q.clone().sub(p).normalize()); g.add(netz);
+  };
+  dazu(kasten(0.92, H - 0.04, 2.05, M.verkleidung, 0.06), 0, (H - 0.04) / 2 + 0.03, -0.1);     // Deck
+  dazu(kasten(0.58, 0.02, 1.72, M.gummi, 0.008), 0, H - 0.008, -0.16);                        // Laufgurt
+  for (const x of [-0.13, 0.13]) dazu(kasten(0.07, 0.004, 0.012, M.hell, 0.002), x, H + 0.003, -0.55);
+  for (const x of [-0.38, 0.38]) dazu(kasten(0.13, 0.03, 1.86, M.rahmen, 0.014), x, H, -0.14); // Trittflächen
+  dazu(kasten(0.92, 0.08, 0.3, M.verkleidung, 0.04), 0, H + 0.02, 0.86);                       // flache Abdeckung vorn
+  dazu(kasten(0.16, 0.05, 0.006, M.gelb, 0.004), 0.3, 0.1, -1.128);                            // Logo am Heck
+  // Arme: Säule vorn, oben Knick, Handlauf nach hinten
+  for (const s of [-1, 1]) {
+    const fuss = V(s * 0.42, 0.12, 0.9), knick = V(s * 0.42, 1.0, 0.72), ende = V(s * 0.42, 0.98, -0.02);
+    flach(fuss, knick, 0.1, 0.13); flach(knick, ende, 0.1, 0.11);
+  }
+  // Konsole auf einem Hals zwischen den Armen
+  flach(V(0, 0.2, 0.92), V(0, 1.12, 0.8), 0.16, 0.1);
+  g.add(rohrzug([V(-0.42, 0.98, 0.72), V(0.42, 0.98, 0.72)], 0.045, M.rahmen));
+  konsole(g, 0, 1.3, 0.8, 0.5, 0.34, 0.5);
+  dazu(kasten(0.07, 0.02, 0.01, M.gelb, 0.005), 0, 1.1, 0.745);
+  return { gruppe: g };
+}
+
+// Fahrrad-Ergometer (Technogym Excite Live Bike, nach Foto): zwei breite Standfüße, kompaktes rundes Gehäuse, Sattel auf
+// kurzer Stütze, geschwungene Säule vorn mit breitem Lenker zum Fahrer hin und Konsole darüber. Die Figur schaut nach +z.
+export const FAHRRAD = { kurbel: new THREE.Vector3(0, 0.36, 0.02), radius: 0.17, sattel: new THREE.Vector3(0, 0.98, -0.3), griff: new THREE.Vector3(0.22, 1.2, 0.2) };
+export function fahrrad3d(winkel = 0.6) {
+  const g = new THREE.Group(), M = MATERIAL, F = FAHRRAD;
+  const dazu = (netz, x, y, z) => { netz.position.set(x, y, z); g.add(netz); return netz; };
+  for (const z of [-0.5, 0.6]) dazu(kasten(0.62, 0.07, 0.2, M.verkleidung, 0.035), 0, 0.035, z);   // Standfüße
+  dazu(kasten(0.14, 0.09, 1.1, M.rahmen, 0.035), 0, 0.08, 0.05);
+  // Gehäuse: rund, zum Sattel hin ansteigend
+  const scheibe = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 0.2, 44), M.verkleidung); scheibe.rotation.z = Math.PI / 2; scheibe.position.set(0, 0.38, 0.0); g.add(scheibe);
+  const ruecken = kasten(0.2, 0.52, 0.3, M.verkleidung, 0.09); ruecken.position.set(0, 0.5, -0.24); ruecken.rotation.x = -0.25; g.add(ruecken);
+  dazu(kasten(0.006, 0.05, 0.13, M.gelb, 0.003), 0.103, 0.45, -0.08);                               // Logo
+  // Sattelstütze und Sattel
+  g.add(rohrzug([V(0, 0.66, -0.27), V(0, F.sattel.y - 0.09, F.sattel.z)], 0.045, M.rahmen));
+  dazu(kasten(0.24, 0.07, 0.28, M.polster, 0.035), 0, F.sattel.y - 0.045, F.sattel.z + 0.01);
+  // Säule vorn: steigt geschwungen auf, Lenker kommt dem Fahrer entgegen
+  g.add(rohrzug([V(0, 0.2, 0.42), V(0, 0.75, 0.5), V(0, 1.12, 0.4)], 0.05, M.rahmen));
+  for (const y of [0.62, 0.74]) { const halter = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.01, 8, 20), M.gummi); halter.rotation.x = Math.PI / 2; halter.position.set(0, y, 0.43); g.add(halter); }
+  for (const s of [-1, 1]) {
+    g.add(rohrzug([V(0, 1.12, 0.4), V(s * 0.16, 1.16, 0.4), V(s * F.griff.x, F.griff.y, 0.3), V(s * F.griff.x, F.griff.y - 0.01, F.griff.z - 0.07)], 0.02, M.rahmen));
+    g.add(stab(V(s * F.griff.x, F.griff.y, 0.28), V(s * F.griff.x, F.griff.y - 0.01, F.griff.z - 0.07), 0.023, M.gummi));
+  }
+  konsole(g, 0, 1.34, 0.46, 0.34, 0.24, 0.55);
+  // Kurbeln und Pedale mit gelbem Riemen
+  g.add(stab(V(-0.13, F.kurbel.y, F.kurbel.z), V(0.13, F.kurbel.y, F.kurbel.z), 0.02, M.chrom));
+  const pedale = {};
+  for (const s of [-1, 1]) {
+    const a = winkel + (s === 1 ? 0 : Math.PI);
+    const p = V(s * 0.13, F.kurbel.y - Math.cos(a) * F.radius, F.kurbel.z + Math.sin(a) * F.radius);
+    g.add(stab(V(s * 0.13, F.kurbel.y, F.kurbel.z), p, 0.014, M.chrom));
+    dazu(kasten(0.1, 0.025, 0.11, M.gummi, 0.008), p.x + s * 0.05, p.y, p.z);
+    dazu(kasten(0.104, 0.012, 0.03, M.gelb, 0.005), p.x + s * 0.05, p.y + 0.016, p.z + 0.02);
+    pedale[s] = V(p.x + s * 0.05, p.y, p.z);
+  }
+  return { gruppe: g, pedale };
+}
+
+// Klimmzugstange zur Wandmontage: zwei Konsolen mit Strebe, Stange mit Griffenden. STANGE = Mitte der Stange.
+export const STANGE = new THREE.Vector3(0, 2.15, 0);
+export function klimmzugstange3d() {
+  const g = new THREE.Group(), M = MATERIAL, S = STANGE, wand = -0.55;
+  for (const s of [-1, 1]) {
+    const x = s * 0.42;
+    const platte = kasten(0.09, 0.5, 0.02, M.rahmen, 0.008); platte.position.set(x, S.y - 0.16, wand); g.add(platte);
+    g.add(rohrzug([V(x, S.y, wand), V(x, S.y, 0.02)], 0.022, M.rahmen));
+    g.add(rohrzug([V(x, S.y - 0.38, wand), V(x, S.y, -0.08)], 0.02, M.rahmen));
+    g.add(stab(V(s * 0.3, S.y, 0), V(s * 0.6, S.y, 0), 0.022, M.gummi));
+  }
+  g.add(stab(V(-0.6, S.y, 0), V(0.6, S.y, 0), 0.017, M.chrom));
+  return { gruppe: g };
+}
+
+// Turnringe an Gurten; "haende" = Griffpunkte der beiden Ringe (Welt), aufgehängt an der Stange
+export function ringe3d(haende) {
+  const g = new THREE.Group(), M = MATERIAL;
+  const holz = new THREE.MeshStandardMaterial({ color: 0xc9a66b, roughness: 0.7 });
+  const gurt = new THREE.MeshStandardMaterial({ color: 0x2a2b30, roughness: 0.9 });
+  for (const s of [-1, 1]) {
+    const hand = haende[s], mitte = V(hand.x, hand.y + 0.105, hand.z);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.016, 14, 40), holz); ring.position.copy(mitte); ring.rotation.y = Math.PI / 2; g.add(ring);
+    const oben = V(hand.x, STANGE.y, STANGE.z), unten = V(hand.x, mitte.y + 0.105, hand.z);
+    const band = kasten(0.008, oben.distanceTo(unten), 0.032, gurt, 0.003);
+    band.position.copy(oben).lerp(unten, 0.5); band.quaternion.setFromUnitVectors(V(0, 1, 0), oben.clone().sub(unten).normalize()); g.add(band);
+    const schnalle = kasten(0.014, 0.05, 0.04, M.chrom, 0.004); schnalle.position.copy(oben).lerp(unten, 0.3); g.add(schnalle);
+  }
+  return g;
+}
+
+// Trainingsmatte für Übungen mit dem eigenen Körpergewicht, ein Ende leicht eingerollt
+export function matte3d() {
+  const g = new THREE.Group();
+  const stoff = new THREE.MeshStandardMaterial({ color: 0x4b4d57, roughness: 0.95 });
+  const flaeche = kasten(0.62, 0.014, 1.6, stoff, 0.006); flaeche.position.set(0, 0.007, -0.08); g.add(flaeche);
+  const rolle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.62, 28), stoff); rolle.rotation.z = Math.PI / 2; rolle.position.set(0, 0.055, 0.76); g.add(rolle);
+  const kern = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.625, 16), MATERIAL.gummi); kern.rotation.z = Math.PI / 2; kern.position.set(0, 0.055, 0.76); g.add(kern);
+  for (const z of [-0.5, 0.2]) { const naht = kasten(0.62, 0.002, 0.012, MATERIAL.rahmen, 0.001); naht.position.set(0, 0.015, z); g.add(naht); }
+  return { gruppe: g };
+}

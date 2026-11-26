@@ -20,7 +20,7 @@ h3{font-size:15px;font-weight:600;width:130px;margin:0}
 //         test.html?standbild=1&groesse=1024&speichern=1 → ein sauberes Bild pro Übung
 import * as THREE from "three";
 import { ladeFigur, kurzhantel, bodenschatten } from "./figur3d.js";
-import { kabelturm3d, seilAufsatz, schraegbank, brustpresse3d, pressarme, latzug3d, latstange, parallelgriff, ruderzug3d, seitheben3d, seithebel, lowrow3d, ruderhebel, butterfly3d, schwenkarme, BUTTERFLY, beinpresse3d, beinpresseSchlitten, BEINPRESSE, beinbeuger3d, beinbeugerHebel, BEINBEUGER, hueftmaschine3d, beinarme, kurzstange, einzelgriff, hantelablage } from "./geraete3d.js";
+import { kabelturm3d, seilAufsatz, schraegbank, brustpresse3d, pressarme, latzug3d, latstange, parallelgriff, ruderzug3d, seitheben3d, seithebel, lowrow3d, ruderhebel, butterfly3d, schwenkarme, BUTTERFLY, beinpresse3d, beinpresseSchlitten, BEINPRESSE, beinbeuger3d, beinbeugerHebel, BEINBEUGER, hueftmaschine3d, beinarme, kurzstange, einzelgriff, hantelablage, laufband3d, LAUFBAND, fahrrad3d, FAHRRAD, klimmzugstange3d, STANGE, ringe3d, matte3d } from "./geraete3d.js";
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const params = new URLSearchParams(location.search);
 const G = Number(params.get("groesse") || 680);
@@ -437,6 +437,137 @@ UEBUNGEN.kurzhanteln = {
   name: "Kurzhanteln", muskeln: {}, kamera: [V(2.6, 1.9, 4.2), V(0.05, 0.45, 0)], standbild: 0, geraetBild: 0,
   aufbau() { stehen(); geraet.add(hantelablage(kurzhantel)); },
   pose: t => UEBUNGEN.bizepscurls.pose(t)
+};
+// Laufen auf dem Laufband: vorderer Fuß setzt mit der Ferse auf, hinterer Fuß ist angehoben und gestreckt, Arme gegengleich
+UEBUNGEN.laufband = {
+  name: "Laufband", muskeln: { primaer: ["quadrizeps", "beinbeuger", "waden"], sekundaer: ["gesaess"] }, kamera: [V(3.9, 1.7, -2.4), V(0, 0.92, 0.0)], standbild: 0, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(0.12, 0, 0); w.position.set(0, LAUFBAND.hoehe - 0.06, -0.3); w.updateMatrixWorld(true);
+    geraet.add(laufband3d().gruppe);
+  },
+  pose() {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {}, fussDrehung = {}, fussBeugung = {};
+    const boden = LAUFBAND.hoehe + 0.075, z0 = w.position.z;
+    const kipp = winkel => qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), winkel));
+    for (const s of [-1, 1]) {
+      const vorn = s === 1, schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+      fuss[s] = lokal(vorn ? V(s * 0.08, boden + 0.012, z0 + 0.3) : V(s * 0.08, boden + 0.36, z0 - 0.3));
+      if (vorn) fussDrehung[s] = kipp(-0.1);   // vorn fast flach aufgesetzt
+      else fussBeugung[s] = 0.15;              // hinten folgt der Fuß dem Unterschenkel, Spitze leicht gestreckt
+      kniePol[s] = richtung(V(0, 0.3, 1));
+      hand[s] = lokal(schulter.clone().add(vorn ? V(-s * 0.03, -0.36, -0.1) : V(-s * 0.05, -0.16, 0.3)));
+      ellbogenPol[s] = richtung(V(s * 0.2, -0.4, -1));
+      handflaeche[s] = richtung(V(-s, 0, 0));
+    }
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung, fussBeugung, griff: true, handflaeche };
+  }
+};
+// Radfahren auf dem Ergometer: sitzend, leicht vorgebeugt, Arme gebeugt am Lenker, Füße flach auf den Pedalen
+let rad;
+UEBUNGEN.fahrrad = {
+  name: "Fahrrad", muskeln: { primaer: ["quadrizeps"], sekundaer: ["gesaess", "beinbeuger", "waden"] }, kamera: [V(3.5, 1.6, -2.1), V(0, 0.92, 0.05)], standbild: 0, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(0.3, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(FAHRRAD.sattel.clone().add(V(0, 0.06, 0.02))); w.updateMatrixWorld(true);
+    rad = fahrrad3d(0.9); geraet.add(rad.gruppe);
+  },
+  pose() {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      hand[s] = lokal(V(s * FAHRRAD.griff.x, FAHRRAD.griff.y + 0.05, FAHRRAD.griff.z));
+      ellbogenPol[s] = richtung(V(s * 0.5, -1, -0.5)); handflaeche[s] = richtung(V(-s * 0.3, -1, 0));
+      fuss[s] = lokal(rad.pedale[s].clone().add(V(-s * 0.02, 0.09, -0.05)));
+      kniePol[s] = richtung(V(s * 0.1, 0.6, 1));
+    }
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv, griff: true, handflaeche };
+  }
+};
+// Gerätebilder fürs Home Gym (nur mit ?nurgeraet sinnvoll; die Pose wird nicht gezeigt)
+const ruhepose = t => UEBUNGEN.bizepscurls.pose(t);
+UEBUNGEN.klimmzugstange = {
+  name: "Klimmzugstange", muskeln: {}, kamera: [V(1.9, 2.3, 2.4), V(0, 1.98, -0.25)], standbild: 0, geraetBild: 0,
+  aufbau() { stehen(); geraet.add(klimmzugstange3d().gruppe); }, pose: ruhepose
+};
+UEBUNGEN.ringe = {
+  name: "Ringe", muskeln: {}, kamera: [V(2.4, 1.9, 3.0), V(0, 1.6, -0.2)], standbild: 0, geraetBild: 0,
+  aufbau() { stehen(); geraet.add(klimmzugstange3d().gruppe); },
+  pose: ruhepose,
+  nach() { zubehoer.add(ringe3d({ "-1": V(-0.26, 1.05, 0), "1": V(0.26, 1.05, 0) })); }
+};
+UEBUNGEN.hantelbank = {
+  name: "Hantelbank", muskeln: {}, kamera: [V(2.3, 1.5, 2.6), V(0, 0.55, -0.2)], standbild: 0, geraetBild: 0,
+  aufbau() { UEBUNGEN.schraegbank.aufbau(); }, pose: ruhepose
+};
+UEBUNGEN.matte = {
+  name: "Boden / Matte", muskeln: {}, kamera: [V(1.9, 1.5, 2.4), V(0, 0.05, 0)], standbild: 0, geraetBild: 0,
+  aufbau() { stehen(); geraet.add(matte3d().gruppe); }, pose: ruhepose
+};
+// ---------------------------------------------------------------------------
+// Mobility (Bodenübungen ohne Gerät). Die Figur wird über das Becken gesetzt: Neigung und Ort des Hüftgelenks.
+// ---------------------------------------------------------------------------
+const HUEFTE = V(0, 0.85, -0.03);
+function setzeBecken(neigung, hueftOrt, drehung = 0) {
+  const w = figur.wurzel; w.rotation.set(neigung, drehung, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+  w.position.sub(w.localToWorld(HUEFTE.clone())).add(hueftOrt); w.updateMatrixWorld(true);
+  const qInv = w.quaternion.clone().invert();
+  return { lokal: p => w.worldToLocal(p.clone()), richtung: d => d.clone().applyQuaternion(qInv), qInv };
+}
+const MATTE_KAMERA = [V(2.7, 1.25, 2.3), V(0, 0.42, 0.05)];
+
+// Tiefe Hocke: Füße flach, Becken tief zwischen den Fersen, Oberkörper aufrecht, Hände vor der Brust
+UEBUNGEN.tiefe_hocke = {
+  name: "Tiefe Hocke", muskeln: { primaer: ["gesaess", "adduktoren"], sekundaer: ["waden", "unterer-ruecken"] }, kamera: MATTE_KAMERA, standbild: 0,
+  aufbau() { geraet.add(matte3d().gruppe); },
+  pose() {
+    const { lokal, richtung, qInv } = setzeBecken(0.5, V(0, 0.27, -0.2));
+    const wirbel = { beuge: -0.25 }, hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      fuss[s] = lokal(V(s * 0.21, 0.09, 0.02)); kniePol[s] = richtung(V(s * 0.55, 0.5, 1));
+      hand[s] = lokal(V(s * 0.2, 0.4, 0.47)); ellbogenPol[s] = richtung(V(s * 0.5, -1, 0)); handflaeche[s] = richtung(V(-s * 0.6, -1, 0)); // Arme über die Knie nach vorn, Hände locker
+    }
+    const fussDrehung = { "-1": qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), -0.35)), "1": qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), 0.35)) };
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung, handflaeche, handBeuge: 0.25, wirbel, kopf: { nick: -0.15 } };
+  }
+};
+
+// Taube: vorderes Bein quer vor dem Körper, hinteres gestreckt, Oberkörper aufgerichtet, Hände stützen
+UEBUNGEN.taube = {
+  name: "Taube", muskeln: { primaer: ["gesaess"], sekundaer: ["abduktoren", "quadrizeps"] }, kamera: [V(2.8, 1.2, 2.0), V(0, 0.38, -0.25)], standbild: 0,
+  aufbau() { geraet.add(matte3d().gruppe); },
+  pose() {
+    const { lokal, richtung } = setzeBecken(0.55, V(0, 0.2, 0));
+    const wirbel = { beuge: 0.1 }, hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    fuss[1] = lokal(V(-0.22, 0.07, 0.3)); kniePol[1] = richtung(V(1, 0.15, 0.7));        // vorderes Bein: Unterschenkel quer
+    fuss[-1] = lokal(V(-0.1, 0.05, -0.85)); kniePol[-1] = richtung(V(0, -1, 0));           // hinteres Bein gestreckt
+    for (const s of [-1, 1]) {
+      const schulter = figur.wurzel.localToWorld(figur.amBrustkorb(figur.GELENKE["oberarm" + s], wirbel));
+      hand[s] = lokal(V(s * 0.27, 0.05, schulter.z + 0.1)); ellbogenPol[s] = richtung(V(s * 0.4, 0, -1)); handflaeche[s] = richtung(V(0, 0, -1));
+    }
+    return { hand, ellbogenPol, fuss, kniePol, fussBeugung: { "-1": 1.2, "1": 0.5 }, handflaeche, handBeuge: 1.3, wirbel, kopf: { nick: -0.35 } };
+  }
+};
+
+// Katze-Kuh im Vierfüßler: t = 0 Hohlkreuz mit Blick nach oben, t = 1 runder Rücken mit Kinn zur Brust
+UEBUNGEN.katze_kuh = {
+  name: "Katze-Kuh", muskeln: { primaer: ["unterer-ruecken", "bauch"], sekundaer: ["ruecken"] }, kamera: [V(2.9, 1.0, 1.3), V(0, 0.38, 0.12)], standbild: 1,
+  aufbau() { geraet.add(matte3d().gruppe); },
+  pose(t) {
+    const mitte = t * 2 - 1;                                                             // -1 Kuh … +1 Katze
+    const wirbel = { beuge: mitte > 0 ? mitte * 1.15 : mitte * 0.75 };
+    // Das Becken kippt gegen die Wirbelsäule, damit die Schultern über den Händen bleiben
+    const { lokal, richtung } = setzeBecken(Math.PI / 2 - 0.2 - wirbel.beuge * 0.6, V(0, 0.5, -0.22));
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      const schulter = figur.wurzel.localToWorld(figur.amBrustkorb(figur.GELENKE["oberarm" + s], wirbel));
+      fuss[s] = lokal(V(s * 0.1, 0.05, -0.59)); kniePol[s] = richtung(V(0, -1, 0.25));
+      hand[s] = lokal(V(s * 0.2, 0.05, schulter.z + 0.02)); ellbogenPol[s] = richtung(V(0, 0, -1)); handflaeche[s] = richtung(V(0, 0, -1));
+    }
+    return { hand, ellbogenPol, fuss, kniePol, fussBeugung: { "-1": 1.25, "1": 1.25 }, handflaeche, handBeuge: 1.45, wirbel, kopf: { nick: mitte * 0.5 } };
+  }
 };
 // Enger Latzug: Parallelgriff statt Stange, Hände dicht nebeneinander, Ellbogen bleiben vorn am Körper
 UEBUNGEN.latzug_eng = { ...UEBUNGEN.latzug, name: "Latzug eng", griffweite: [-0.095, -0.095], ellbogen: [0.45, -1, 0.1], aufsatz: parallelgriff, parallel: true, tief: -0.15, vor: 0.24,

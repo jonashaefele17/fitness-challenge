@@ -23,6 +23,9 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 26.11.2026 | 1.42 | Katalogbilder: Gerätetypen und Übungen bekommen gerenderte 3D-Illustrationen statt eigener Fotos (anatomische Figur, trainierte Muskeln in Akzentfarbe, Nebenmuskeln abgestuft; Geräte vereinfacht nachgebaut); Geräte-Raster zeigt das Gerät allein, die Übung zeigt die Person in der Bewegung; Dateien im öffentlichen Storage-Bucket `catalog`, Pfad in `image_path`; FitX-Katalog ergänzt um Ruderzug, Seithebe-Maschine und drei Übungen; Animationen folgen später |
 | 26.11.2026 | 1.43 | Katalog: Laufband und Fahrrad-Ergometer als Gerätetypen mit je einer Übung nach Dauer (im FitX), Hantelbank als eigener Gerätetyp; Bilder für Klimmzugstange, Ringe und Boden / Matte; Rudern in zwei Geräte getrennt (Ruderzug für die Kabelübungen, Rudermaschine nur „Rudern an der Maschine“); versehentlich angelegter Gerätetyp „Bizepscurls am Kabel“ entfernt; Mobility-Bilder nicht in Version 1 (Figur dafür noch zu grob, Neuaufbau in Blender danach) |
 | 26.11.2026 | 1.44 | Katalog fürs Home Gym: Übungen für alle großen Muskelgruppen mit Kurzhanteln, Hantelbank, Klimmzugstange, Ringen und Körpergewicht; neu sind Schulterdrücken, Trizepsstrecken über Kopf, Bulgarian Split Squat, Rumänisches Kreuzheben und Wadenheben mit Kurzhanteln, Goblet Squat gibt es auch mit Kurzhanteln; 14 weitere Übungsbilder; die Hantelbank ist doch kein eigener Gerätetyp (Zubehör, ihre Übungen laufen über die Kurzhanteln) |
+| 26.11.2026 | 1.45 | Fortschrittsfotos: vor dem Hochladen auf 1600 Pixel an der langen Kante verkleinert (ca. 350 KB statt ca. 200 KB), damit sie auch am PC und beim Hineinzoomen gut aussehen; dazu ein kleines Vorschaubild; höchstens 3 Fotos pro Tag (vorne, Seite, hinten); 1 GB Speicher reicht damit bei 4 Personen rund 4,5 Jahre |
+| 27.11.2026 | 1.46 | Körper: Wiegen an jedem Tag möglich, der Wiegetag ist nur noch eine freiwillige Erinnerung pro Person (keine Saisonregel); Kurve mit Durchschnitt über 7 Tage, die Gruppe sieht diesen Durchschnitt statt einzelner Tageswerte; mehrere Waagen pro Person (z. B. Zuhause, Studio) mit Abgleich gegen die Hauptwaage, der Originalwert bleibt gespeichert; kein Waage-Marker im Kalender, das Gewicht steht im Tages-Sheet; Maße (Bauch, Taille, Brust, Hüfte, Oberarm, Oberschenkel, einzeln ausblendbar) und Fortschrittsfotos als gemeinsamer „Zwischenstand“ alle 4 Wochen; Maße und Fotos bleiben in Version 1 privat |
+| 27.11.2026 | 1.47 | Körper und Saisons: Rhythmen (wöchentlich wiegen, Zwischenstand alle 4 Wochen) sind persönliche Einstellungen im Körper-Modul und gelten auch ohne Saison; eine Saison kann sie als Regel vorgeben. Kalender-Marker für Wiegetag und Zwischenstand gibt es nur über die Saison, das Körper-Modul selbst setzt keine. Erste Saison geplant ab Anfang Dezember 2026 über 6 Monate: Erfassen von Gewicht, Maßen und Fotos hat deshalb Vorrang vor Vergleich und Auswertung |
 | 23.11.2026 | 1.38 | Habit-Auswertung: Übersicht „Diese Woche“ und „Dranbleiben“ (wie im Prototyp), Detail mit drei Kennzahlen in Klartext und Trend; Quoten statt Serien in der Oberfläche, Serien in der Datenbank verzeihend (einmal verpassen unterbricht nicht) |
 | 23.11.2026 | 1.37 | Habits (Baustein 6) festgelegt: Ruhetage gestrichen, Pausen mit anteiligem Wochenziel, Supplements als eigenes Checklisten-Habit, Quelle pro Eintrag (Hand/App/extern), Check-in nicht im Feed, gleiche Habits direkt vergleichbar, Aufteilung 6a–6d |
 | 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
@@ -188,7 +191,7 @@ Geplant wird über selbst gebaute Vorlagen und frei gesetzte Termine; ein Ausfal
 | Saisonende | Saison | Fahne als Ziellinie (hervorgehoben, Ziele fällig) | Gruppe |
 | Saisonstart | Saison | Fahne | Gruppe |
 | Eigenes Event | Termin-Art „Event“ | kleiner Stern | Gruppe oder Person |
-| Wiegetag | Saisonregel | Waage | Person |
+| Wiegetag, Zwischenstand | Saisonregel | Waage | Person |
 | Pause (krank, Urlaub) | Saison, als Zeitraum | dünner Strich unter den Tagen | Person |
 | Ruhetag | Rhythmus oder einzeln | nur gedämpfte Zahl, kein Symbol | Person |
 
@@ -324,7 +327,7 @@ Neue Features hängen sich an die Kerne an; nur die Datenschicht spricht mit Sup
 8. **Feature-Schalter** pro Modul, Staging- und Live-Projekt, wöchentlicher Datenbank-Export (Free-Tier hat keine Backups), Fehler-Monitoring, Feedback-Button.
 9. **Sicherheit:** Row Level Security für jede Tabelle, standardmäßig privat, mit eigenen Tests.
 
-**Grenzen und Kosten:** Supabase Free reicht laut Abschätzung für Jahre (1 GB Dateien, 500 MB Datenbank; Bilder vor dem Hochladen auf ca. 200 KB verkleinert). PWA-Grenzen auf dem iPhone: Push nur bei installierter App, keine Vibration, kein Timer im Hintergrund.
+**Grenzen und Kosten:** Supabase Free reicht laut Abschätzung für Jahre (1 GB Dateien, 500 MB Datenbank; Fotos vor dem Hochladen auf 1600 Pixel an der langen Kante verkleinert, ca. 350 KB). PWA-Grenzen auf dem iPhone: Push nur bei installierter App, keine Vibration, kein Timer im Hintergrund.
 
 **Option für später – Capacitor:** verpackt dieselbe Web-App als native iOS/Android-App und erschließt Haptik, lokale Benachrichtigungen u. a. Kosten: Apple Developer Program 99 USD pro Jahr für TestFlight, Build für iOS braucht einen Mac oder einen Cloud-Build. Die Architektur bleibt dafür offen.
 
@@ -358,7 +361,7 @@ Die Tabellen sind nach Modulen gruppiert; die generischen Bausteine (Kommentare,
 | Benachrichtigungen | notifications, notification\_prefs, push\_subscriptions | Kategorien, Bündeln, Ruhezeit |
 | Habits | habit\_definitions, habit\_versions, habit\_entries, habit\_templates | Eingabetyp, Regel, gültig ab |
 | Ziele & Saisons | seasons, season\_members, goals, goal\_metrics, pauses | Startwert, Zielwert, Status, Admin-Korrektur |
-| Körper | weigh\_ins, body\_measurements, progress\_photos | Fotos privat in Storage |
+| Körper | scales, weigh\_ins, body\_measurement\_kinds, body\_measurements, progress\_photos, body\_settings | Fotos privat in Storage |
 | Berechnet (Views) | personal\_bests, streaks, goal\_progress, comparison, season\_recap | nie gespeichert |
 
 Namen und Felder sind ein Entwurf; das genaue Schema entsteht als erste Migration.
@@ -439,13 +442,16 @@ Das größte Risiko ist der Umfang für eine Person am Feierabend; das wird bewu
 | 23.11.2026 | Habits: keine Ruhetage; Sport als Wochenziel aus Trainings; Krankheit/Urlaub als Pause (tägliche Habits zählen nicht, Wochenziele anteilig) |
 | 23.11.2026 | Habits: Check-in nicht im Feed, nur Meilensteine und Wochenzusammenfassung; gleiche Habits (gleiche Vorlage, „mit Werten“) direkt vergleichbar |
 | 23.11.2026 | Habit-Einträge haben eine Quelle (von Hand, aus der App, extern); externe Quellen später über einen persönlichen Zugangsschlüssel |
+| 27.11.2026 | Körper: Wiegen an beliebigen Tagen statt nur am Wiegetag; Kurve und Gruppe zeigen den Durchschnitt über 7 Tage. Mehrere Waagen pro Person mit Abgleich gegen eine Hauptwaage. Maße und Fotos als „Zwischenstand“ alle 4 Wochen. Grund: Jonas wiegt sich öfter und auf zwei Waagen; Fotos und Maße ändern sich nur langsam |
+| 27.11.2026 | Rhythmen für den Körper (z. B. wöchentlich wiegen, alle 4 Wochen Maße und Fotos) sind eine allgemeine, persönliche Funktion; eine Saison gibt sie nur als Regel für ihre Teilnehmer vor und zeigt sie im Kalender. Grund: Die App soll nach einer Saison weiter nutzbar sein |
 
 **Offen (zu zweit klären)**
 
 - [ ] Gemeinsames Live-Training (5d): gemeinsame Übungsliste, aber auch eigene Übungen nur für sich hinzufügen können – Mechanismus vor 5d festlegen.
 - [ ] Welche Zielarten sind pro Saison Pflicht (Verhalten, Gewicht, Kraft, Habit)?
 - [ ] Dauer und Rhythmus der Saisons (fest, z. B. 2 Monate, oder jedes Mal frei)?
-- [ ] Wiegetag: welcher Wochentag, morgens nüchtern?
+- [x] Wiegetag: jede Person stellt ihn selbst ein, nur als freiwillige Erinnerung; „morgens nüchtern“ ist ein Hinweis, keine Pflicht (27.11.2026)
+- [x] Körper: Kalender-Marker für Wiegetag und Zwischenstand kommen erst mit den Saisons (27.11.2026)
 - [ ] Regeln für das spätere Punktesystem
 - [ ] Name der App
 - [ ] Mehrere Gruppen: Welche persönlichen Daten (Trainings, Gewicht, Habits) sieht welche Gruppe? Freigabe pro Gruppe und Datenart nötig, spätestens mit dem Modul Körper. Bis dahin: sichtbar für alle, mit denen man eine Gruppe teilt.

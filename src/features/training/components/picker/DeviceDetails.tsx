@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui';
 import {
   fitsFocus,
   historyFor,
+  useExerciseImages,
   useExerciseOverview,
   usePrimaryMuscleIndex,
   type ExerciseHistory,
@@ -16,7 +17,7 @@ import {
 } from '../../api/usePlaces';
 import type { DeviceWithExercises, ExerciseSummary, TrainingFocus } from '../../types';
 import { lastDoneText, longAgoText } from './historyText';
-import { PickerTile, SectionTitle } from './PickerTile';
+import { CatalogImage, PickerTile, SectionTitle } from './PickerTile';
 
 /** "Deine Übungen" covers what I did here in this window. */
 const RECENT_MS = 90 * 24 * 60 * 60 * 1000;
@@ -48,6 +49,7 @@ export function DeviceDetails({
   const overview = useExerciseOverview().data;
   const popularity = useExercisePopularity().data;
   const muscles = usePrimaryMuscleIndex();
+  const images = useExerciseImages();
   const setHidden = useSetExerciseHidden(placeId);
   const unlink = useUnlinkExercise();
   const relink = useLinkExercise();
@@ -112,6 +114,7 @@ export function DeviceDetails({
             <PickerTile
               key={entry.exercise.id}
               title={entry.exercise.name}
+              imagePath={images.get(entry.exercise.id)}
               subtitle={
                 editing
                   ? own.has(entry.exercise.id)
@@ -148,12 +151,11 @@ export function DeviceDetails({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        aria-hidden
-        className="flex aspect-[5/2] items-center justify-center rounded-card image-backdrop text-large-title font-bold text-accent/70"
-      >
-        {device.name.charAt(0).toUpperCase()}
-      </div>
+      <CatalogImage
+        path={device.imagePath}
+        name={device.name}
+        className="aspect-[5/2] overflow-hidden rounded-card"
+      />
 
       {device.exercises.length === 0 && (
         <p className="text-subhead text-text-muted">

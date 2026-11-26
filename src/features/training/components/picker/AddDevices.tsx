@@ -54,6 +54,7 @@ export function DeviceTypeGrid({
             <PickerTile
               key={type.id}
               title={type.name}
+              imagePath={type.imagePath}
               subtitle={
                 deviceId
                   ? 'schon hier ›'

@@ -2,7 +2,7 @@ import type { Device, ExerciseMeasure, ExerciseSummary } from '../types';
 
 /** PostgREST select for a device with its type. */
 export const DEVICE_COLUMNS =
-  'id, weight_step, device_types!inner(id, name, default_weight_step, comparable, setting_fields)';
+  'id, weight_step, device_types!inner(id, name, image_path, default_weight_step, comparable, setting_fields)';
 
 const num = (value: number | string | null): number | null =>
   value === null ? null : Number(value);
@@ -13,6 +13,7 @@ export interface DeviceRow {
   device_types: {
     id: string;
     name: string;
+    image_path: string | null;
     default_weight_step: number | null;
     comparable: boolean;
     setting_fields: string[];
@@ -25,6 +26,7 @@ export function toDevice(row: DeviceRow): Device {
     id: row.id,
     typeId: row.device_types.id,
     name: row.device_types.name,
+    imagePath: row.device_types.image_path,
     weightStep: num(row.weight_step) ?? typeStep,
     typeWeightStep: typeStep,
     comparable: row.device_types.comparable,

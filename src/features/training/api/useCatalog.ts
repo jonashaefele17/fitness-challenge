@@ -274,6 +274,32 @@ export function usePrimaryMuscleIndex() {
   return byExercise;
 }
 
+/** Bucket with the catalogue illustrations (device types and exercises); public read. */
+const CATALOG_BUCKET = 'catalog';
+
+/** Public URL of a catalogue image path (image_path of a device type or exercise). */
+export function catalogImageUrl(path: string | null | undefined): string | null {
+  return path ? supabase.storage.from(CATALOG_BUCKET).getPublicUrl(path).data.publicUrl : null;
+}
+
+/** Image path of every exercise that has an illustration (small), keyed by exercise id. */
+export function useExerciseImages() {
+  const userId = useUserId();
+  const query = useQuery({
+    queryKey: [...trainingKeys.all(userId), 'exercise-images'],
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, image_path')
+        .not('image_path', 'is', null);
+      if (error) throw error;
+      return data;
+    },
+  });
+  return new Map((query.data ?? []).map((row) => [row.id, row.image_path]));
+}
+
 // ---------------------------------------------------------------------------
 // Training focus (Push, Pull, Beine … and personal ones)
 // ---------------------------------------------------------------------------

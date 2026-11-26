@@ -25,14 +25,12 @@ Das Modul ist persönlich (`src/features/body/`): Es funktioniert ohne Gruppe, d
 - Fotos bleiben im Baustein, als Teil des Zwischenstands; 1600 Pixel an der langen Kante.
 - Freigabe pro Gruppe noch nicht: Die Sichtbarkeit des Gewichts gilt für alle Gruppen einer Person.
 
-## Ziel: Saisonstart Anfang Dezember 2026
+## Wofür das gebaut wird
 
-Jonas will in der ersten Dezemberwoche eine Saison über 6 Monate mit seinen Freunden starten, mit den Regeln „wöchentlich wiegen“ und „monatlich Maße und Fotos“. Daraus folgt die Reihenfolge:
+Jonas will mit seinen Freunden eine Saison über 6 Monate starten, mit Regeln wie „wöchentlich wiegen“ und „monatlich Maße und Fotos“. Die Saison startet erst, wenn dieser Baustein und Baustein 8 (Ziele & Saisons) fertig sind und die App auf Live umgezogen ist; es gibt keinen Termindruck.
 
-- **Zum Start muss das Erfassen funktionieren:** Gewicht, Maße und Fotos. Der Stand vom ersten Tag lässt sich später nicht nachholen.
-- **Vergleich und Auswertung können danach kommen:** In den ersten 4 Wochen gibt es noch nichts zu vergleichen.
-- **Die Saison selbst ist nur ein Rahmen** über durchlaufende Daten (Konzept, „Ziele, Saisons und Vergleich“). Sie kann in Baustein 8 auch nach dem Start angelegt werden, mit dem Startdatum in der Vergangenheit; die Startwerte werden dann aus den schon erfassten Daten berechnet.
-- **Rhythmen sind eine allgemeine Funktion:** „wöchentlich wiegen“ und „Zwischenstand alle 4 Wochen“ sind persönliche Einstellungen und gelten auch ohne Saison. Eine Saison gibt sie später nur vor. Kalender-Marker dafür kommen mit der Saison, nicht in diesem Baustein.
+- **Rhythmen sind eine allgemeine Funktion:** „wöchentlich wiegen“ und „Zwischenstand alle 4 Wochen“ sind persönliche Einstellungen und gelten auch ohne Saison, damit die App nach einer Saison weiter nutzbar ist. Eine Saison gibt sie nur vor.
+- **Kalender-Marker** für Wiegetag und Zwischenstand kommen mit der Saison, nicht in diesem Baustein.
 
 ## 7a – Gewicht
 
@@ -85,11 +83,6 @@ Beim Staging-Test prüfen: Hochladen im Mobilfunk schnell genug? Qualität am Ha
 
 ## Reihenfolge und Umfang
 
-Wegen des Saisonstarts wird nicht streng 7a → 7d gebaut, sondern erst alles zum Erfassen:
+7a → 7b → 7c → 7d, jede Etappe für sich nutzbar. 7a und 7d sind die großen Teile (7a wegen Waagen-Abgleich und Erinnerung, 7d wegen Speicher und Bildverarbeitung), 7b ist mittel, 7c klein bis mittel. Nach jeder Etappe: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
 
-1. **7a Gewicht** – eintragen, Waagen, Kurve, Erinnerung
-2. **7c und 7d, nur Erfassen** – Zwischenstand mit Maßen und Fotos eintragen und ansehen
-3. **7b Gewicht in der Gruppe** – Sichtbarkeit, Feed, Vergleich
-4. **7c und 7d, Rest** – Verläufe der Maße, Foto-Vergleich mit Schieberegler
-
-Schritt 1 und 2 sollen bis zum Saisonstart auf Staging getestet sein; 3 und 4 folgen in den Wochen danach, dann Baustein 8 (Saison anlegen, Regeln, Marker, Ziele). Nach jedem Schritt: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
+Danach: Baustein 8 (Ziele & Saisons), dann Umzug auf Live, dann Start der ersten Saison.

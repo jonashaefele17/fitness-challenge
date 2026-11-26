@@ -124,7 +124,16 @@ const boundaryConfigs = Object.entries(modules).flatMap(([category, names]) =>
 );
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', 'node_modules', 'supabase', 'src/shared/types/database.ts'] },
+  {
+    ignores: [
+      'dist',
+      'dev-dist',
+      'node_modules',
+      'supabase',
+      'tools',
+      'src/shared/types/database.ts',
+    ],
+  },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.strictTypeChecked],

@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Test: 3D-Muskelfigur</title>
+<style>
+body{margin:0;background:#0e0e10;color:#fff;font-family:system-ui,"Segoe UI",sans-serif;padding:16px}
+.reihe{display:flex;gap:12px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.reihe canvas{width:340px;height:340px;border-radius:18px;border:1px solid #2e2e33}
+h3{font-size:15px;font-weight:600;width:130px;margin:0}
+#status{color:#8e8e96;font-size:13px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="status">lädt …</div>
+<div id="aus"></div>
+<script type="module">
+// Aufruf: test.html?uebung=<id>&bilder=9&speichern=1     → Bewegungsphasen
+//         test.html?standbild=1&groesse=1024&speichern=1 → ein sauberes Bild pro Übung
+import * as THREE from "three";
+import { ladeFigur, kurzhantel, bodenschatten } from "./figur3d.js";
+import { kabelturm3d, seilAufsatz, schraegbank, brustpresse3d, pressarme, latzug3d, latstange, parallelgriff, ruderzug3d, seitheben3d, seithebel, lowrow3d, ruderhebel, butterfly3d, schwenkarme, BUTTERFLY, beinpresse3d, beinpresseSchlitten, BEINPRESSE, beinbeuger3d, beinbeugerHebel, BEINBEUGER, hueftmaschine3d, beinarme, kurzstange, einzelgriff, hantelablage } from "./geraete3d.js";
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const params = new URLSearchParams(location.search);
+const G = Number(params.get("groesse") || 680);
+
+const transparent = params.has("transparent"); // freigestellt für die App-Kacheln
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: transparent });
+renderer.setSize(G, G, false);
+const szene = new THREE.Scene(); szene.background = transparent ? null : new THREE.Color(0x1f1f23);
+szene.add(new THREE.HemisphereLight(0xffffff, 0x2a2a30, 1.05));
+const sonne = new THREE.DirectionalLight(0xffffff, 1.9); sonne.position.set(2, 3.5, 3); szene.add(sonne);
+const kante = new THREE.DirectionalLight(0xdfe6ff, 1.1); kante.position.set(-2.5, 2, -2.5); szene.add(kante);
+if (!transparent) szene.add(bodenschatten(1.1)); // freigestellt ohne Bodenschatten
+const kamera = new THREE.PerspectiveCamera(34, 1, 0.1, 20);
+
+const figur = await ladeFigur("./modell/muscles.glb", "./modell/skin.glb");
+szene.add(figur.wurzel);
+const hanteln = { "-1": kurzhantel(), "1": kurzhantel() };
+szene.add(hanteln[-1], hanteln[1]);
+const geraet = new THREE.Group(), zubehoer = new THREE.Group(); szene.add(geraet, zubehoer); // zubehoer wird je Bild neu gebaut
+
+const misch = (a, b, t) => a.clone().lerp(b, t);
+const stehen = () => { figur.wurzel.rotation.set(0, 0, 0); figur.wurzel.position.set(0, 0, 0); figur.wurzel.updateMatrixWorld(true); };
+let turm, presse, latzug, ruderzug, lowrow; // aktuelles Gerät
+const nurGeraet = params.has("nurgeraet"); // Gerät ohne Person, für die Gerätekarte
+
+const UEBUNGEN = {
+  bizepscurls: {
+    name: "Bizepscurls", muskeln: { primaer: ["bizeps"], sekundaer: ["unterarm"] }, kamera: [V(1.7, 1.2, 2.6), V(0, 0.88, 0)], standbild: 0.7, hanteln: true,
+    aufbau() { stehen(); },
+    pose(t) {
+      const hand = {}, ellbogenPol = {};
+      for (const s of [-1, 1]) { // Hand läuft auf einem Kreisbogen um den Ellbogen
+        const e = figur.GELENKE["unterarm" + s], w = THREE.MathUtils.lerp(-0.12, 2.35, t), l = 0.25;
+        hand[s] = V(s * 0.245, e.y - Math.cos(w) * l, e.z + 0.02 + Math.sin(w) * l);
+        ellbogenPol[s] = V(0, -0.2, -1);
+      }
+      return { hand, ellbogenPol, griff: true };
+    }
+  },
+  schraegbank: {
+    name: "Schrägbankdrücken", muskeln: { primaer: ["brust"], sekundaer: ["schulter", "trizeps"] }, kamera: [V(2.3, 1.7, 2.7), V(0, 0.72, -0.15)], standbild: 0.45, hanteln: true,
+    aufbau() {
+      const w = figur.wurzel; w.rotation.set(-Math.PI * 0.26, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+      const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.50, 0)); w.updateMatrixWorld(true);
+      geraet.add(schraegbank(w));
+    },
+    pose(t) {
+      const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+      const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+      const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {};
+      for (const s of [-1, 1]) {
+        const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+        hand[s] = lokal(misch(schulter.clone().add(V(s * 0.20, 0.04, 0.10)), schulter.clone().add(V(s * 0.03, 0.52, 0.06)), t));
+        ellbogenPol[s] = richtung(V(s * 1, -0.8, 0));
+        fuss[s] = lokal(V(s * 0.22, 0.075, 0.40));
+        kniePol[s] = richtung(V(s * 0.3, 1, 0.4));
+      }
+      return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv, griff: true };
+    }
+  },
+  trizepsdruecken: {
+    name: "Trizepsdrücken am Kabel", muskeln: { primaer: ["trizeps"], sekundaer: ["unterarm"] }, kamera: [V(2.95, 1.4, -2.45), V(-0.25, 1.02, 0.45)], standbild: 0.85,
+    aufbau() { stehen(); turm = kabelturm3d("oben", 0.8); geraet.add(turm.gruppe); },
+    pose(t) {
+      const hand = {}, ellbogenPol = {};
+      for (const s of [-1, 1]) { // Ellbogen bleibt am Körper, der Unterarm schwenkt von schräg oben nach unten
+        const e = figur.GELENKE["unterarm" + s], w = THREE.MathUtils.lerp(2.25, 0.2, t), l = 0.25;
+        hand[s] = V(s * THREE.MathUtils.lerp(0.07, 0.15, t), e.y + 0.01 - Math.cos(w) * l, e.z + 0.05 + Math.sin(w) * l);
+        ellbogenPol[s] = V(s * 0.25, -0.2, -1);
+      }
+      return { hand, ellbogenPol, griff: true };
+    },
+    nach(haende) { zubehoer.add(seilAufsatz(turm.austritt, haende.griff(-1), haende.griff(1))); },
+    ruhe() { return { griff: s => turm.austritt.clone().add(V(s * 0.035, -0.34, -0.01)) }; }
+  },
+  brustpresse: {
+    name: "Brustpresse", muskeln: { primaer: ["brust"], sekundaer: ["schulter", "trizeps"] }, kamera: [V(1.75, 1.6, 3.35), V(-0.3, 0.82, -0.05)], standbild: 0.55,
+    aufbau() {
+      const w = figur.wurzel; w.rotation.set(-0.12, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+      const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.535, 0.02)); w.updateMatrixWorld(true);
+      presse = brustpresse3d(w); geraet.add(presse.gruppe);
+    },
+    pose(t) {
+      const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+      const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+      const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {};
+      for (const s of [-1, 1]) {
+        const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+        hand[s] = lokal(misch(schulter.clone().add(V(s * 0.13, -0.13, 0.17)), schulter.clone().add(V(s * 0.05, -0.10, 0.50)), t));
+        ellbogenPol[s] = richtung(V(s * 1, -0.45, -0.3));
+        fuss[s] = lokal(V(s * 0.2, 0.075, 0.47));
+        kniePol[s] = richtung(V(s * 0.25, 1, 0.5));
+      }
+      return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv, griff: true };
+    },
+    nach(haende) { zubehoer.add(pressarme(presse.achse, { "-1": haende.griff(-1), "1": haende.griff(1) })); }
+  },
+  latzug: {
+    name: "Latzug breit", griffweite: [0.27, 0.24], ellbogen: [1, -0.9, -0.25], aufsatz: latstange, muskeln: { primaer: ["ruecken"], sekundaer: ["bizeps", "unterarm"] }, kamera: [V(3.05, 1.8, -3.1), V(0, 1.07, 0.2)], standbild: 0.8, geraetBild: 0,
+    aufbau() {
+      const w = figur.wurzel; w.rotation.set(-0.1, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+      const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.615, -0.05)); w.updateMatrixWorld(true);
+      latzug = latzug3d(); geraet.add(latzug.gruppe);
+    },
+    pose(t) {
+      const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+      const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+      const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+      for (const s of [-1, 1]) {
+        handflaeche[s] = richtung(this.parallel ? V(-s, 0, 0) : V(0, 0, 1)); // Stange: Handflächen nach vorn; Parallelgriff: zueinander
+        const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+        const [oben, unten] = this.griffweite; // Abstand der Hand von der Schulter nach außen, oben und unten
+        hand[s] = lokal(misch(schulter.clone().add(V(s * oben, 0.46, 0.1)), schulter.clone().add(V(s * unten, this.tief ?? 0, this.vor ?? 0.17)), t));
+        ellbogenPol[s] = richtung(V(s * this.ellbogen[0], this.ellbogen[1], this.ellbogen[2]));
+        fuss[s] = lokal(V(s * 0.19, 0.075, 0.36));
+        kniePol[s] = richtung(V(s * 0.2, 1, 0.6));
+      }
+      return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv, griff: true, handflaeche };
+    },
+    nach(haende) { zubehoer.add(this.aufsatz(latzug.austritt, haende.griff(-1), haende.griff(1))); }
+  }
+};
+
+UEBUNGEN.rudern = {
+  name: "Rudern sitzend, eng", muskeln: { primaer: ["ruecken"], sekundaer: ["bizeps", "nacken", "unterarm"] }, kamera: [V(3.75, 1.6, -1.8), V(0, 0.88, 0.5)], standbild: 0.85, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(-0.04, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.475, 0)); w.updateMatrixWorld(true);
+    ruderzug = ruderzug3d(); geraet.add(ruderzug.gruppe);
+  },
+  pose(t) {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+      // gestreckt nach vorn zum Kabel → Griff an den Bauch, Ellbogen eng am Körper nach hinten
+      hand[s] = lokal(misch(schulter.clone().add(V(-s * 0.095, -0.2, 0.5)), schulter.clone().add(V(-s * 0.095, -0.34, 0.2)), t));
+      ellbogenPol[s] = richtung(V(s * 0.35, -0.5, -1));
+      handflaeche[s] = richtung(V(-s, 0, 0));
+      fuss[s] = lokal(V(s * 0.14, 0.33, 0.7));
+      kniePol[s] = richtung(V(s * 0.15, 1, 0.2));
+    }
+    const fussHoch = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -1.05); // Füße stehen an den schrägen Platten
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv.clone().multiply(fussHoch), griff: true, handflaeche };
+  },
+  nach(haende) { zubehoer.add(parallelgriff(ruderzug.austritt, haende.griff(-1), haende.griff(1))); },
+  // Gerätebild ohne Person: der Griff hängt unter der tiefen Rolle
+  ruhe() { return { griff: s => ruderzug.austritt.clone().add(V(s * 0.095, -0.2, -0.02)) }; }
+};
+UEBUNGEN.seitheben = {
+  name: "Seitheben an der Maschine", muskeln: { primaer: ["schulter"], sekundaer: ["nacken"] }, kamera: [V(1.6, 1.5, 2.85), V(-0.18, 0.86, -0.05)], standbild: 0.9, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(-0.1, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.535, 0.0)); w.updateMatrixWorld(true);
+    geraet.add(seitheben3d(w).gruppe);
+  },
+  // Oberarm hebt sich seitlich von fast hängend bis waagerecht, der Unterarm zeigt dabei nach vorn
+  arme(t) {
+    const w = figur.wurzel, winkel = THREE.MathUtils.lerp(0.22, 1.48, t), aus = {};
+    const lo = figur.GELENKE.oberarm1.distanceTo(figur.GELENKE.unterarm1), lu = figur.GELENKE.unterarm1.distanceTo(figur.GELENKE.hand1);
+    for (const s of [-1, 1]) {
+      const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+      const richtungArm = V(s * Math.sin(winkel), -Math.cos(winkel), 0);
+      const ellbogen = schulter.clone().addScaledVector(richtungArm, lo), hand = ellbogen.clone().add(V(0, 0, lu));
+      aus[s] = { schulter, ellbogen, hand, richtungArm, innen: V(-s * Math.cos(winkel), -Math.sin(winkel), 0) };
+    }
+    return aus;
+  },
+  pose(t) {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {}, a = this.arme(t);
+    for (const s of [-1, 1]) {
+      hand[s] = lokal(a[s].hand); ellbogenPol[s] = richtung(a[s].richtungArm); handflaeche[s] = richtung(a[s].innen);
+      fuss[s] = lokal(V(s * 0.2, 0.075, 0.45)); kniePol[s] = richtung(V(s * 0.25, 1, 0.5));
+    }
+    this.zuletzt = a;
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv, griff: true, handflaeche };
+  },
+  nach(haende) { for (const s of [-1, 1]) this.zuletzt[s].griff = haende.griff(s); zubehoer.add(seithebel(this.zuletzt)); }
+};
+UEBUNGEN.rudermaschine = {
+  name: "Rudern an der Maschine", muskeln: { primaer: ["ruecken"], sekundaer: ["bizeps", "nacken", "unterarm"] }, kamera: [V(-3.0, 1.5, -1.75), V(0.18, 0.8, 0.5)], standbild: 0.85, geraetBild: 0, // von der Seite ohne Turm
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(0.03, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.535, -0.02)); w.updateMatrixWorld(true);
+    lowrow = lowrow3d(); geraet.add(lowrow.gruppe);
+  },
+  pose(t) {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      const schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+      // Arme gestreckt nach vorn → Griffe seitlich an den Bauch, Ellbogen nach hinten
+      hand[s] = lokal(misch(schulter.clone().add(V(s * 0.03, -0.2, 0.5)), schulter.clone().add(V(s * 0.07, -0.3, 0.16)), t));
+      ellbogenPol[s] = richtung(V(s * 0.4, -0.5, -1));
+      handflaeche[s] = richtung(V(-s, 0, 0));
+      fuss[s] = lokal(V(s * 0.15, 0.26, 0.44));
+      kniePol[s] = richtung(V(s * 0.25, 1, 0.3));
+    }
+    const fussHoch = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -0.35);
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv.clone().multiply(fussHoch), griff: true, handflaeche };
+  },
+  nach(haende) { zubehoer.add(ruderhebel(lowrow.achse, { "-1": haende.griff(-1), "1": haende.griff(1) })); }
+};
+// Butterfly und Reverse Butterfly am selben Gerät. "richtung" = 1: Rücken am Polster, Blick nach vorn; -1: Brust am Polster, Blick zum Turm.
+// Die Hände laufen auf einem Kreisbogen um die Gelenke über den Schultern; winkel = 0 zeigt nach vorn (+z), 90° zur Seite.
+function butterflyUebung(name, richtung, winkel, muskeln, standbild) {
+  return {
+    name, muskeln, kamera: [V(2.0, 1.65, 3.4), V(0, 1.0, -0.25)], standbild, geraetBild: 0,
+    aufbau() {
+      const w = figur.wurzel; w.rotation.set(richtung === 1 ? -0.03 : 0, richtung === 1 ? 0 : Math.PI, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+      const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.535, richtung === 1 ? -0.06 : 0.03)); w.updateMatrixWorld(true);
+      geraet.add(butterfly3d().gruppe);
+    },
+    pose(t) {
+      const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+      const qInv = w.quaternion.clone().invert(), richte = d => d.clone().applyQuaternion(qInv);
+      const a = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(winkel[0], winkel[1], t)), B = BUTTERFLY;
+      const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+      for (const s of [-1, 1]) {
+        const ws = s * richtung;                                   // Weltseite dieser Hand
+        const schulterY = w.localToWorld(figur.GELENKE["oberarm" + s].clone()).y;
+        hand[s] = lokal(V(ws * (B.achseX + B.radius * Math.sin(a)), schulterY - 0.03, B.achseZ + B.radius * Math.cos(a)));
+        ellbogenPol[s] = richte(V(ws * 0.3, -1, -0.4 * richtung));
+        handflaeche[s] = richte(V(-ws * Math.cos(a), 0, Math.sin(a)).multiplyScalar(richtung)); // zeigt in Zugrichtung
+        fuss[s] = lokal(V(ws * 0.24, 0.075, richtung === 1 ? 0.5 : -0.36));
+        kniePol[s] = richte(V(ws * 0.3, 1, 0.5 * richtung));
+      }
+      const fussDrehung = qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), richtung === 1 ? 0 : Math.PI));
+      return { hand, ellbogenPol, fuss, kniePol, fussDrehung, griff: true, handflaeche };
+    },
+    nach(haende) { zubehoer.add(schwenkarme({ [richtung]: haende.griff(1), [-richtung]: haende.griff(-1) })); }
+  };
+}
+UEBUNGEN.butterfly = butterflyUebung("Butterfly", 1, [95, -18], { primaer: ["brust"], sekundaer: ["schulter"] }, 0.6);
+UEBUNGEN.reverse_butterfly = butterflyUebung("Reverse Butterfly", -1, [150, 82], { primaer: ["hintere-schulter"], sekundaer: ["nacken", "oberer-ruecken"] }, 0.85);
+// Beinpresse: Die Füße stehen fest auf der Platte, der Sitz fährt beim Strecken der Beine nach hinten.
+UEBUNGEN.beinpresse = {
+  name: "Beinpresse", muskeln: { primaer: ["quadrizeps", "gesaess"], sekundaer: ["beinbeuger", "waden"] }, kamera: [V(2.55, 1.45, 1.95), V(-0.12, 0.62, -0.12)], standbild: 0.45, geraetBild: 0,
+  aufbau() { geraet.add(beinpresse3d().gruppe); },
+  pose(t) {
+    const w = figur.wurzel, B = BEINPRESSE;
+    // Sitz zurückgelehnt; die Hüfte wandert mit dem Schlitten nach hinten
+    w.rotation.set(-0.5, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03));
+    w.position.sub(huefte).add(V(0, 0.55, THREE.MathUtils.lerp(0.19, -0.1, t))); w.updateMatrixWorld(true);
+    const lokal = p => w.worldToLocal(p.clone()), qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const normale = V(0, Math.sin(B.neigung), -Math.cos(B.neigung));          // zeigt von der Platte zum Sitzenden
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    const sitzHuefte = w.localToWorld(V(0, 0.85, -0.03));
+    for (const s of [-1, 1]) {
+      fuss[s] = lokal(B.platte.clone().add(V(s * 0.14, -0.04, 0)).addScaledVector(normale, 0.115)); // Knöchel knapp vor der Platte
+      kniePol[s] = richtung(V(s * 0.25, 1, 0.1));
+      hand[s] = lokal(sitzHuefte.clone().add(V(s * 0.29, -0.06, 0.04)));
+      ellbogenPol[s] = richtung(V(s * 0.6, 0, -1));
+      handflaeche[s] = richtung(V(-s, 0, 0));
+    }
+    const fussHoch = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -(Math.PI / 2 - B.neigung)); // Sohle parallel zur Platte
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv.clone().multiply(fussHoch), griff: true, handflaeche };
+  },
+  nach(haende) { zubehoer.add(beinpresseSchlitten(figur.wurzel, { "-1": haende.griff(-1), "1": haende.griff(1) })); }
+};
+// Beinbeuger sitzend: Oberschenkel liegen auf dem Sitz, die Unterschenkel schwenken von fast gestreckt nach unten hinten.
+UEBUNGEN.beinbeuger = {
+  name: "Beinbeuger", muskeln: { primaer: ["beinbeuger"], sekundaer: ["waden"] }, kamera: [V(2.9, 0.95, 1.5), V(-0.15, 0.68, 0.18)], standbild: 0.8, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(-0.22, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.645, -0.02)); w.updateMatrixWorld(true);
+    geraet.add(beinbeuger3d(w).gruppe);
+  },
+  pose(t) {
+    const w = figur.wurzel, B = BEINBEUGER, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const winkel = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(10, 98, t));        // Unterschenkel gegenüber der Waagerechten nach unten
+    const unterschenkel = V(0, -Math.sin(winkel), Math.cos(winkel)), hinten = V(0, -Math.cos(winkel), -Math.sin(winkel)); // Wadenseite
+    const laenge = figur.GELENKE.unterschenkel1.distanceTo(figur.GELENKE.fuss1);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {}, huefte = w.localToWorld(V(0, 0.85, -0.03));
+    for (const s of [-1, 1]) {
+      const knie = V(s * 0.1, B.knieY, B.knieZ);
+      fuss[s] = lokal(knie.clone().addScaledVector(unterschenkel, laenge));
+      kniePol[s] = richtung(V(0, 1, 0.2));
+      hand[s] = lokal(huefte.clone().add(V(s * 0.28, -0.05, 0.12)));
+      ellbogenPol[s] = richtung(V(s * 0.6, 0, -1)); handflaeche[s] = richtung(V(-s, 0, 0));
+    }
+    this.rolle = V(0, B.knieY, B.knieZ).addScaledVector(unterschenkel, laenge - 0.07).addScaledVector(hinten, 0.115);
+    const fussDrehung = qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), winkel - 1.35)); // Fuß folgt dem Unterschenkel
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung, griff: true, handflaeche };
+  },
+  nach() { zubehoer.add(beinbeugerHebel(this.rolle)); }
+};
+// Beinstrecker: gleicher Unterbau wie der Beinbeuger; das Polster liegt vorn auf den Schienbeinen, die Unterschenkel heben sich bis zur Streckung.
+UEBUNGEN.beinstrecker = {
+  name: "Beinstrecker", muskeln: { primaer: ["quadrizeps"], sekundaer: [] }, kamera: [V(2.75, 1.35, 2.2), V(-0.15, 0.72, 0.2)], standbild: 0.85, geraetBild: 0,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(-0.22, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+    const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.645, -0.02)); w.updateMatrixWorld(true);
+    geraet.add(beinbeuger3d(w, false).gruppe);
+  },
+  pose(t) {
+    const w = figur.wurzel, B = BEINBEUGER, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+    const winkel = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(96, 6, t));         // von hängend bis gestreckt
+    const unterschenkel = V(0, -Math.sin(winkel), Math.cos(winkel)), vorn = V(0, Math.cos(winkel), Math.sin(winkel)); // Schienbeinseite
+    const laenge = figur.GELENKE.unterschenkel1.distanceTo(figur.GELENKE.fuss1);
+    const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      fuss[s] = lokal(V(s * 0.1, B.knieY, B.knieZ).addScaledVector(unterschenkel, laenge));
+      kniePol[s] = richtung(V(0, 1, 0.2));
+      hand[s] = lokal(V(s * 0.27, 0.605, 0.15));
+      ellbogenPol[s] = richtung(V(s * 0.6, 0, -1)); handflaeche[s] = richtung(V(-s, 0, 0));
+    }
+    this.rolle = V(0, B.knieY, B.knieZ).addScaledVector(unterschenkel, laenge - 0.05).addScaledVector(vorn, 0.115);
+    const fussDrehung = qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), winkel - 1.35));
+    return { hand, ellbogenPol, fuss, kniePol, fussDrehung, griff: true, handflaeche };
+  },
+  nach() { zubehoer.add(beinbeugerHebel(this.rolle)); }
+};
+// Abduktoren und Adduktoren: zwei getrennte Geräte mit gleichem Aufbau. Die Oberschenkel schwenken waagerecht um die Hüfte;
+// winkel = Spreizung je Bein in Grad (Start, Ende), seite = 1: Polster außen (Abduktoren), -1: innen (Adduktoren).
+function hueftUebung(name, seite, winkel, muskeln) {
+  let maschine;
+  return {
+    name, muskeln, kamera: [V(2.85, 1.85, 2.0), V(0, 0.72, 0.4)], standbild: 0.85, geraetBild: 0,
+    aufbau() {
+      const w = figur.wurzel; w.rotation.set(-0.25, 0, 0); w.position.set(0, 0, 0); w.updateMatrixWorld(true);
+      const huefte = w.localToWorld(V(0, 0.85, -0.03)); w.position.sub(huefte).add(V(0, 0.655, 0)); w.updateMatrixWorld(true);
+      maschine = hueftmaschine3d(w); geraet.add(maschine.gruppe);
+    },
+    pose(t) {
+      const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+      const qInv = w.quaternion.clone().invert(), richtung = d => d.clone().applyQuaternion(qInv);
+      const a = THREE.MathUtils.degToRad(THREE.MathUtils.lerp(winkel[0], winkel[1], t));
+      const lo = figur.GELENKE.oberschenkel1.distanceTo(figur.GELENKE.unterschenkel1), lu = figur.GELENKE.unterschenkel1.distanceTo(figur.GELENKE.fuss1);
+      const hand = {}, ellbogenPol = {}, fuss = {}, kniePol = {}, handflaeche = {}; this.zuletzt = {};
+      for (const s of [-1, 1]) {
+        const huefte = w.localToWorld(figur.GELENKE["oberschenkel" + s].clone());
+        const knie = huefte.clone().add(V(s * Math.sin(a), -0.04, Math.cos(a)).normalize().multiplyScalar(lo));
+        const knoechel = knie.clone().add(V(s * Math.sin(a) * 0.12, -1, 0.22).normalize().multiplyScalar(lu));
+        fuss[s] = lokal(knoechel); kniePol[s] = richtung(V(s * Math.sin(a), 0.7, Math.cos(a)));
+        hand[s] = lokal(V(s * 0.29, 0.625, 0.14)); ellbogenPol[s] = richtung(V(s * 0.6, 0, -1)); handflaeche[s] = richtung(V(-s, 0, 0));
+        this.zuletzt[s] = { knie, knoechel };
+      }
+      return { hand, ellbogenPol, fuss, kniePol, fussDrehung: qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -0.2)), griff: true, handflaeche };
+    },
+    nach() { zubehoer.add(beinarme(maschine.achse, this.zuletzt, seite)); }
+  };
+}
+UEBUNGEN.abduktoren = hueftUebung("Abduktoren", 1, [6, 36], { primaer: ["abduktoren"], sekundaer: ["gesaess"] });
+UEBUNGEN.adduktoren = hueftUebung("Adduktoren", -1, [36, 9], { primaer: ["adduktoren"], sekundaer: [] });
+// Bizepscurls am Kabel: Rolle unten, kurze Stange, Blick zum Turm
+UEBUNGEN.bizepscurls_kabel = {
+  name: "Bizepscurls am Kabel", muskeln: { primaer: ["bizeps"], sekundaer: ["unterarm"] }, kamera: [V(4.0, 1.5, 1.9), V(-0.2, 1.08, 0.5)], standbild: 0.75,
+  aufbau() { stehen(); turm = kabelturm3d("unten", 0.85); geraet.add(turm.gruppe); },
+  pose(t) {
+    const hand = {}, ellbogenPol = {}, handflaeche = {};
+    for (const s of [-1, 1]) {
+      const e = figur.GELENKE["unterarm" + s], w = THREE.MathUtils.lerp(0.25, 2.3, t), l = 0.25;
+      hand[s] = V(s * 0.17, e.y - Math.cos(w) * l, e.z + 0.03 + Math.sin(w) * l);
+      ellbogenPol[s] = V(0, -0.2, -1);
+      handflaeche[s] = figur.GELENKE["oberarm" + s].clone().sub(hand[s]);   // Handfläche zeigt zur Schulter (Untergriff)
+    }
+    return { hand, ellbogenPol, griff: true, handflaeche };
+  },
+  nach(haende) { zubehoer.add(kurzstange(turm.austritt, haende.griff(-1), haende.griff(1))); }
+};
+// Trizepsstrecken über Kopf: Rolle unten, Seil, Rücken zum Turm; die Hände strecken von hinter dem Kopf nach oben
+UEBUNGEN.trizeps_ueberkopf = {
+  name: "Trizepsstrecken über Kopf am Kabel", muskeln: { primaer: ["trizeps"], sekundaer: [] }, kamera: [V(4.0, 1.5, -1.1), V(-0.1, 1.08, 0.25)], standbild: 0.8,
+  aufbau() {
+    // Rücken zum Turm, Oberkörper nach vorn geneigt, Schrittstellung
+    const w = figur.wurzel; w.rotation.set(-0.36, Math.PI, 0); w.position.set(0, -0.05, 0.12); w.updateMatrixWorld(true);
+    turm = kabelturm3d("unten", 0.95); geraet.add(turm.gruppe);
+  },
+  pose(t) {
+    const w = figur.wurzel, lokal = p => w.worldToLocal(p.clone());
+    const qInv = w.quaternion.clone().invert(), richte = d => d.clone().applyQuaternion(qInv);
+    const hand = {}, ellbogenPol = {}, handflaeche = {}, fuss = {}, kniePol = {};
+    for (const s of [-1, 1]) {
+      const ws = -s, schulter = w.localToWorld(figur.GELENKE["oberarm" + s].clone());
+      const unten = schulter.clone().add(V(-ws * 0.09, 0.12, 0.17)), oben = schulter.clone().add(V(-ws * 0.1, 0.5, -0.16));
+      hand[s] = lokal(misch(unten, oben, t));
+      ellbogenPol[s] = richte(V(ws * 0.25, 0.7, -1));
+      handflaeche[s] = richte(V(-ws, 0, 0));
+      fuss[s] = lokal(V(ws * 0.1, 0.075, s === 1 ? -0.55 : 0.02));   // ein Fuß vorn, einer hinten
+      kniePol[s] = richte(V(0, 0.2, -1));
+    }
+    const fussDrehung = qInv.clone().multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.PI));
+    return { hand, ellbogenPol, griff: true, handflaeche, fuss, kniePol, fussDrehung };
+  },
+  nach(haende) { zubehoer.add(seilAufsatz(turm.austritt, haende.griff(-1), haende.griff(1))); }
+};
+// Seitheben am Kabel: seitlich zum Turm, Rolle unten, Einzelgriff in der turmfernen Hand
+UEBUNGEN.seitheben_kabel = {
+  name: "Seitheben am Kabel", muskeln: { primaer: ["schulter"], sekundaer: ["nacken"] }, kamera: [V(4.3, 1.5, -1.5), V(-0.1, 1.08, 0.2)], standbild: 0.85,
+  aufbau() {
+    const w = figur.wurzel; w.rotation.set(0, Math.PI / 2, 0); w.position.set(0, 0, -0.05); w.updateMatrixWorld(true);
+    turm = kabelturm3d("unten", 0.8); geraet.add(turm.gruppe);
+  },
+  pose(t) {
+    const winkel = THREE.MathUtils.lerp(0.12, 1.45, t), sch = figur.GELENKE.oberarm1;
+    const hand = { "1": sch.clone().add(V(Math.sin(winkel) * 0.53, -Math.cos(winkel) * 0.53, 0.07)), "-1": figur.GELENKE["hand-1"].clone().add(V(-0.02, 0.02, 0.02)) };
+    const ellbogenPol = { "1": V(0, -0.3, -1), "-1": V(0, 0, -1) };
+    const handflaeche = { "1": V(-Math.cos(winkel), -Math.sin(winkel), 0), "-1": V(1, 0, 0) };
+    this.offen = true;
+    return { hand, ellbogenPol, griff: true, handflaeche };
+  },
+  nach(haende) { zubehoer.add(einzelgriff(turm.austritt, haende.griff(1))); }
+};
+// Gerätebild Kurzhanteln: Ablage mit Hantelpaaren (nur mit ?nurgeraet sinnvoll)
+UEBUNGEN.kurzhanteln = {
+  name: "Kurzhanteln", muskeln: {}, kamera: [V(2.6, 1.9, 4.2), V(0.05, 0.45, 0)], standbild: 0, geraetBild: 0,
+  aufbau() { stehen(); geraet.add(hantelablage(kurzhantel)); },
+  pose: t => UEBUNGEN.bizepscurls.pose(t)
+};
+// Enger Latzug: Parallelgriff statt Stange, Hände dicht nebeneinander, Ellbogen bleiben vorn am Körper
+UEBUNGEN.latzug_eng = { ...UEBUNGEN.latzug, name: "Latzug eng", griffweite: [-0.095, -0.095], ellbogen: [0.45, -1, 0.1], aufsatz: parallelgriff, parallel: true, tief: -0.15, vor: 0.24,
+  kamera: [V(3.95, 1.7, -1.75), V(0, 1.07, 0.2)] }; // mehr von der Seite, damit der Griff vor der Brust zu sehen ist
+
+const wahl = params.get("uebung") ? params.get("uebung").split(",") : Object.keys(UEBUNGEN);
+const speichern = params.has("speichern"), standbild = params.has("standbild");
+const anzahl = Number(params.get("bilder") || 3);
+for (const id of wahl) {
+  const u = UEBUNGEN[id];
+  const zeiten = standbild ? [nurGeraet && u.geraetBild !== undefined ? u.geraetBild : u.standbild] : Array.from({ length: anzahl }, (_, i) => i / (anzahl - 1));
+  const reihe = document.createElement("div"); reihe.className = "reihe"; reihe.innerHTML = `<h3>${u.name}</h3>`;
+  document.getElementById("aus").append(reihe);
+  geraet.clear(); u.aufbau(); figur.faerbe(u.muskeln);
+  figur.wurzel.visible = !nurGeraet;
+  hanteln[-1].visible = hanteln[1].visible = !!u.hanteln && !nurGeraet;
+  kamera.position.copy(u.kamera[0]); kamera.lookAt(u.kamera[1]);
+  if (params.get("kamera")) { // Prüfansicht: ?kamera=x,y,z,zielX,zielY,zielZ
+    const k = params.get("kamera").split(",").map(Number); kamera.position.set(k[0], k[1], k[2]); kamera.lookAt(k[3], k[4], k[5]);
+  }
+  // Hauptlicht kommt immer aus Richtung der Kamera, das Kantenlicht von gegenüber – so bleiben die Farben in jeder Ansicht gleich hell
+  sonne.position.set(u.kamera[0].x * 0.75, u.kamera[0].y + 2.2, u.kamera[0].z * 1.1);
+  kante.position.set(-u.kamera[0].x, 2, -u.kamera[0].z);
+  for (const [i, t] of zeiten.entries()) {
+    const haende = figur.pose(u.pose(t));
+    zubehoer.clear();
+    for (const s of [-1, 1]) hanteln[s].position.copy(haende.griff(s));
+    if (u.nach) u.nach(nurGeraet && u.ruhe ? u.ruhe() : haende);
+    renderer.render(szene, kamera);
+    const c = document.createElement("canvas"); c.width = c.height = G; c.getContext("2d").drawImage(renderer.domElement, 0, 0); reihe.append(c);
+    if (speichern) {
+      const blob = await new Promise(r => c.toBlob(r, "image/png"));
+      await fetch(`/speichern/${id}_${nurGeraet ? "geraet" : standbild ? "bild" : String(i).padStart(2, "0")}.png`, { method: "POST", body: blob });
+    }
+  }
+}
+document.getElementById("status").textContent = `${figur.anzahl} Teile geladen · Modell: Z-Anatomy / BodyParts3D, CC BY-SA 4.0`;
+window.pruefe = { THREE, figur, szene, kamera };
+document.title = "fertig";
+</script>
+</body>
+</html>

@@ -39,7 +39,7 @@ for (const s of [-1, 1]) Object.assign(GELENKE, {
 const GRUPPEN = [
   ["brust", /pectoralis major/i], ["hintere-schulter", /scapular spinal part of deltoid/i], ["schulter", /deltoid/i], ["trizeps", /triceps brachii/i],
   ["bizeps", /biceps brachii|brachialis/i], ["unterarm", /brachioradialis|carpi|digitorum (superficialis|profundus)|pronator teres|palmaris longus/i],
-  ["bauch", /rectus abdominis/i], ["seitlicher-bauch", /(external|internal) oblique|abdominal (external|internal)/i],
+  ["bauch", /rectus abdominis/i], ["seitlicher-bauch", /(external|internal) (abdominal )?oblique/i],
   ["nacken", /trapezius/i], ["oberer-ruecken", /rhomboid|teres major|infraspinatus/i], ["ruecken", /latissimus/i], ["unterer-ruecken", /iliocostalis|longissimus/i],
   ["abduktoren", /gluteus (medius|minimus)|tensor fasciae/i], ["adduktoren", /adductor (longus|brevis|magnus|minimus)|gracilis|pectineus/i], ["gesaess", /gluteus/i], ["quadrizeps", /rectus femoris|vastus/i], ["beinbeuger", /biceps femoris|semitendinosus|semimembranosus/i],
   ["waden", /gastrocnemius|soleus/i]

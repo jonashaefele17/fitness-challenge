@@ -20,7 +20,7 @@ DEVICE_TYPES = {
     "beinstrecker": "beinstrecker", "beinbeuger": "beinbeuger",
     "adduktoren": "adduktoren-maschine", "abduktoren": "abduktoren-maschine",
     "laufband": "laufband", "fahrrad": "fahrrad-ergometer", "klimmzugstange": "klimmzugstange",
-    "ringe": "ringe", "hantelbank": "hantelbank", "matte": "boden-matte",
+    "ringe": "ringe", "matte": "boden-matte",
 }
 EXERCISES = {
     "schraegbank": "schraegbankdruecken-mit-kurzhanteln", "bizepscurls": "bizepscurls-mit-kurzhanteln",
@@ -32,6 +32,13 @@ EXERCISES = {
     "beinpresse": "beinpresse", "beinstrecker": "beinstrecken", "beinbeuger": "beinbeugen",
     "adduktoren": "adduktoren", "abduktoren": "abduktoren",
     "laufband": "laufen-auf-dem-laufband", "fahrrad": "radfahren-auf-dem-ergometer",
+    # Home gym
+    "liegestuetze": "liegestuetze", "ring_dips": "ring-dips", "klimmzuege": "klimmzuege",
+    "ring_rudern": "ring-rudern", "rudern_kh": "kurzhantel-rudern",
+    "schulterdruecken_kh": "schulterdruecken-mit-kurzhanteln", "seitheben_kh": "seitheben-mit-kurzhanteln",
+    "trizeps_kh": "trizepsstrecken-ueber-kopf-mit-kurzhantel", "goblet_squat": "goblet-squat",
+    "bulgarian": "bulgarian-split-squat", "rdl_kh": "rumaenisches-kreuzheben-mit-kurzhanteln",
+    "wadenheben_kh": "wadenheben-mit-kurzhanteln", "beinheben": "haengendes-beinheben", "plank": "plank",
 }
 
 

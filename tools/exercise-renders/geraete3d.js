@@ -76,18 +76,20 @@ export function seilAufsatz(austritt, handLinks, handRechts) {
   return g;
 }
 
-export function schraegbank(wurzel) {
+// "steil": fast senkrechte Lehne (Sitzposition), die Stütze rückt dafür nach vorn
+export function schraegbank(wurzel, steil = false) {
   const g = new THREE.Group(), M = MATERIAL;
   const lehne = kasten(0.30, 0.98, 0.075, M.polster, 0.03); lehne.position.copy(wurzel.localToWorld(V(0, 1.12, -0.175))); lehne.quaternion.copy(wurzel.quaternion); g.add(lehne);
   const dazu = (netz, x, y, z) => { netz.position.set(x, y, z); g.add(netz); };
   dazu(kasten(0.30, 0.075, 0.38, M.polster, 0.03), 0, 0.39, 0.17);
-  dazu(kasten(0.07, 0.07, 1.25, M.rahmen), 0, 0.06, -0.25);
-  for (const z of [-0.85, 0.32]) {
+  const hinten = steil ? -0.5 : -0.85, stuetze = steil ? -0.37 : -0.72;
+  dazu(kasten(0.07, 0.07, 0.4 - hinten, M.rahmen), 0, 0.06, (0.37 + hinten) / 2);
+  for (const z of [hinten, 0.32]) {
     dazu(kasten(0.50, 0.06, 0.07, M.rahmen), 0, 0.03, z);
     for (const x of [-0.25, 0.25]) dazu(kasten(0.05, 0.068, 0.078, M.gummi), x, 0.03, z);
   }
   dazu(kasten(0.07, 0.34, 0.07, M.rahmen), 0, 0.20, 0.15);
-  dazu(kasten(0.07, 0.95, 0.07, M.rahmen), 0, 0.50, -0.72);
+  dazu(kasten(0.07, 0.95, 0.07, M.rahmen), 0, 0.50, stuetze);
   return g;
 }
 
@@ -726,7 +728,7 @@ export function ringe3d(haende) {
 export function matte3d() {
   const g = new THREE.Group();
   const stoff = new THREE.MeshStandardMaterial({ color: 0x4b4d57, roughness: 0.95 });
-  const flaeche = kasten(0.62, 0.014, 1.6, stoff, 0.006); flaeche.position.set(0, 0.007, -0.08); g.add(flaeche);
+  const flaeche = kasten(0.62, 0.014, 1.95, stoff, 0.006); flaeche.position.set(0, 0.007, -0.255); g.add(flaeche); // lang genug für einen gestreckten Körper
   const rolle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.62, 28), stoff); rolle.rotation.z = Math.PI / 2; rolle.position.set(0, 0.055, 0.76); g.add(rolle);
   const kern = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.625, 16), MATERIAL.gummi); kern.rotation.z = Math.PI / 2; kern.position.set(0, 0.055, 0.76); g.add(kern);
   for (const z of [-0.5, 0.2]) { const naht = kasten(0.62, 0.002, 0.012, MATERIAL.rahmen, 0.001); naht.position.set(0, 0.015, z); g.add(naht); }

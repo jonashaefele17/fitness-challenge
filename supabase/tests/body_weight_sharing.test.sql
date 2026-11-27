@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(55);
+select plan(63);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -240,6 +240,50 @@ select results_eq(
   $$values ('2026-12-01'::date, 80.20::numeric, 2), ('2026-12-03'::date, 79.80::numeric, 1),
            ('2026-12-04'::date, 79.45::numeric, 2)$$,
   'kg: the owner still gets the day values');
+
+-- ---------------------------------------------------------------------------
+-- days: the day values too
+-- ---------------------------------------------------------------------------
+set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
+select is(
+  (select count(*) from public.weight_progress('11111111-1111-4111-8111-111111111111', null, '2026-12-31')
+    where weight_kg is not null), 0::bigint,
+  'kg: no day value in the progress');
+
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+update public.body_settings set weight_share = 'days';
+
+set local request.jwt.claims to '{"sub": "22222222-2222-4222-8222-222222222222", "role": "authenticated"}';
+select results_eq(
+  $$select on_date, change_pct, trend_kg, weight_kg
+      from public.weight_progress('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-04')$$,
+  $$values ('2026-12-01'::date, 0.00::numeric, 81.07::numeric, 80.20::numeric),
+           ('2026-12-03'::date, -0.91::numeric, 80.33::numeric, 79.80::numeric),
+           ('2026-12-04'::date, -1.54::numeric, 79.82::numeric, 79.45::numeric)$$,
+  'days: the trend and the day values');
+select results_eq(
+  $$select * from public.weight_summary('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-04')$$,
+  $$values (79.82::numeric, '2026-12-04'::date, 81.07::numeric, '2026-12-01'::date, -1.25::numeric,
+            -1.54::numeric, null::numeric, null::numeric, null::uuid, null::date, 0, 'days'::text)$$,
+  'days: the summary as with kg, still no single entry, scale or count');
+select is_empty(
+  $$select * from public.weight_days('11111111-1111-4111-8111-111111111111', null, '2026-12-31')$$,
+  'days: weight_days (entry counts) stays closed');
+select is((select count(*) from public.weigh_ins) + (select count(*) from public.scales), 0::bigint,
+  'days: no weigh-ins, no scales');
+
+set local request.jwt.claims to '{"sub": "33333333-3333-4333-8333-333333333333", "role": "authenticated"}';
+select is_empty(
+  $$select * from public.weight_progress('11111111-1111-4111-8111-111111111111', null, '2026-12-31')$$,
+  'days: another group gets no progress');
+select is(tests.kg_columns('11111111-1111-4111-8111-111111111111'), 0::bigint,
+  'days: another group gets no kg value');
+
+set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';
+select results_eq(
+  $$select * from public.weight_summary('11111111-1111-4111-8111-111111111111', '2026-12-01', '2026-12-04')$$,
+  $$select * from owner_summary$$,
+  'days: the owner''s summary is unchanged');
 
 -- ---------------------------------------------------------------------------
 -- Back to private: hidden again

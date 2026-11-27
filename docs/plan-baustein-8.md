@@ -50,9 +50,10 @@ Beim Staging-Test prüfen:
 
 - [x] Anlegen und Bearbeiten durch den Gruppen-Admin im Reiter „Ziele“ (Zeile „Saison anlegen“): Name, Start, Ende, ab wann das Setup offen ist, Teilnehmer (Standard: alle), Regeln (jede Woche wiegen, Zwischenstand alle x Wochen; Pflicht: Trainings pro Woche). Saisons einer Gruppe überschneiden sich nicht. Nach dem Start ist nur noch der Name änderbar; Absagen mit Rückfrage, die Ziele werden dann wieder normale Ziele
 - [x] Saison-Block oben im Reiter „Ziele“: Name, Phase, „Woche x von y“, Tage bis zum Ende, Regeln, eigener Stand; „Alle Teilnehmer“ (Bereit-Stand und Saisonziele der anderen, kommentierbar), „Pause eintragen (krank, Urlaub)“
+- [x] Das Setup öffnet sich von selbst: direkt nach dem Anlegen für den Admin und einmal pro Saison und Gerät beim Öffnen der App, solange man nicht bereit ist; danach bleiben die Karte auf „Heute“ und die Zeile im Saison-Block
 - [x] Setup zum Durchklicken, jeder Schritt gespeichert, bis zum Start änderbar: Rahmen → Trainingsziel (Pflicht) → weitere Ziele → Habits → Gewicht teilen → Rhythmen → Zusammenfassung mit „Bereit“. Ein schon laufendes eigenes Trainings- oder Habit-Ziel wird übernommen statt verdoppelt
 - [x] Saisonziele sind normale persönliche Ziele, an die Saison gehängt: Zeitraum der Saison, für die Gruppe sichtbar, in der Liste mit „Saison“ markiert
-- [x] Start: ab dem Starttag sind die Saisonziele fest (ändern, beenden, zurücknehmen abgelehnt); private Ziele bleiben frei. Korrektur nur durch den Admin, mit Feed-Karte ohne Werte und Mitteilung an die Person
+- [x] Start: Saisonziele sind fest, sobald die Saison gestartet ist und die Person bereit ist (ändern, beenden, zurücknehmen abgelehnt); private Ziele bleiben frei. Wer zum Start das Pflichtziel hat, aber nie „Bereit“ getippt hat, zählt automatisch als bereit. Wem zum Start ein Pflichtziel fehlt, der holt das Setup danach nach und ist ab „Bereit“ fest; „Bereit“ zurücknehmen geht nur vor dem Start. Korrektur nur durch den Admin, mit Feed-Karte ohne Werte und Mitteilung an die Person
 - [x] Später Einstieg: der Admin fügt jemanden nach dem Start hinzu; eigenes Startdatum, eigenes Setup, fest ab „Bereit“. Derselbe Weg gibt jemandem, der das Setup verpasst hat, eine zweite Chance
 - [x] Mitteilungen (Kategorie „Saisons“): beim Öffnen des Setups, am Tag vor dem Start um 18 Uhr an alle, die nicht bereit sind, zum Start ab 7 Uhr; jeweils einmal pro Person
 - [x] Feed-Karten: Saison angekündigt, Saison gestartet (wird nachgeholt, falls der Starttag verpasst wurde), Ziel korrigiert; abgesagte Saisons sagen „abgesagt“
@@ -64,7 +65,6 @@ Beim Staging-Test prüfen:
 Bekannte Grenzen:
 - Teilt jemand sein Gewicht nicht in kg, sieht auch der Admin die kg des Gewichtsziels nicht und kann es nicht korrigieren (bewusst: die Admin-Rolle hebelt die Sichtbarkeit nicht aus).
 - Wer die Gruppe verlässt, bleibt Teilnehmer der Saison, bis der Admin ihn entfernt.
-- Wer bis zum Start kein Setup gemacht hat (auch der Admin selbst), steht ohne Ziele da und braucht die zweite Chance über „Teilnehmer hinzufügen“.
 - Die Regel „jede Woche wiegen“ zwingt niemanden, einen Wiegetag einzustellen; das Zählen der Regeln kommt mit 8c.
 - Ein neues Habit lässt sich im Setup nicht direkt anlegen (Hinweis auf Ich → Habits).
 

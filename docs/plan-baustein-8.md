@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a und 8b gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -46,26 +46,34 @@ Beim Staging-Test prüfen:
 - Lesen sich Status und „auf Kurs“ bei echten Daten richtig?
 - Detail am iPhone: Blatt hochziehen, Diagramm antippen, Datum wählen
 
-### 8b – Saison: anlegen, Setup, Start, Kalender
+### 8b – Saison: anlegen, Setup, Start, Kalender (gebaut am 27.11.2026, Staging-Test offen)
 
-- Admin legt an: Name, Zeitraum, Setup-Phase, Teilnehmer, Regeln. Alle Teilnehmer bekommen eine Push.
-- Regeln der Saison (als Daten): Wiegen pro Woche, Zwischenstand alle x Wochen, Pflicht-Zielarten.
-  - Die Regeln stellen bei den Teilnehmern die persönlichen Rhythmen aus Baustein 7 ein (Wiege-Erinnerung, Zwischenstand-Rhythmus); der Wochentag und die Uhrzeit bleiben persönlich.
-- Setup-Phase: jede Person richtet die Saison zum Durchklicken ein, ausgelöst durch die Push und eine Karte auf „Heute“. Die Ziele der anderen sind sichtbar und kommentierbar.
-  1. Rahmen (Name, Zeitraum, Teilnehmer, Regeln; nur lesen)
-  2. Trainingsziel (Pflicht) mit Mindestziel und Ziel
-  3. Weitere Ziele: Zielarten wählen, pro Art ein Bildschirm mit vorgeschlagenem Startwert
-  4. Habits: vorhandene ankreuzen, die in der Saison zählen, jeweils mit Quote; neues Habit über den vorhandenen Editor
-  5. Gewicht teilen
-  6. Rhythmen: Wiegetag und Uhrzeiten der Erinnerungen
-  7. Zusammenfassung, „Bereit“
-  - Jeder Schritt wird gespeichert (abbrechen und später weitermachen); nur Schritt 2 ist Pflicht; bis zum Saisonstart bleibt alles änderbar.
-- Im Reiter „Ziele“ steht die laufende Saison ganz oben: Name, Woche x von y, Tage bis zum Ende, Regeln und der eigene Stand dazu; darunter die Saisonziele, dann die privaten Ziele. Dort auch „Pause eintragen (krank, Urlaub)“.
-- Start: Ziele werden festgeschrieben, Feed-Karte „Saison gestartet“. Danach Korrekturen nur durch den Admin, sichtbar im Feed. Private Zusatzziele bleiben jederzeit möglich und zählen nicht im Vergleich.
-- Später Einstieg mit eigenem Startdatum.
-- Kalender-Marker an der Tageszahl (berechnet, nicht gespeichert): Saisonstart und Saisonende als Fahne, Wiegetag und Zwischenstand als Waage. Pro Tag höchstens ein Marker; alles Weitere im Tages-Sheet unter „Besonderes“. Der Platz für Trainings bleibt frei.
-- „Heute“ zeigt Anstehendes: „Morgen Wiegetag“, „Noch 5 Tage bis Saisonende“.
-- Technik: neues soziales Modul `seasons` (`seasons`, `season_members`, Regeln); Saisonziele sind persönliche Ziele mit Verweis auf die Saison, der in der sozialen Schicht liegt.
+- [x] Anlegen und Bearbeiten durch den Gruppen-Admin im Reiter „Ziele“ (Zeile „Saison anlegen“): Name, Start, Ende, ab wann das Setup offen ist, Teilnehmer (Standard: alle), Regeln (jede Woche wiegen, Zwischenstand alle x Wochen; Pflicht: Trainings pro Woche). Saisons einer Gruppe überschneiden sich nicht. Nach dem Start ist nur noch der Name änderbar; Absagen mit Rückfrage, die Ziele werden dann wieder normale Ziele
+- [x] Saison-Block oben im Reiter „Ziele“: Name, Phase, „Woche x von y“, Tage bis zum Ende, Regeln, eigener Stand; „Alle Teilnehmer“ (Bereit-Stand und Saisonziele der anderen, kommentierbar), „Pause eintragen (krank, Urlaub)“
+- [x] Setup zum Durchklicken, jeder Schritt gespeichert, bis zum Start änderbar: Rahmen → Trainingsziel (Pflicht) → weitere Ziele → Habits → Gewicht teilen → Rhythmen → Zusammenfassung mit „Bereit“. Ein schon laufendes eigenes Trainings- oder Habit-Ziel wird übernommen statt verdoppelt
+- [x] Saisonziele sind normale persönliche Ziele, an die Saison gehängt: Zeitraum der Saison, für die Gruppe sichtbar, in der Liste mit „Saison“ markiert
+- [x] Start: ab dem Starttag sind die Saisonziele fest (ändern, beenden, zurücknehmen abgelehnt); private Ziele bleiben frei. Korrektur nur durch den Admin, mit Feed-Karte ohne Werte und Mitteilung an die Person
+- [x] Später Einstieg: der Admin fügt jemanden nach dem Start hinzu; eigenes Startdatum, eigenes Setup, fest ab „Bereit“. Derselbe Weg gibt jemandem, der das Setup verpasst hat, eine zweite Chance
+- [x] Mitteilungen (Kategorie „Saisons“): beim Öffnen des Setups, am Tag vor dem Start um 18 Uhr an alle, die nicht bereit sind, zum Start ab 7 Uhr; jeweils einmal pro Person
+- [x] Feed-Karten: Saison angekündigt, Saison gestartet (wird nachgeholt, falls der Starttag verpasst wurde), Ziel korrigiert; abgesagte Saisons sagen „abgesagt“
+- [x] Kalender: Marker an der Tageszahl (Fahne für Start, Zielflagge für Ende, Waage für Wiegetag und fälligen Zwischenstand), höchstens einer pro Tag; Gruppenansicht mit Gruppen-Markern an der Datumszeile; Tages-Sheet listet alles unter „Besonderes“. Wiegetage nur ab heute
+- [x] „Heute“: Karte „Saison einrichten“ während des Setups, Zeilen für Anstehendes („Morgen Wiegetag“, „Noch 5 Tage bis Saisonende“)
+- [x] Sprungziele aus Mitteilungen: Saison (`/ich?saison=…`), Ziel (`/ich?ziel=…`)
+- [x] Datenbank: `seasons`, `season_members`, `season_goals`; Phase berechnet; Datenbank-Tests (97)
+
+Bekannte Grenzen:
+- Teilt jemand sein Gewicht nicht in kg, sieht auch der Admin die kg des Gewichtsziels nicht und kann es nicht korrigieren (bewusst: die Admin-Rolle hebelt die Sichtbarkeit nicht aus).
+- Wer die Gruppe verlässt, bleibt Teilnehmer der Saison, bis der Admin ihn entfernt.
+- Wer bis zum Start kein Setup gemacht hat (auch der Admin selbst), steht ohne Ziele da und braucht die zweite Chance über „Teilnehmer hinzufügen“.
+- Die Regel „jede Woche wiegen“ zwingt niemanden, einen Wiegetag einzustellen; das Zählen der Regeln kommt mit 8c.
+- Ein neues Habit lässt sich im Setup nicht direkt anlegen (Hinweis auf Ich → Habits).
+
+Beim Staging-Test prüfen (am besten zu zweit):
+- Saison anlegen, Setup als Teilnehmer komplett durchgehen, „Bereit“
+- Sieht man die Ziele der anderen, lässt sich kommentieren?
+- Start simulieren (Saison mit Start heute anlegen): Ziele fest, Feed-Karte, Push
+- Marker im Kalender lesbar am iPhone? Verdecken sie nichts?
+- Drei Blätter übereinander (Teilnehmer → Ziel → Korrektur) am iPhone bedienbar?
 
 ### 8c – Vergleich in der Saison
 
@@ -81,6 +89,20 @@ Beim Staging-Test prüfen:
 - Saison-Rückblick pro Person und Gruppe als Feed-Karte (Inhalte siehe Ideenliste „Saison-Rückblick“).
 - Übergang: Rückschau pro Ziel (verlängern / steigern / beenden) als Entwurf der nächsten Saison.
 - Saison-Archiv im Gruppe-Tab.
+
+### 8e – Etappen
+
+Entschieden mit Jonas am 27.11.2026; Darstellung und die Frage der eigenen Etappenziele noch offen (siehe unten).
+
+- Eine Saison hat Etappen fester Länge, Standard 4 Wochen (im Takt des Zwischenstands; ganze Wochen, damit Wochenziele nicht zerschnitten werden). Der Admin legt die Länge beim Anlegen fest.
+- Etappenziel, berechnet: bei Gewicht, Kraft und Maßen der Wert der Ziellinie am Etappenende („bis 24.12.: 83,3 kg“); bei Trainings und Habits die Vorgabe über die Wochen der Etappe.
+- Etappen-Rückblick als Feed-Karte pro Person am Etappenende: Etappenziel erreicht oder nicht, Stand je Saisonziel (mit derselben Maskierung wie sonst).
+- Anpassungsfenster: in den ersten 3 Tagen einer neuen Etappe darf jede Person Ziel und Mindestziel ihrer Saisonziele ändern (alle Zielarten). Die Änderung gilt ab der neuen Etappe, vergangene Wochen zählen nach den alten Werten, und sie steht für alle im Feed. Startwert und Zeitraum bleiben fest. Außerhalb des Fensters korrigiert weiter nur der Admin.
+- Nach einer Anpassung knickt die Ziellinie an der Etappengrenze: Sie läuft vom bisherigen Sollwert an diesem Tag zum neuen Ziel.
+
+Offen:
+- Eigene Etappenziele bei Gewicht, Kraft und Maßen (z. B. am Anfang schneller abnehmen): Etappenziele automatisch auf der geraden Linie, aber einzeln überschreibbar? Die Ziellinie wäre dann stückweise gerade.
+- Darstellung in der Übersicht (Vorschlag: Zeile „Etappe 2 von 6 · bis 24.12.: 83,3 kg“ in der Zielkarte, Etappengrenzen als Marken im Diagramm, „Etappe x von y“ im Saison-Block).
 
 ## Nicht in diesem Baustein
 
@@ -103,6 +125,6 @@ Beim Staging-Test prüfen:
 
 ## Reihenfolge und Umfang
 
-8a → 8b → 8c, jede Etappe für sich nutzbar; 8d je nach Frage 6. 8a und 8b sind groß, 8c mittel bis groß (wegen des Umbaus der Reiter), 8d mittel. Nach jeder Etappe: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
+8a → 8b → 8c → 8e, jede Etappe für sich nutzbar; 8d während der ersten Saison. 8a und 8b sind groß, 8c mittel bis groß (wegen des Umbaus der Reiter), 8d mittel. Nach jeder Etappe: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
 
 Danach: Umzug auf Live, Start der ersten Saison.

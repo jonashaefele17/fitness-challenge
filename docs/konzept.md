@@ -31,6 +31,7 @@ Dieses Dokument ist das lebende Grundkonzept der App: Es gilt, bis eine Änderun
 | 27.11.2026 | 1.50 | Saisons bekommen Etappen (Standard 4 Wochen, im Takt des Zwischenstands) mit berechnetem Etappenziel, Etappen-Rückblick im Feed und einem Anpassungsfenster von 3 Tagen zu Beginn jeder Etappe, in dem jede Person Ziel und Mindestziel ihrer Saisonziele ändern darf (sichtbar im Feed, gilt ab der neuen Etappe). Das ersetzt die Entscheidung „kein Halbzeit-Fenster“ vom 20.11.2026; außerhalb des Fensters korrigiert weiter nur der Admin. Grund: Über 6 Monate wäre ein unrealistisch gesetztes Ziel sonst monatelang tot |
 | 27.11.2026 | 1.51 | Saison-Setup lässt sich nach dem Start nachholen: Saisonziele sind fest, sobald die Saison läuft und die Person bereit ist, nicht mehr für alle am Starttag. Wer das Pflichtziel zum Start schon hat, zählt automatisch als bereit. Das Setup öffnet sich einmal von selbst. Grund: Eine Saison mit Start am selben Tag oder ein verpasstes Setup war eine Sackgasse |
 | 27.11.2026 | 1.52 | Habits in der Saison haben keine Prozentquote als Ziel mehr: Das Ziel ist die Regel des Habits selbst, im Setup einstellbar und ab „Bereit“ fest; die Quote ist nur Auswertung. Die Gruppe sieht Name, Regel und Quote. Der Admin gibt eine Regel für 24 Stunden zur Änderung frei, statt sie selbst zu ändern. Die Zielart „Habit-Quote“ entfällt. Mindestziele werden ausdrücklich festgelegt und liegen immer auf der leichteren Seite des Ziels. Umsetzung der Habit-Änderung steht noch aus (siehe Plan Baustein 8) |
+| 28.11.2026 | 1.53 | Vergleich neu gefasst: Der Gruppe-Tab hat zwei Reiter (Feed, Vergleich). Im Vergleich wählt man „Was“ (Übersicht, Trainings, Habits, Gewicht, Kraft) und „Zeitraum“; die Saison ist ein Zeitraum (voreingestellt, solange sie läuft), kein eigener Ort. Jede Ansicht zeigt ein Diagramm mit einer Linie pro Person und eine Zeile pro Person. Die Liste aller Ziele aller Personen, der Filter nach Zielart, der Kraftvergleich pro Übung und die Reiter „Ziele“ und „Konsistenz“ entfallen. Grund: am Handy zu unübersichtlich; genaue Auswertungen kommen am PC. Details in `docs/plan-baustein-8.md` (8c) |
 | 23.11.2026 | 1.38 | Habit-Auswertung: Übersicht „Diese Woche“ und „Dranbleiben“ (wie im Prototyp), Detail mit drei Kennzahlen in Klartext und Trend; Quoten statt Serien in der Oberfläche, Serien in der Datenbank verzeihend (einmal verpassen unterbricht nicht) |
 | 23.11.2026 | 1.37 | Habits (Baustein 6) festgelegt: Ruhetage gestrichen, Pausen mit anteiligem Wochenziel, Supplements als eigenes Checklisten-Habit, Quelle pro Eintrag (Hand/App/extern), Check-in nicht im Feed, gleiche Habits direkt vergleichbar, Aufteilung 6a–6d |
 | 23.11.2026 | 1.36 | Kalender-Export: „In Kalender übernehmen“ als `.ics` (einmalige Kopie mit Hinweis), Serie ganz oder nur ein Termin, ohne Erinnerung |
@@ -280,13 +281,15 @@ Eine Saison ist nur ein Rahmen aus Zeitraum, Teilnehmern und Zielen; Trainings, 
 6. **Ende:** Schluss-Wiegung mit 2–3 Tagen Spielraum, Stand wird eingefroren, Saison-Rückblick pro Person und Gruppe als Feed-Karte.
 7. **Übergang:** Rückschau pro Ziel (verlängern / steigern / beenden) und pro Habit (behalten / anpassen / archivieren) wird zum Entwurf der nächsten Saison; optional Off-Season ohne Wettbewerb.
 
-**Vergleich (Reiter in Gruppe)**
+**Vergleich (Reiter in Gruppe, neben dem Feed)**
 
-- **Ziele:** pro Person alle Saisonziele mit Start → aktuell → Ziel, Fortschritt in %, Status „auf Kurs / hinter Plan“ (gegen die Linie vom Start zum Ziel), Filter nach Zielart, Saison-Auswahl.
-- **Konsistenz:** Wochenziel erfüllt in %, Streaks, Heatmap „Dranbleiben“.
-- **Gewicht:** Veränderung in % seit Start; Sichtbarkeit pro Person (nichts, nur %, kg als Durchschnitt über 7 Tage, mit Tageswerten).
-- **Kraft:** Steigerung in % seit Start pro Übung, jeder an seinen eigenen Geräten; direkter Vergleich nur am selben Gerät im selben Studio.
-- **Habits:** nur Erfüllungsquote, für wer teilt.
+Am Handy eine Übersicht, wie es bei einem selbst und bei den anderen läuft; genaue Auswertungen am PC. Die Saison ist ein Zeitraum, kein eigener Ort: Auswahl „Was“ (Übersicht, Trainings, Habits, Gewicht, Kraft) und „Zeitraum“ (Saison, 4 Wochen, 3 Monate, 1 Jahr; die laufende Saison ist voreingestellt). Jede Ansicht zeigt ein Diagramm mit einer Linie pro Person und darunter eine Zeile pro Person. Feste Reihenfolge, keine Rangliste.
+
+- **Übersicht (Saison):** Zielfortschritt als eine Linie pro Person (Durchschnitt über die Saisonziele mit Start und Ziel, 0–100 %, gegen die Soll-Linie); pro Person Wochenziel „in x von y Wochen“, ein Punkt je Saisonziel (erreicht / auf Kurs / hinter Plan), Habit-Quote, Saisonregeln (gewogen, Zwischenstand). Die einzelnen Ziele einer Person stehen in ihrem Detail, nicht in einer Tabelle für alle.
+- **Trainings:** aufsummierte Trainingstage im Zeitraum.
+- **Habits:** Quote pro Woche (in der Saison über die Saison-Habits, sonst über geteilte Habits); darunter die Matrix mit Detailvergleich.
+- **Gewicht:** Veränderung in % seit Beginn des Zeitraums; Sichtbarkeit pro Person (nichts, nur %, kg als Durchschnitt über 7 Tage, mit Tageswerten).
+- **Kraft (Saison):** durchschnittliche Steigerung in % über die eigenen Kraftziele. Der Vergleich an derselben Übung bleibt im Übungsverlauf („Vergleichen mit …“), direkt vergleichbar nur am selben Gerät im selben Studio.
 - **Punkte:** kommen zum Schluss, eher für Konsistenz als für Ergebnisse.
 
 ## PC-Ansicht und Admin

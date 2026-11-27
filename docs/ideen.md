@@ -102,6 +102,11 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Gruppe: Auszeichnungen wie „Meiste Trainings“, „Größter Kraftzuwachs“, „Meiste Rekorde“, „Volumen-Monster“. Vergleich über Zuwachs in % (fair unabhängig davon, wer absolut stärker ist); dafür ggf. geschätztes 1RM nur intern.
 - [ ] Darstellung wie „Wrapped“: Karten zum Durchwischen, am Saisonende per Push, als Bild teilbar.
 
+### Wochenrückschau am PC (für den Jour fixe; mit der PC-Ansicht bauen, Baustein 9)
+
+- [ ] Eine automatisch erzeugte Seite pro Woche, alle nebeneinander: Trainings und Wochenziel, Habits, Gewicht (wer teilt), Stand der Saisonziele, was sich gegenüber der Vorwoche getan hat. Zum Durchblättern von Woche zu Woche.
+- [ ] Nutzt dieselben berechneten Daten wie der Vergleich am Handy (8c), nur pro Woche geschnitten und mit mehr Platz (z. B. doch alle Ziele aller Personen als Tabelle).
+
 ## KI-Coach (MCP, nur lesen)
 
 Besprochen am 24.11.2026. Ziel: ein Personal Trainer mit Zeit, der alle eigenen Daten kennt – Einschätzung statt Eintragen: Was läuft gut, was schlecht? Wie entwickle ich mich? Welche Muskelgruppe kommt zu kurz, welche Übung sollte ich einbauen, was kann ich verbessern – mit konkreten Vorschlägen.

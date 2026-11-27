@@ -123,13 +123,68 @@ Bauplan Oberfläche:
 
 Arbeitsweise wie bisher: Umsetzung an einen Opus-Unteragenten geben (erst Datenbank, prüfen, committen; dann Oberfläche mit Screenshots bei 375 px), vor jedem Commit Lint, Typecheck, Tests, `npm run test:rls` auf frisch zurückgesetzter Datenbank.
 
-### 8c – Vergleich in der Saison
+### 8c – Vergleich (Plan vom 28.11.2026, mit Jonas abgestimmt; noch nicht gebaut)
 
-- Gruppe → Reiter „Ziele“: pro Person alle Saisonziele mit Start → aktuell → Ziel, Fortschritt in %, Status; Filter nach Zielart.
-- Gruppe → Reiter „Konsistenz“: Wochenziel erfüllt in %, Serien, Heatmap „Dranbleiben“; darin auch die Saisonregeln (in wie vielen Wochen gewogen, Zwischenstände gemacht).
-- Gewicht: zusätzlich der Zeitraum „Seit Saisonstart“ im vorhandenen Reiter.
-- Kraft: Steigerung in % seit Start pro Übung.
-- Der Gruppe-Tab hat dann fünf bis sechs Reiter; die Auswahl muss dafür umgebaut werden (z. B. Feed und „Vergleich“ mit Unterauswahl).
+**Leitgedanke:** Am Handy will man auf einen Blick sehen, wie es bei einem selbst und bei den anderen läuft – nicht jedes Ziel und jede Übung jeder Person in einer Tabelle. Die Saison ist dabei kein eigener Ort, sondern ein Zeitraum: Jede Größe hat genau einen Platz, und solange eine Saison läuft, ist sie als Zeitraum voreingestellt. Genauere Auswertungen (z. B. die Wochenrückschau für den Jour fixe) kommen am PC (Baustein 9, siehe Ideenliste).
+
+**Aufbau**
+
+- Gruppe-Tab: zwei Reiter, **Feed · Vergleich** (bisher Feed · Habits · Gewicht).
+- Im Vergleich oben zwei Auswahlen:
+  - **Was:** Übersicht · Trainings · Habits · Gewicht · Kraft (wischbare Leiste)
+  - **Zeitraum:** Saison · 4 Wochen · 3 Monate · 1 Jahr. „Saison“ gibt es, wenn die Gruppe eine laufende oder beendete Saison hat; solange eine läuft, ist sie voreingestellt, sonst „4 Wochen“.
+- Darunter immer dasselbe Muster: **ein Diagramm** mit einer Linie pro Person in ihrer Farbe (Antippen hebt eine Person hervor), **darunter eine Zeile pro Person** mit dem aktuellen Stand. Feste Reihenfolge (ich zuerst), keine Rangliste – Punkte kommen später.
+
+**Die fünf Ansichten**
+
+| Ansicht | Diagramm | Zeile pro Person |
+| --- | --- | --- |
+| **Übersicht** (nur Zeitraum „Saison“) | Zielfortschritt: Durchschnitt über die Saisonziele mit Start und Ziel (Gewicht, Bestwert, Körpermaß), 0–100 %, ein Punkt pro Woche; dazu die Soll-Linie vom Start zum Ende | Wochenziel Trainings „in x von y Wochen“; ein Punkt pro Saisonziel (Ziel erreicht / auf Kurs / hinter Plan); Habit-Quote über alle Saison-Habits; Saisonregeln („gewogen in 3 von 4 Wochen“, „Zwischenstand 1 von 1“). Antippen öffnet die Person im vorhandenen Teilnehmer-Blatt |
+| **Trainings** | Aufsummierte Trainingstage seit Beginn des Zeitraums (ein Tag zählt einmal) | Anzahl Trainingstage; in der Saison zusätzlich das Wochenziel |
+| **Habits** | Quote pro Woche. Zeitraum „Saison“: über die Saison-Habits (auch private – nur die Quote). Sonst: über die geteilten Habits | Darunter die vorhandene Habit-Matrix mit Detailvergleich, unverändert |
+| **Gewicht** | Wie heute (Veränderung in %), neu mit Zeitraum „Saison“ ab dem eigenen Saisonstart | Wie heute; wer nicht teilt, fehlt |
+| **Kraft** (nur Zeitraum „Saison“, nur wenn mindestens zwei Personen ein Kraftziel haben) | Durchschnittliche Steigerung in % seit dem Start über die eigenen Kraftziele | Steigerung in %, Anzahl der Kraftziele |
+
+Was bewusst entfällt: die Liste aller Ziele aller Personen mit Filter nach Zielart, der Vergleich pro Übung (gibt es schon im Übungsverlauf über „Vergleichen mit …“) und eine Heatmap für alle gleichzeitig (gibt es pro Person bei den Habits).
+
+**Sichtbarkeit (unverändert, nur angewendet)**
+
+- Zielfortschritt in % und Status sind für die Gruppe sichtbar, kg und cm nie über diese Ansichten.
+- Gewicht: nur wer teilt. Habits außerhalb der Saison: nur geteilte. Saison-Habits: Name, Regel, Quote.
+- Die Saisonregeln zählen nur „gemacht / nicht gemacht“ pro Woche, ohne Werte.
+- Jede neue Lesefunktion prüft die Mitgliedschaft über die zentralen Hilfsfunktionen; Tests: Gruppe A sieht nichts aus Gruppe B.
+
+**So wird gerechnet**
+
+- Zielfortschritt einer Person in einer Woche: Mittelwert des Fortschritts (Anteil des Wegs vom Start zum Ziel, auf 0–100 % begrenzt) ihrer Saisonziele der Art Gewicht, Bestwert, Körpermaß am Wochenende. Wer kein solches Ziel hat, hat keine Linie; Trainings und Habits stehen in ihren eigenen Ansichten und als Zahlen in der Zeile.
+- „Gewogen“ in einer Woche: mindestens ein Wiege-Eintrag in der Kalenderwoche. „Zwischenstand“: ein nicht übersprungener Zwischenstand im fälligen Abschnitt. Pausenwochen zählen nicht mit.
+- Habit-Quote pro Woche: wie in der Habit-Auswertung (Pausen und offene Tage zählen nicht), über alle betroffenen Habits der Person gemittelt.
+- Kraft: je Kraftziel (aktueller Wert − Startwert) / Startwert, dann der Mittelwert.
+
+**Technik**
+
+- Modulgrenzen: `comparison` und `seasons` sind beide sozial und importieren sich nicht gegenseitig. Der Vergleichs-Bildschirm wird deshalb in `src/app/` zusammengesetzt (`src/app/compare/`): Auswahl „Was“ und „Zeitraum“ dort, die Ansichten kommen aus `comparison` (Trainings, Habits, Gewicht) und aus `seasons` (Übersicht, Kraft, Saison-Habit-Quote). Der Zeitraum „Saison“ geht als Von-/Bis-Datum in die `comparison`-Ansichten – `comparison` weiß nichts von Saisons.
+- Das Linien-Diagramm aus `WeightComparison` (`PercentChart`) wird zu einem allgemeinen Baustein in `src/shared/ui/` (Linien mit Farbe und Name, Antippen, optionale Soll-Linie, y-Achse in % oder als Anzahl). Zweiter und dritter echter Anwendungsfall, also kein Baustein auf Vorrat.
+- Neue Lesefunktionen (alles berechnet, nichts gespeichert), jeweils mit Datenbank-Tests:
+  - `group_training_days(group, from, to, time_zone)` – Trainingstage pro Person (`comparison`)
+  - `group_habit_weeks(group, from, to, today, time_zone)` – Quote pro Person und Woche über geteilte Habits (`comparison`)
+  - `season_overview(season, today, time_zone)` – pro Person: Wochenziel x von y, Status je Saisonziel, Habit-Quote, Regeln (`seasons`)
+  - `season_progress_weeks(season, today, time_zone)` – Zielfortschritt und Kraftsteigerung pro Person und Woche, Habit-Quote der Saison-Habits pro Woche (`seasons`)
+- Gruppenbezogene Queries nehmen die `group_id` aus `useActiveGroup()` und haben sie im Query-Key.
+
+**Etappen**
+
+1. **8c-1 Umbau und Trainings:** Reiter Feed · Vergleich, Auswahl „Was“ und „Zeitraum“ (inklusive „Saison“), gemeinsames Diagramm in `shared/ui`, Gewicht und Habits ziehen unverändert um (Gewicht mit Zeitraum „Saison“), neue Ansicht „Trainings“.
+2. **8c-2 Übersicht:** `season_overview` und der Zielfortschritt, Zeile pro Person, Antippen öffnet das Teilnehmer-Blatt bei dieser Person.
+3. **8c-3 Habit-Kurve und Kraft:** Quote pro Woche (Saison-Habits und geteilte Habits), Ansicht „Kraft“.
+
+Jede Etappe ist für sich nutzbar und wird einzeln auf Staging getestet. Umfang: 8c-1 mittel, 8c-2 mittel, 8c-3 klein bis mittel.
+
+**Beim Bauen an echten Daten prüfen**
+
+- Liest sich die Zielfortschritt-Kurve in den ersten zwei Wochen sinnvoll (alle nahe 0 %)?
+- Fünf Auswahlpunkte plus vier Zeiträume auf 375 px: passt die wischbare Leiste, oder braucht es eine andere Auswahl?
+- Linien von 6 und mehr Personen: bleibt das Diagramm lesbar, reicht das Hervorheben per Antippen?
 
 ### 8d – Saisonende, Rückblick, Archiv
 
@@ -156,7 +211,7 @@ Offen:
 
 - Punkte (Konzept: kommen zum Schluss, Regeln offen).
 - Habit-Challenges (Ideenliste).
-- PC-Ansicht der Saisons und Saison-Verwaltung am PC (Baustein 9).
+- PC-Ansicht der Saisons und Saison-Verwaltung am PC (Baustein 9); dort auch die Wochenrückschau im Vergleich für den Jour fixe (Ideenliste).
 - Saisons vorschlagen durch Teilnehmer; vorerst legt nur der Admin an.
 - Eigene Events im Kalender (Termin-Art „Event“).
 
@@ -173,6 +228,6 @@ Offen:
 
 ## Reihenfolge und Umfang
 
-8a → 8b → 8c → 8e, jede Etappe für sich nutzbar; 8d während der ersten Saison. 8a und 8b sind groß, 8c mittel bis groß (wegen des Umbaus der Reiter), 8d mittel. Nach jeder Etappe: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
+8a → 8b → 8c (in drei Etappen 8c-1 bis 8c-3) → 8e, jede Etappe für sich nutzbar; 8d während der ersten Saison. 8a und 8b sind groß, 8c mittel bis groß (wegen des Umbaus der Reiter), 8d mittel. Nach jeder Etappe: Typen neu erzeugen, Lint, Typecheck, Tests, dann Staging.
 
 Danach: Umzug auf Live, Start der ersten Saison.

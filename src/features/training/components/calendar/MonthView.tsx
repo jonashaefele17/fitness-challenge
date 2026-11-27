@@ -26,12 +26,15 @@ export function MonthView({
   today,
   color,
   headerEnd,
+  special,
 }: {
   today: Date;
   /** My person colour (accent when there is none, e.g. without a group). */
   color: string;
   /** Right end of the header row (the "Gruppe" switch). */
   headerEnd: ReactNode;
+  /** "Besonderes" in the day sheet (see DaySheet). */
+  special?: ((day: string) => ReactNode) | undefined;
 }) {
   const [month, setMonth] = useState(() => startOfMonth(today));
   const [day, setDay] = useState<string | null>(null);
@@ -196,6 +199,7 @@ export function MonthView({
         plans={(plansByDay.get(day ?? '') ?? []).map((plan) => ({ row: me, plan }))}
         showNames={false}
         peopleOf={peopleOf}
+        special={special}
         onClose={() => {
           setDay(null);
         }}

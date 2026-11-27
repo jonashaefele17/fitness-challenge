@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
-import { HabitComparison } from '@/features/comparison';
+import { useNavigate, useSearchParams } from 'react-router';
+import { HabitComparison, WeightComparison } from '@/features/comparison';
 import { CommentBubble, CommentThreadSheet } from '@/features/comments';
 import { FeedList, TrainedToday } from '@/features/feed';
 import { useActiveGroup } from '@/features/groups';
@@ -10,7 +10,9 @@ import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen, SegmentedControl } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
 import { CardHabits } from '../feed/CardHabits';
+import { CardWeight } from '../feed/CardWeight';
 import { CardWorkouts } from '../feed/CardWorkouts';
+import { paths } from '../paths';
 import { targetParams, useOpenTarget } from '../targets';
 
 /** Thread target from the address: a day card, or (older notifications) a feed event. */
@@ -36,7 +38,8 @@ export function GroupRoute() {
   if (threadOpen && (focused.id !== thread?.id || focused.type !== thread.type)) {
     setThread(focused);
   }
-  const [view, setView] = useState<'feed' | 'compare'>('feed');
+  const navigate = useNavigate();
+  const [view, setView] = useState<'feed' | 'compare' | 'weight'>('feed');
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   // Linked from a notification: a workout, or an exercise/set of one.
   const linkedItem = params.get(targetParams.item);
@@ -55,10 +58,19 @@ export function GroupRoute() {
           options={[
             { value: 'feed', label: 'Feed' },
             { value: 'compare', label: 'Habits' },
+            { value: 'weight', label: 'Gewicht' },
           ]}
         />
         {view === 'compare' ? (
           <HabitComparison />
+        ) : view === 'weight' ? (
+          <WeightComparison
+            onOpenSharing={() => {
+              void navigate(
+                `${paths.me}?${new URLSearchParams({ [targetParams.weightShare]: '1' }).toString()}`,
+              );
+            }}
+          />
         ) : (
           <>
             <TrainedToday groupId={group.id} />
@@ -69,6 +81,7 @@ export function GroupRoute() {
                 <>
                   <CardWorkouts card={card} onOpen={setWorkoutId} />
                   <CardHabits card={card} />
+                  <CardWeight card={card} />
                 </>
               )}
               renderActions={(card) => {

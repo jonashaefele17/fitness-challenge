@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useUserId } from '@/features/auth';
 import { cn } from '@/shared/lib';
 import { Button, ChevronRightIcon, PlusIcon, Sheet } from '@/shared/ui';
@@ -33,6 +33,7 @@ export function DaySheet({
   plans = [],
   showNames,
   peopleOf,
+  special,
   onClose,
 }: {
   /** Day key ("2026-11-21") or null when closed. */
@@ -42,6 +43,8 @@ export function DaySheet({
   showNames: boolean;
   /** Who takes part in a date (from the social slot). */
   peopleOf?: (plan: PlanOccurrence) => PlanPerson[];
+  /** "Besonderes" at the top of the day (e.g. the day's weight), plugged in by the app. */
+  special?: ((day: string) => ReactNode) | undefined;
   onClose: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -91,6 +94,7 @@ export function DaySheet({
       }
     >
       <div className="flex flex-col gap-2">
+        {day && special?.(day)}
         {shownPlans.length > 0 && (
           <ul className="flex flex-col gap-2">
             {shownPlans.map(({ row, plan }) => (

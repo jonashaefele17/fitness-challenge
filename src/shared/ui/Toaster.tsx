@@ -8,6 +8,8 @@ export function Toaster() {
   return (
     <div
       aria-live="polite"
+      // Sheets and dialogs do not count a tap on a toast ("Rückgängig") as a tap outside.
+      data-toaster
       className="pointer-events-none fixed inset-x-0 top-toast z-50 flex flex-col items-center gap-2 px-gutter"
     >
       <AnimatePresence initial={false}>

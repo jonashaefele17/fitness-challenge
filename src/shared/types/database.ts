@@ -23,6 +23,251 @@ export type Database = {
   };
   public: {
     Tables: {
+      body_checkin_reminder_log: {
+        Row: {
+          due_on: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          due_on: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          due_on?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_checkins: {
+        Row: {
+          created_at: string;
+          id: string;
+          on_date: string;
+          skipped: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          on_date: string;
+          skipped?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          on_date?: string;
+          skipped?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_measurement_kinds: {
+        Row: {
+          hint: string;
+          image_path: string | null;
+          key: string;
+          label: string;
+          sort: number;
+          start_value: number;
+          step: number;
+          unit: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          hint: string;
+          image_path?: string | null;
+          key: string;
+          label: string;
+          sort: number;
+          start_value?: number;
+          step?: number;
+          unit?: string;
+        };
+        Update: {
+          hint?: string;
+          image_path?: string | null;
+          key?: string;
+          label?: string;
+          sort?: number;
+          start_value?: number;
+          step?: number;
+          unit?: string;
+        };
+        Relationships: [];
+      };
+      body_measurements: {
+        Row: {
+          checkin_id: string;
+          kind: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          checkin_id: string;
+          kind: string;
+          value: number;
+        };
+        Update: {
+          checkin_id?: string;
+          kind?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'body_measurements_checkin_id_fkey';
+            columns: ['checkin_id'];
+            isOneToOne: false;
+            referencedRelation: 'body_checkins';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'body_measurements_kind_fkey';
+            columns: ['kind'];
+            isOneToOne: false;
+            referencedRelation: 'body_measurement_kinds';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      body_photo_poses: {
+        Row: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          sort?: number;
+        };
+        Relationships: [];
+      };
+      body_photos: {
+        Row: {
+          bytes: number;
+          checkin_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          height: number;
+          id: string;
+          path: string;
+          pose: string;
+          thumb_path: string;
+          user_id: string;
+          width: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes: number;
+          checkin_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          height: number;
+          id?: string;
+          path: string;
+          pose: string;
+          thumb_path: string;
+          user_id?: string;
+          width: number;
+        };
+        Update: {
+          bytes?: number;
+          checkin_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          height?: number;
+          id?: string;
+          path?: string;
+          pose?: string;
+          thumb_path?: string;
+          user_id?: string;
+          width?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'body_photos_checkin_id_user_id_fkey';
+            columns: ['checkin_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'body_checkins';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'body_photos_pose_fkey';
+            columns: ['pose'];
+            isOneToOne: false;
+            referencedRelation: 'body_photo_poses';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
+      body_reminder_log: {
+        Row: {
+          on_date: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          on_date: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          on_date?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_settings: {
+        Row: {
+          checkin_every_weeks: number | null;
+          checkin_reminder_at: string | null;
+          hidden_measurement_kinds: string[];
+          updated_at: string;
+          user_id: string;
+          weigh_reminder_at: string | null;
+          weigh_reminder_days: number[];
+          weight_share: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          checkin_every_weeks?: number | null;
+          checkin_reminder_at?: string | null;
+          hidden_measurement_kinds?: string[];
+          updated_at?: string;
+          user_id?: string;
+          weigh_reminder_at?: string | null;
+          weigh_reminder_days?: number[];
+          weight_share?: string;
+        };
+        Update: {
+          checkin_every_weeks?: number | null;
+          checkin_reminder_at?: string | null;
+          hidden_measurement_kinds?: string[];
+          updated_at?: string;
+          user_id?: string;
+          weigh_reminder_at?: string | null;
+          weigh_reminder_days?: number[];
+          weight_share?: string;
+        };
+        Relationships: [];
+      };
       comment_mentions: {
         Row: {
           comment_id: string;
@@ -1878,6 +2123,37 @@ export type Database = {
           },
         ];
       };
+      scales: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          is_main: boolean;
+          name: string;
+          offset_kg: number;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_main?: boolean;
+          name: string;
+          offset_kg?: number;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          is_main?: boolean;
+          name?: string;
+          offset_kg?: number;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       target_types: {
         Row: {
           can_view_fn: unknown;
@@ -2053,6 +2329,51 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'exercises';
             referencedColumns: ['id'];
+          },
+        ];
+      };
+      weigh_ins: {
+        Row: {
+          created_at: string;
+          id: string;
+          measured_at: string;
+          measured_on: string;
+          scale_id: string | null;
+          source: string;
+          updated_at: string;
+          user_id: string;
+          weight_kg: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          measured_at?: string;
+          measured_on: string;
+          scale_id?: string | null;
+          source?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_kg: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          measured_at?: string;
+          measured_on?: string;
+          scale_id?: string | null;
+          source?: string;
+          updated_at?: string;
+          user_id?: string;
+          weight_kg?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'weigh_ins_scale_id_user_id_fkey';
+            columns: ['scale_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'scales';
+            referencedColumns: ['id', 'user_id'];
           },
         ];
       };
@@ -2413,6 +2734,19 @@ export type Database = {
         Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      add_body_photo: {
+        Args: {
+          p_bytes: number;
+          p_checkin_id: string;
+          p_height: number;
+          p_id?: string;
+          p_path: string;
+          p_pose: string;
+          p_thumb_path: string;
+          p_width: number;
+        };
+        Returns: string;
+      };
       adopt_habit: {
         Args: { p_def: Json; p_source_id: string; p_valid_from: string };
         Returns: string;
@@ -2422,6 +2756,48 @@ export type Database = {
         Returns: undefined;
       };
       archive_habit: { Args: { p_archive: boolean; p_habit_id: string }; Returns: undefined };
+      body_checkin_status: {
+        Args: { p_today: string; p_user_id: string };
+        Returns: {
+          days_until: number;
+          due: boolean;
+          every_weeks: number;
+          last_done_on: string;
+          last_on: string;
+          next_due_on: string;
+        }[];
+      };
+      body_measurement_history: {
+        Args: { p_kind: string; p_user_id: string };
+        Returns: {
+          checkin_id: string;
+          on_date: string;
+          value: number;
+        }[];
+      };
+      body_measurement_stats: {
+        Args: { p_user_id: string };
+        Returns: {
+          change_since_first: number;
+          change_since_previous: number;
+          first_on: string;
+          first_value: number;
+          kind: string;
+          latest_on: string;
+          latest_value: number;
+          previous_on: string;
+          previous_value: number;
+          value_count: number;
+        }[];
+      };
+      body_photos_to_purge: {
+        Args: { p_grace_seconds?: number };
+        Returns: {
+          id: string;
+          path: string;
+          thumb_path: string;
+        }[];
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -2809,6 +3185,10 @@ export type Database = {
         Returns: undefined;
       };
       restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
+      save_body_checkin: {
+        Args: { p_id?: string; p_on_date: string; p_values: Json };
+        Returns: string;
+      };
       save_habit: {
         Args: { p_def: Json; p_habit_id: string; p_template_id: string; p_valid_from: string };
         Returns: string;
@@ -2824,6 +3204,14 @@ export type Database = {
         };
         Returns: string;
       };
+      scale_offset_suggestion: {
+        Args: { p_scale_id: string };
+        Returns: {
+          common_days: number;
+          scale_id: string;
+          suggested_offset_kg: number;
+        }[];
+      };
       search_exercises: {
         Args: { p_catalog?: string; p_limit?: number; p_query: string };
         Returns: {
@@ -2833,6 +3221,10 @@ export type Database = {
           name: string;
         }[];
       };
+      set_body_checkin_photos: {
+        Args: { p_checkin_id: string; p_photo_ids: string[] };
+        Returns: number;
+      };
       set_habit_entry: {
         Args: { p_habit_id: string; p_on_date: string; p_source?: string; p_value: Json };
         Returns: undefined;
@@ -2841,6 +3233,7 @@ export type Database = {
         Args: { p_item_ids: string[]; p_workout_id: string };
         Returns: undefined;
       };
+      set_main_scale: { Args: { p_scale_id: string }; Returns: undefined };
       set_my_color: { Args: { p_color: string }; Returns: undefined };
       set_plan_participants: {
         Args: { p_group_id: string; p_plan_id: string; p_user_ids: string[] };
@@ -2856,6 +3249,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      skip_body_checkin: { Args: { p_id?: string; p_on_date: string }; Returns: string };
       start_workout: {
         Args: {
           p_location_id?: string;
@@ -2917,6 +3311,41 @@ export type Database = {
       update_workout_time: {
         Args: { p_duration_seconds: number; p_started_at: string; p_workout_id: string };
         Returns: undefined;
+      };
+      weight_days: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          entries: number;
+          on_date: string;
+          trend_kg: number;
+          weight_kg: number;
+        }[];
+      };
+      weight_progress: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          change_pct: number;
+          on_date: string;
+          trend_kg: number;
+          weight_kg: number;
+        }[];
+      };
+      weight_summary: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          change_kg: number;
+          change_pct: number;
+          current_on: string;
+          current_trend_kg: number;
+          days_with_entries: number;
+          latest_adjusted_kg: number;
+          latest_kg: number;
+          latest_on: string;
+          latest_scale_id: string;
+          share: string;
+          start_on: string;
+          start_trend_kg: number;
+        }[];
       };
       workout_records: {
         Args: { p_workout_id: string };

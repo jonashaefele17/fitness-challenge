@@ -75,6 +75,10 @@ function describe(item: PushItem): string {
       return 'Check-in: noch offen';
     case 'supplement_reminder':
       return 'Zeit für deine Supplements';
+    case 'weigh_reminder':
+      return 'Wiegen';
+    case 'body_checkin_reminder':
+      return 'Zwischenstand';
     case 'comment':
       return item.category === 'comments_on_mine'
         ? `hat ${ownObject(item.target)} kommentiert`

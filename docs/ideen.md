@@ -87,6 +87,13 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 - [ ] Schalter am Gerät „Eigenes Modell“ (anderes Modell als in den anderen Studios der Kette) → eigener Verlauf; jederzeit umschaltbar, da Verlauf berechnet wird. Studios ohne Kette verhalten sich wie „eigenes Gerät“.
 - [ ] Einstellungen (Höhe, Rückenlehne …): bei in der Kette vergleichbaren Geräten die eigene Einstellung vom anderen Studio als Vorschlag übernehmen („aus FitX Ostbahnhof“); bei „Eigenes Modell“ leer starten. Gewichtsstufe bleibt pro Gerät überschreibbar.
 
+## Körper
+
+- [ ] Waagen-Abgleich ohne denselben Tag: Der Vorschlag für den Unterschied zweier Waagen zählt auch aufeinanderfolgende Tage (letzter Morgen am einen Ort, erster Morgen am anderen) und erscheint erst ab etwa drei Wechseln („Aus 4 Wechseln: ca. +0,6 kg“). Anlass: Jonas' Waagen stehen 150 km auseinander. Bis dahin: Unterschied von Hand eintragen oder ohne Abgleich nutzen.
+- [ ] Bilder zur Messanleitung der Maße (Figur mit markierter Messstelle, aus dem Render-Werkzeug der Katalogbilder); das Feld `image_path` an den Maß-Arten ist vorbereitet.
+- [ ] Eigene Kamera-Ansicht für die Zwischenstand-Fotos, bei der das letzte Foto derselben Pose halb durchsichtig über dem Kamerabild liegt. Bewusst nicht in 7d gebaut (Jonas, 27.11.2026): auf dem iPhone der wackligste Teil, und das letzte Foto als Vorlage daneben reicht vorerst. Erst wieder aufgreifen, wenn die Fotos nach ein paar Zwischenständen zu unterschiedlich ausfallen.
+- [ ] Punkte in der Gewichtskurve je Waage unterscheidbar, damit Sprünge beim Ortswechsel erklärbar sind.
+
 ## Saisons
 
 ### Saison-Rückblick (mit dem Saisons-Baustein bauen, berechnet als `season_recap`)

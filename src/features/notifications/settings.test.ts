@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeNotification, isCategoryEnabled } from './settings';
+import { describeNotification, isCategoryEnabled, isReminder } from './settings';
 
 const reactions = {
   key: 'reactions',
@@ -56,5 +56,17 @@ describe('describeNotification', () => {
     expect(describeNotification({ ...comment, target: { type: 'workout' } })).toBe(
       'hat dein Training kommentiert',
     );
+  });
+
+  it('words the weigh-in reminder on its own', () => {
+    expect(describeNotification({ event: 'weigh_reminder', category: 'body' })).toBe('Wiegen');
+    expect(isReminder('weigh_reminder')).toBe(true);
+  });
+
+  it('words the Zwischenstand reminder on its own', () => {
+    expect(describeNotification({ event: 'body_checkin_reminder', category: 'body' })).toBe(
+      'Zwischenstand',
+    );
+    expect(isReminder('body_checkin_reminder')).toBe(true);
   });
 });

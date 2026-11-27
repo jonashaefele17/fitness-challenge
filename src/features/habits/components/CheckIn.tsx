@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn, showToast } from '@/shared/lib';
 import { Button, CheckIcon, ChevronLeftIcon, Sheet } from '@/shared/ui';
 import { useHabitDays, useHabitWeeks, useMyHabits, useSetHabitEntry } from '../api/useHabits';
@@ -57,10 +57,17 @@ export function CheckIn({
   const askable = items.filter((i) => i.day.source !== 'training');
   // From a reminder: open at that habit once today's habits are known.
   const linked = openHabitId ? askable.findIndex((i) => i.habit.id === openHabitId) : -1;
-  if (linked >= 0 && start === null) {
+  // Each link opens it once: closing must not reopen it while the link is still there.
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
+  if (openHabitId === null && openedFor !== null) setOpenedFor(null);
+  if (linked >= 0 && openHabitId !== openedFor) {
+    setOpenedFor(openHabitId);
     setStart(linked);
-    onOpened?.();
   }
+  // The parent clears the link by navigating, which is not allowed while rendering.
+  useEffect(() => {
+    if (openedFor !== null && openHabitId === openedFor) onOpened?.();
+  }, [openedFor, openHabitId, onOpened]);
   if (items.length === 0) return null;
   const open = askable.filter(isOpen);
 

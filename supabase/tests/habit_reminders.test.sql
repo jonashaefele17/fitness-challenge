@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(13);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -42,6 +42,35 @@ select is(
   (select enabled from public.notification_category_prefs
     where user_id = '11111111-1111-4111-8111-111111111111' and category = 'supplements'),
   true, 'and a supplement time the supplement reminders');
+
+-- Turned off in the notification settings: changing a time does not switch it back on …
+update public.notification_category_prefs set enabled = false
+ where user_id = '11111111-1111-4111-8111-111111111111';
+update public.habit_reminders set evening_at = '21:30'
+ where user_id = '11111111-1111-4111-8111-111111111111';
+update public.habit_versions set options = options || '[{"key":"omega_3","label":"Omega-3","remindAt":"20:00"}]'::jsonb
+ where name = 'Supplements';
+select is(
+  (select count(*) from public.notification_category_prefs
+    where user_id = '11111111-1111-4111-8111-111111111111' and enabled),
+  0::bigint, 'a changed time leaves a switched-off category off');
+-- … setting one anew does
+update public.habit_reminders set morning_at = null, evening_at = null
+ where user_id = '11111111-1111-4111-8111-111111111111';
+update public.habit_reminders set evening_at = '21:00'
+ where user_id = '11111111-1111-4111-8111-111111111111';
+select is(
+  (select enabled from public.notification_category_prefs
+    where user_id = '11111111-1111-4111-8111-111111111111' and category = 'checkin_reminder'),
+  true, 'a check-in time set anew switches it on again');
+update public.habit_versions set options = '[{"key":"creatine","label":"Kreatin"},{"key":"vitamin_d","label":"Vitamin D"}]'
+ where name = 'Supplements';
+update public.habit_versions set options = '[{"key":"creatine","label":"Kreatin","remindAt":"08:00"},{"key":"vitamin_d","label":"Vitamin D"}]'
+ where name = 'Supplements';
+select is(
+  (select enabled from public.notification_category_prefs
+    where user_id = '11111111-1111-4111-8111-111111111111' and category = 'supplements'),
+  true, 'and so does a supplement time set anew');
 
 -- Tuesday 1 December, 21:10 in Berlin (20:10 UTC): Screen-Time is open
 select private.enqueue_habit_reminders('2026-12-01 20:10:00+00');

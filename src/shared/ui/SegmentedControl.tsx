@@ -62,8 +62,13 @@ export function SegmentedControl<T extends string>({
               onChange(option.value);
             }}
             className={cn(
-              'relative flex-1 rounded-pill text-footnote font-semibold transition-colors duration-(--duration-fast)',
-              size === 'compact' ? 'px-3' : 'px-2',
+              // Equal columns whatever the labels (the lens assumes them); from four options
+              // on a phone-wide control the labels get a size smaller to fit.
+              'relative min-w-0 flex-1 rounded-pill font-semibold transition-colors duration-(--duration-fast)',
+              options.length >= 4 && size === 'full'
+                ? 'text-caption tracking-tight'
+                : 'text-footnote',
+              size === 'compact' ? 'px-3' : options.length < 4 && 'px-2',
               selected ? 'text-text' : 'text-text-muted',
             )}
           >

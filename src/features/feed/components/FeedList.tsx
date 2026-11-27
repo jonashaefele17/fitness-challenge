@@ -25,7 +25,7 @@ function readSort(): FeedSort {
 
 export interface FeedListProps {
   groupId: string;
-  /** What the card shows for its events (workouts …), composed in app. */
+  /** What the card shows for its events (workouts …), composed in app. Nothing: no card. */
   renderBody?: (card: FeedCard) => ReactNode;
   /** Social actions under each card (reactions, comment bubble …), composed in app. */
   renderActions?: (card: FeedCard) => ReactNode;
@@ -197,6 +197,9 @@ function FeedDayCard({
       id={`feed-${card.id}`}
       className={cn(
         'flex flex-col gap-3 transition-colors duration-(--duration-base)',
+        // A card whose body renders nothing (e.g. only a weekly look-back the person no
+        // longer shares) is left out instead of showing an empty shell.
+        'has-[[data-feed-body]:empty]:hidden',
         highlighted && 'border-accent',
       )}
     >
@@ -210,7 +213,9 @@ function FeedDayCard({
           </p>
         </div>
       </div>
-      {body}
+      <div data-feed-body className="contents">
+        {body}
+      </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </Card>
   );

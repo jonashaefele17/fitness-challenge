@@ -22,6 +22,12 @@ export const targetParams = {
   plan: 'termin',
   /** Habit to open in today's check-in (reminders). */
   checkin: 'checkin',
+  /** "1" opens Ich → Körper with the weigh-in (weigh reminder). */
+  weigh: 'wiegen',
+  /** "1" opens Ich → Körper with "Sichtbarkeit" (who sees my weight). */
+  weightShare: 'sichtbarkeit',
+  /** "1" opens Ich → Körper with the Zwischenstand (its reminder). */
+  bodyCheckin: 'zwischenstand',
 } as const;
 
 export interface OpenTargetOptions {
@@ -61,6 +67,10 @@ export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetO
       return `${paths.today}?${new URLSearchParams({ [targetParams.checkin]: target.id }).toString()}`;
     case 'live_workout':
       return paths.liveWorkout;
+    case 'body':
+      return `${paths.me}?${new URLSearchParams({ [targetParams.weigh]: '1' }).toString()}`;
+    case 'body_checkin':
+      return `${paths.me}?${new URLSearchParams({ [targetParams.bodyCheckin]: '1' }).toString()}`;
     case 'plan':
       return `${paths.training}?${new URLSearchParams({ [targetParams.plan]: target.id }).toString()}`;
     default:

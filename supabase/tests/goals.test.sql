@@ -80,6 +80,9 @@ insert into public.weigh_ins (user_id, measured_on, weight_kg) values
   ('11111111-1111-4111-8111-111111111111', '2026-12-05', 84),
   ('11111111-1111-4111-8111-111111111111', '2026-12-10', 83),
   ('11111111-1111-4111-8111-111111111111', '2026-12-16', 82);
+-- "Habit-Quote" is no longer offered (see season_habits.test.sql); its computation stays for
+-- the goals that exist, so it is still tested here.
+update public.goal_metrics set offered = true where key = 'habit_rate';
 
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "11111111-1111-4111-8111-111111111111", "role": "authenticated"}';

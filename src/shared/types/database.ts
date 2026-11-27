@@ -775,6 +775,7 @@ export type Database = {
           key: string;
           kind: string;
           label: string;
+          offered: boolean;
           reference: string | null;
           sort: number;
           unit: string | null;
@@ -785,6 +786,7 @@ export type Database = {
           key: string;
           kind: string;
           label: string;
+          offered?: boolean;
           reference?: string | null;
           sort: number;
           unit?: string | null;
@@ -794,6 +796,7 @@ export type Database = {
           key?: string;
           kind?: string;
           label?: string;
+          offered?: boolean;
           reference?: string | null;
           sort?: number;
           unit?: string | null;
@@ -2346,6 +2349,56 @@ export type Database = {
           },
         ];
       };
+      season_habits: {
+        Row: {
+          created_at: string;
+          edit_open_until: string | null;
+          edit_opened_by: string | null;
+          habit_id: string;
+          season_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          edit_open_until?: string | null;
+          edit_opened_by?: string | null;
+          habit_id: string;
+          season_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          edit_open_until?: string | null;
+          edit_opened_by?: string | null;
+          habit_id?: string;
+          season_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'season_habits_edit_opened_by_fkey';
+            columns: ['edit_opened_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_habits_habit_id_fkey';
+            columns: ['habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_habits_season_id_user_id_fkey';
+            columns: ['season_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'season_members';
+            referencedColumns: ['season_id', 'user_id'];
+          },
+        ];
+      };
       season_members: {
         Row: {
           added_at: string;
@@ -3559,6 +3612,7 @@ export type Database = {
         }[];
       };
       link_season_goal: { Args: { p_goal_id: string; p_season_id: string }; Returns: undefined };
+      link_season_habit: { Args: { p_habit_id: string; p_season_id: string }; Returns: undefined };
       live_keep_private: { Args: { p_item_id: string }; Returns: undefined };
       live_peer_sets: {
         Args: { p_workout_id: string };
@@ -3618,6 +3672,10 @@ export type Database = {
           plan_id: string;
           status: string;
         }[];
+      };
+      open_season_habit_edit: {
+        Args: { p_habit_id: string; p_season_id: string };
+        Returns: string;
       };
       plan_occurrences: {
         Args: { p_from: string; p_to: string; p_user_id: string };
@@ -3759,6 +3817,28 @@ export type Database = {
           season_name: string;
         }[];
       };
+      season_habits_overview: {
+        Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          count_unit: string;
+          counted: number;
+          edit_open_until: string;
+          frequency: string;
+          habit_id: string;
+          input_type: string;
+          locked: boolean;
+          met: number;
+          name: string;
+          options: Json;
+          quota_pct: number;
+          rule: Json;
+          source: string;
+          times_per_week: number;
+          unit: string;
+          user_id: string;
+          weekdays: number[];
+        }[];
+      };
       season_participants: {
         Args: { p_season_id: string };
         Returns: {
@@ -3860,6 +3940,10 @@ export type Database = {
         }[];
       };
       unlink_season_goal: { Args: { p_goal_id: string; p_season_id: string }; Returns: undefined };
+      unlink_season_habit: {
+        Args: { p_habit_id: string; p_season_id: string };
+        Returns: undefined;
+      };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
       update_goal: {
         Args: {

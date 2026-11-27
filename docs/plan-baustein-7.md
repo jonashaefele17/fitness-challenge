@@ -2,7 +2,7 @@
 
 Branch: `feat/body`. Grundlage: Konzept (Version 1.46) – „Module und Navigation“ (Ich → Körper), „Vergleich“ (Gewicht), „Datenmodell“ (Körper). Der Prototyp zeigt dazu nur drei Stellen: den Reiter „Gewicht“ im Vergleich (Kurve in %), einen Feed-Eintrag zum Gewicht und die Einstellung „Sichtbarkeit: Gewicht nur in %“. Alles andere ist hier neu entworfen.
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a bis 7d gebaut, Staging-Test von 7b bis 7d offen. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a bis 7d gebaut und von Jonas auf Staging getestet (27.11.2026); nach main gemergt. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 

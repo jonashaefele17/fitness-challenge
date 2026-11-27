@@ -2,7 +2,7 @@
 
 Branch: `feat/body`. Grundlage: Konzept (Version 1.46) – „Module und Navigation“ (Ich → Körper), „Vergleich“ (Gewicht), „Datenmodell“ (Körper). Der Prototyp zeigt dazu nur drei Stellen: den Reiter „Gewicht“ im Vergleich (Kurve in %), einen Feed-Eintrag zum Gewicht und die Einstellung „Sichtbarkeit: Gewicht nur in %“. Alles andere ist hier neu entworfen.
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a, 7b und 7c gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a bis 7d gebaut, Staging-Test von 7b bis 7d offen. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -87,17 +87,31 @@ Beim Staging-Test prüfen:
 - Sind die Messanleitungen verständlich genug ohne Bild?
 - Erinnerung kommt zur Uhrzeit, Antippen öffnet den Ablauf
 
-## 7d – Zwischenstand: Fotos
+## 7d – Zwischenstand: Fotos (gebaut am 27.11.2026, Staging-Test offen)
 
-- Der Durchgang aus 7c bekommt am Ende den Schritt „Fotos“: bis zu 3 in festen Posen (vorne, Seite, hinten), aufnehmen oder aus der Mediathek wählen; überspringbar. Beim Aufnehmen liegt das letzte Foto derselben Pose halb durchsichtig darüber, damit Abstand und Haltung gleich bleiben – falls die Kamera im Browser das auf dem iPhone zulässt, sonst nur als Vorschau daneben.
-- Verkleinern auf dem Handy vor dem Hochladen: 1600 Pixel an der langen Kante (ca. 350 KB), dazu ein Vorschaubild mit ca. 20 KB. Das Original verlässt das Handy nie. Aufnahmeort und andere Kamera-Angaben werden dabei entfernt.
-- Ansicht: Zwischenstände als Reihe nach Datum mit Vorschaubildern; Antippen zeigt das Foto groß mit Zoom.
-- Vergleich: zwei Zwischenstände nebeneinander oder mit Schieberegler übereinander, je Pose; darunter Gewicht und Maße beider Stände mit der Veränderung.
-- Löschen mit „Rückgängig“; nach Ablauf wird die Datei wirklich aus dem Speicher entfernt.
-- Speicher: privater Bucket, ein Ordner pro Person; nur die Person selbst kann lesen und schreiben, auch der Super-Admin sieht in der App nichts. Tests dafür, inklusive „Person aus derselben Gruppe sieht nichts“.
-- Beim Bauen messen: Erzeugt das iPhone beim Verkleinern WebP oder nur JPEG, und wie groß werden echte Fotos? Bei 3 Fotos alle 4 Wochen sind es pro Person nur rund 14 MB im Jahr; der Speicher ist damit kein Thema mehr.
+- [x] Schritt „Fotos“ am Ende des Ablaufs: bis zu 3 in festen Posen (Vorne, Seite, Hinten), „Aufnehmen“ (iPhone-Kamera) oder „Aus Mediathek“; überspringbar. Das letzte Foto derselben Pose steht mit Datum als Vorlage daneben
+- [x] Verkleinern auf dem Handy vor dem Hochladen: 1600 Pixel an der langen Kante, dazu ein Vorschaubild mit 320 Pixeln; immer JPEG. Das Original verlässt das Handy nie; Aufnahmeort und Kamera-Angaben fallen beim Verkleinern weg
+- [x] Ein Zwischenstand lässt sich auch nur mit Fotos speichern (mindestens ein Maß oder ein Foto). Speichern zeigt den Fortschritt beim Hochladen; „Rückgängig“ nimmt auch die Fotos zurück
+- [x] Ich → Körper → Zwischenstand → Zeile „Fotos“: Zwischenstände nach Datum mit Vorschaubildern; Antippen zeigt das Foto groß mit Zoom (Doppeltipp, zwei Finger), Wischen zwischen den Posen, Löschen mit „Rückgängig“
+- [x] Vergleichen: zwei Zwischenstände wählen, je Pose nebeneinander oder mit Schieberegler; darunter Gewicht (Durchschnitt über 7 Tage) und Maße beider Stände mit der Veränderung
+- [x] Löschen: erst nur markiert, damit „Rückgängig“ geht; nach 2 Minuten entfernt die App die Dateien wirklich aus dem Speicher, und zusätzlich beim nächsten Öffnen von „Körper“. Ein gelöschter Zwischenstand nimmt seine Fotos mit
+- [x] Speicher: privater Bucket, ein Ordner pro Person; nur die Person selbst kann lesen und schreiben, auch Gruppen-Admins und der Super-Admin sehen nichts. Datenbank-Tests (67), inklusive „Person aus derselben Gruppe sieht nichts“
 
-Beim Staging-Test prüfen: Hochladen im Mobilfunk schnell genug? Qualität am Handy und am PC in Ordnung? Fotos im Hochformat richtig herum? Ist der ganze Zwischenstand in wenigen Minuten machbar?
+Abweichungen vom Plan:
+- Keine eigene Kamera-Ansicht mit dem letzten Foto halb durchsichtig darüber (Jonas, 27.11.2026); steht auf der Ideenliste.
+- Immer JPEG statt WebP: Safari liefert beim Verkleinern statt WebP stillschweigend PNG.
+
+Bekannte Grenzen:
+- Wird die App genau zwischen Hochladen und Eintragen beendet, bleibt eine Datei ohne Eintrag im Speicher liegen (unsichtbar, nur für die Person selbst erreichbar).
+- Ein Konto löschen gibt es noch nicht; dabei müssten die Dateien eigens entfernt werden.
+
+Beim Staging-Test prüfen (alles nur am echten iPhone zu sehen):
+- „Aufnehmen“ und „Aus Mediathek“: öffnen sich Kamera und Mediathek, erscheint die Vorschau auch bei HEIC-Fotos?
+- Fotos im Hochformat richtig herum? Qualität am Handy und am PC in Ordnung? Wie groß werden echte Fotos?
+- Drei Fotos nacheinander: bleibt die App flüssig, Hochladen im Mobilfunk schnell genug?
+- Großansicht: Zoomen und Verschieben, ohne dass die ganze Seite zoomt; Schließen-Knopf nicht unter der Notch
+- Schieberegler im Vergleich lässt sich ziehen, ohne dass das Blatt mitgeht
+- Ist der ganze Zwischenstand in wenigen Minuten machbar?
 
 ## Nicht in diesem Baustein
 

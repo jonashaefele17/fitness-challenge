@@ -46,7 +46,10 @@ export function ownObject(target?: { type: string; index?: number | null }): str
 /** Reminders come from no one: their sentence stands alone. */
 export function isReminder(event: string): boolean {
   return (
-    event === 'checkin_reminder' || event === 'supplement_reminder' || event === 'weigh_reminder'
+    event === 'checkin_reminder' ||
+    event === 'supplement_reminder' ||
+    event === 'weigh_reminder' ||
+    event === 'body_checkin_reminder'
   );
 }
 
@@ -95,6 +98,8 @@ export function describeNotification(
       return 'Zeit für deine Supplements';
     case 'weigh_reminder':
       return 'Wiegen';
+    case 'body_checkin_reminder':
+      return 'Zwischenstand';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

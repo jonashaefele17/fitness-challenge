@@ -2,7 +2,7 @@
 
 Branch: `feat/body`. Grundlage: Konzept (Version 1.46) – „Module und Navigation“ (Ich → Körper), „Vergleich“ (Gewicht), „Datenmodell“ (Körper). Der Prototyp zeigt dazu nur drei Stellen: den Reiter „Gewicht“ im Vergleich (Kurve in %), einen Feed-Eintrag zum Gewicht und die Einstellung „Sichtbarkeit: Gewicht nur in %“. Alles andere ist hier neu entworfen.
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a und 7b gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -11,7 +11,7 @@ Ein neuer Reiter **Körper** unter „Ich“ mit zwei Rhythmen:
 - **Gewicht** – so oft man will, auch täglich. Die Kurve zeigt den Durchschnitt über 7 Tage.
 - **Zwischenstand** – alle 4 Wochen: Maße und Fotos in einem Durchgang, damit sich Stände über Monate vergleichen lassen.
 
-Alles ist zuerst privat. Nur das Gewicht kann man mit der Gruppe teilen, wahlweise in kg oder nur als Veränderung in %. Maße und Fotos bleiben in Version 1 privat.
+Alles ist zuerst privat. Nur das Gewicht kann man mit der Gruppe teilen: nur als Veränderung in %, als Durchschnitt in kg oder mit den Tageswerten. Maße und Fotos bleiben in Version 1 privat.
 
 Das Modul ist persönlich (`src/features/body/`): Es funktioniert ohne Gruppe, die Daten gehören der Person, und die Gruppe hängt sich erst in Etappe 7b an.
 
@@ -51,14 +51,22 @@ Beim Staging-Test prüfen:
 - Erinnerung kommt zur eingestellten Zeit, Antippen landet beim Eintragen
 - Zwei Waagen anlegen, Unterschied eintragen, Hauptwaage wechseln
 
-## 7b – Gewicht in der Gruppe
+## 7b – Gewicht in der Gruppe (gebaut am 28.11.2026, Staging-Test offen)
 
-Dieser Teil liegt in den sozialen Modulen und in `src/app/`; das Körper-Modul selbst kennt keine Gruppe.
+- [x] Sichtbarkeit unter Ich → Körper → „Sichtbarkeit“, vier Stufen, eine Einstellung für alle Gruppen: Nur ich (Standard) / Nur % / Mit kg (Durchschnitt über 7 Tage) / Mit Tageswerten (zusätzlich der ungeglättete Wert jedes Tages)
+- [x] Die Datenbank liefert anderen nur, was die Stufe erlaubt; bei „Nur %“ keinen kg-Wert. Mehrere Einträge eines Tages, ihre Uhrzeit, die Waagen und die Anzahl der Einträge sieht nie jemand außer der Person selbst
+- [x] Feed: montags ab 7 Uhr eine Zeile auf der Tageskarte („Gewicht · −0,4 % letzte Woche · −1,8 % in 4 Wochen“, mit kg zusätzlich „−0,3 kg“), nur wenn geteilt und in der Woche gewogen; Zahlen live gerechnet. Einzelne Einträge erzeugen nichts, keine Mitteilung
+- [x] Gruppe → Gewicht (dritter Reiter neben Feed und Habits): eine geglättete Linie pro Person in ihrer Farbe, Veränderung in % seit dem ersten Eintrag im Zeitraum (4 Wochen / 3 Monate / 1 Jahr); Tageswerte als blasse Punkte bei allen, die sie teilen; darunter pro Person die Veränderung und, wenn geteilt, der aktuelle Durchschnitt in kg. Man sieht sich selbst so, wie die anderen einen sehen
+- [x] Wer nicht teilt, fehlt; eigener Hinweis „Du teilst dein Gewicht nicht“ mit Sprung zur Einstellung
+- [x] Tageskarten, deren Inhalt leer ist (z. B. nachdem jemand auf „Nur ich“ gestellt hat), werden nicht mehr als leere Hülle angezeigt – gilt auch für den Habit-Wochenrückblick
+- [x] Datenbank-Tests (77): jede Stufe, andere Gruppen sehen nichts, zurück auf „Nur ich“ verbirgt alles
 
-- Sichtbarkeit (Ich → Einstellungen → Sichtbarkeit): nichts (Standard) / nur % / kg. Bei „nur %“ liefert die Datenbank anderen keine kg-Werte, sie werden nicht bloß in der Oberfläche versteckt. Andere sehen immer nur den Durchschnitt über 7 Tage, nie einzelne Messungen.
-- Feed: einmal pro Woche auf der Tageskarte („Gewicht · −0,4 % diese Woche · −1,8 % in 4 Wochen“), nur wenn geteilt und nur wenn es in der Woche Einträge gab; ausgelöst in der Datenbank, nicht in der App. Einzelne Einträge erzeugen keinen Feed-Eintrag und keine Mitteilung.
-- Vergleich (Gruppe → Vergleich → Gewicht): Veränderung in % als Linie pro Person in ihrer Personenfarbe, gemeinsamer Zeitraum; wer nicht teilt, fehlt.
-- Tests: „nichts“ sieht niemand, „nur %“ ohne kg, andere Gruppen sehen nichts.
+Bekannte Grenze: Aus der geglätteten kg-Kurve lassen sich die Tageswerte ungefähr zurückrechnen, und man sieht, an welchen Tagen sich jemand gewogen hat. Bewusst so gelassen (Jonas, 28.11.2026); wer das nicht will, teilt nur % oder nichts.
+
+Beim Staging-Test prüfen:
+- Zu zweit: Stufe wechseln und beim anderen nachsehen, was ankommt (Reiter „Gewicht“, Montagskarte)
+- Montagskarte erscheint am Montag nach 7 Uhr
+- Linien und Punkte bei 3 Monaten und 1 Jahr lesbar?
 
 ## 7c – Zwischenstand: Maße
 

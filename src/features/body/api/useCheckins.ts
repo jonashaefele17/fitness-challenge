@@ -29,7 +29,7 @@ export function useMeasurementKinds() {
     queryFn: async (): Promise<MeasurementKind[]> => {
       const { data, error } = await supabase
         .from('body_measurement_kinds')
-        .select('key, label, hint, unit, step, sort, image_path')
+        .select('key, label, hint, unit, step, sort, image_path, start_value')
         .order('sort');
       if (error) throw error;
       return data.map((row) => ({
@@ -40,6 +40,7 @@ export function useMeasurementKinds() {
         step: row.step,
         sort: row.sort,
         imagePath: row.image_path,
+        startValue: row.start_value,
       }));
     },
   });

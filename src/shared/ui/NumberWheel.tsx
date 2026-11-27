@@ -26,6 +26,11 @@ export interface NumberWheelProps {
   onChange: (value: number) => void;
   /** Ignore touches (e.g. while the row's delete button is open), so the row can be swiped. */
   disabled?: boolean;
+  /**
+   * Where an empty wheel starts rolling from (it still shows "–" until moved). Without it
+   * an empty wheel starts at 0, which is useless for values like a body weight.
+   */
+  emptyStart?: number;
 }
 
 /**
@@ -42,6 +47,7 @@ export function NumberWheel({
   parse,
   onChange,
   disabled = false,
+  emptyStart = 0,
 }: NumberWheelProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -50,7 +56,7 @@ export function NumberWheel({
   // While a gesture (and its roll-out) runs, the column stays anchored to the value it
   // started from, even if the new value already arrived from outside. Afterwards it re-bases.
   const [anchor, setAnchor] = useState<number | null>(null);
-  const base = anchor ?? value ?? 0;
+  const base = anchor ?? value ?? emptyStart;
   const y = useMotionValue(0);
   // Steps we may go down before reaching 0.
   const minIndex = -Math.floor(base / step + 1e-9);
@@ -77,7 +83,7 @@ export function NumberWheel({
   function startGesture() {
     setSpinning(true);
     // Grabbing a still-rolling wheel continues from where it is.
-    setAnchor((current) => current ?? value ?? 0);
+    setAnchor((current) => current ?? value ?? emptyStart);
   }
 
   function settle(velocity: number) {

@@ -352,6 +352,7 @@ function MeasureStep({
           value={shown.value}
           suggested={shown.suggested}
           step={kind.step}
+          emptyStart={kind.startValue}
           label={`${kind.label} in ${kind.unit}`}
           format={formatCm}
           parse={(text) => parseCm(text) ?? Number.NaN}

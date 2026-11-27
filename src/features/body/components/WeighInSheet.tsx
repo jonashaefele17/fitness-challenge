@@ -20,6 +20,9 @@ const dayTitle = new Intl.DateTimeFormat('de', {
   month: 'long',
 });
 
+/** Where the wheel starts for the very first weigh-in (nothing is saved until it is moved). */
+const FIRST_WEIGHT_START_KG = 75;
+
 /** Time offered for a back-filled entry when there is no earlier one to go by. */
 const DEFAULT_TIME = '07:00';
 
@@ -186,6 +189,7 @@ function WeighInForm({
           value={value}
           suggested={false}
           step={0.1}
+          emptyStart={FIRST_WEIGHT_START_KG}
           label="Gewicht in kg"
           format={formatKg}
           parse={(text) => parseKg(text) ?? Number.NaN}
@@ -195,7 +199,7 @@ function WeighInForm({
           }}
         />
         {value === null && (
-          <span className="text-footnote text-text-subtle">Antippen und Gewicht eingeben</span>
+          <span className="text-footnote text-text-subtle">Drehen oder antippen und eingeben</span>
         )}
       </div>
 

@@ -146,6 +146,8 @@ export interface MeasurementKind {
   sort: number;
   /** Storage path of the picture; null until pictures exist. */
   imagePath: string | null;
+  /** Where the wheel starts when I have never taken this measurement. */
+  startValue: number;
 }
 
 /** Measured values of a check-in by kind key, e.g. { bauch: 84.5, taille: 80 }. */

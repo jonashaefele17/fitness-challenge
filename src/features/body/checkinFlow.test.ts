@@ -23,6 +23,7 @@ const kind = (key: string, sort: number): MeasurementKind => ({
   step: 0.5,
   sort,
   imagePath: null,
+  startValue: 80,
 });
 const kinds = [kind('bauch', 1), kind('taille', 2), kind('brust', 3)];
 

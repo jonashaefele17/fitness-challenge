@@ -77,6 +77,7 @@ export type Database = {
           key: string;
           label: string;
           sort: number;
+          start_value: number;
           step: number;
           unit: string;
         };
@@ -87,6 +88,7 @@ export type Database = {
           key: string;
           label: string;
           sort: number;
+          start_value?: number;
           step?: number;
           unit?: string;
         };
@@ -96,6 +98,7 @@ export type Database = {
           key?: string;
           label?: string;
           sort?: number;
+          start_value?: number;
           step?: number;
           unit?: string;
         };

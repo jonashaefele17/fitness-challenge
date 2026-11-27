@@ -100,6 +100,7 @@ describe('check-ins', () => {
       step: 0.5,
       sort,
       imagePath: null,
+      startValue: 80,
     }));
     expect(visibleKinds(kinds, ['taille']).map((k) => k.key)).toEqual(['bauch', 'brust']);
   });

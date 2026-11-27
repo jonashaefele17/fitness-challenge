@@ -103,7 +103,7 @@ export function BodyOverview({
           }}
         />
         <SettingsRow
-          label="Erinnerung"
+          label="Wiege-Erinnerung"
           value={reminderSummary(settings)}
           onOpen={() => {
             setReminderOpen(true);
@@ -118,7 +118,8 @@ export function BodyOverview({
         />
         <SettingsRow
           label="Zwischenstand"
-          value={settings ? checkinRhythmSummary(settings) : ''}
+          // The rhythm only: with the time the value does not fit next to the label.
+          value={settings ? checkinRhythmSummary({ ...settings, checkinReminderAt: null }) : ''}
           onOpen={() => {
             setRhythmOpen(true);
           }}

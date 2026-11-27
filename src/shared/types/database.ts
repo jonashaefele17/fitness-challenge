@@ -48,6 +48,7 @@ export type Database = {
           user_id: string;
           weigh_reminder_at: string | null;
           weigh_reminder_days: number[];
+          weight_share: string;
         };
         ComputedFields: never;
         Insert: {
@@ -55,12 +56,14 @@ export type Database = {
           user_id?: string;
           weigh_reminder_at?: string | null;
           weigh_reminder_days?: number[];
+          weight_share?: string;
         };
         Update: {
           updated_at?: string;
           user_id?: string;
           weigh_reminder_at?: string | null;
           weigh_reminder_days?: number[];
+          weight_share?: string;
         };
         Relationships: [];
       };
@@ -3053,6 +3056,14 @@ export type Database = {
           weight_kg: number;
         }[];
       };
+      weight_progress: {
+        Args: { p_from: string; p_to: string; p_user_id: string };
+        Returns: {
+          change_pct: number;
+          on_date: string;
+          trend_kg: number;
+        }[];
+      };
       weight_summary: {
         Args: { p_from: string; p_to: string; p_user_id: string };
         Returns: {
@@ -3065,6 +3076,7 @@ export type Database = {
           latest_kg: number;
           latest_on: string;
           latest_scale_id: string;
+          share: string;
           start_on: string;
           start_trend_kg: number;
         }[];

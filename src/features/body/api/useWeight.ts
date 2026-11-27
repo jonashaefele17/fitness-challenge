@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
+import { weightWeek, weightWeekRange } from '../progress';
 import type {
   BodySettings,
   Scale,
   ScaleOffsetSuggestion,
   WeighIn,
   WeightDay,
+  WeightProgressDay,
+  WeightShare,
+  WeightShareView,
   WeightSummary,
 } from '../types';
 
@@ -19,8 +23,11 @@ export const bodyKeys = {
     [...bodyKeys.weighInsAll(userId), from, to] as const,
   days: (userId: string, from: string | null, to: string) =>
     [...bodyKeys.all(userId), 'days', from, to] as const,
-  summary: (userId: string, from: string | null, to: string) =>
-    [...bodyKeys.all(userId), 'summary', from, to] as const,
+  /** personId: whose figures (default: mine). */
+  summary: (userId: string, from: string | null, to: string, personId: string = userId) =>
+    [...bodyKeys.all(userId), 'summary', from, to, personId] as const,
+  progress: (userId: string, personId: string, from: string | null, to: string) =>
+    [...bodyKeys.all(userId), 'progress', personId, from, to] as const,
   suggestion: (userId: string, scaleId: string) =>
     [...bodyKeys.all(userId), 'suggestion', scaleId] as const,
   settings: (userId: string) => [...bodyKeys.all(userId), 'settings'] as const,
@@ -407,14 +414,18 @@ export function useWeightDays(from: string | null, to: string) {
   });
 }
 
-/** Current value, change in kg and %, latest entry of a range (from null: all). */
-export function useWeightSummary(from: string | null, to: string) {
+/**
+ * Current value, change in kg and %, latest entry of a range (from null: all). With a
+ * personId: someone else's, masked by the database to what they share (`share`).
+ */
+export function useWeightSummary(from: string | null, to: string, personId?: string) {
   const userId = useUserId();
+  const person = personId ?? userId;
   return useQuery({
-    queryKey: bodyKeys.summary(userId, from, to),
+    queryKey: bodyKeys.summary(userId, from, to, person),
     queryFn: async (): Promise<WeightSummary> => {
       const { data, error } = await supabase.rpc('weight_summary', {
-        p_user_id: userId,
+        p_user_id: person,
         p_from: from as string,
         p_to: to,
       });
@@ -432,8 +443,55 @@ export function useWeightSummary(from: string | null, to: string) {
         latestScaleId: row?.latest_scale_id ?? null,
         latestOn: row?.latest_on ?? null,
         daysWithEntries: row?.days_with_entries ?? 0,
+        share: toShareView(row?.share),
       };
     },
+  });
+}
+
+function toShareView(value: string | null | undefined): WeightShareView | null {
+  return value === 'own' || value === 'kg' || value === 'percent' ? value : null;
+}
+
+function progressOptions(userId: string, person: string, from: string | null, to: string) {
+  return {
+    queryKey: bodyKeys.progress(userId, person, from, to),
+    queryFn: async (): Promise<WeightProgressDay[]> => {
+      const { data, error } = await supabase.rpc('weight_progress', {
+        p_user_id: person,
+        p_from: from as string,
+        p_to: to,
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        onDate: row.on_date,
+        changePct: row.change_pct,
+        trendKg: num(row.trend_kg),
+      }));
+    },
+  };
+}
+
+/**
+ * The curve of a range (from null: from the first entry): per day with entries the change
+ * of the 7-day trend in % against the first day, and the trend in kg when it is mine or
+ * shared in kg. Others who do not share: an empty list. Oldest first.
+ */
+export function useWeightProgress(from: string | null, to: string, personId?: string) {
+  const userId = useUserId();
+  return useQuery(progressOptions(userId, personId ?? userId, from, to));
+}
+
+/**
+ * Someone's week for the feed card: change this week and over the 4 weeks ending with it
+ * (weekStart: Monday). null: nothing in that week, or not (any longer) shared.
+ */
+export function useWeightWeek(weekStart: string, personId?: string) {
+  const userId = useUserId();
+  const range = weightWeekRange(weekStart);
+  return useQuery({
+    ...progressOptions(userId, personId ?? userId, range.from, range.to),
+    select: (days: WeightProgressDay[]) => weightWeek(days, weekStart),
   });
 }
 
@@ -441,7 +499,17 @@ export function useWeightSummary(from: string | null, to: string) {
 // Settings
 // ---------------------------------------------------------------------------
 
-/** My weigh-in reminder (no row yet: none). */
+const DEFAULT_SETTINGS: BodySettings = {
+  weighReminderDays: [],
+  weighReminderAt: null,
+  weightShare: 'private',
+};
+
+function toWeightShare(value: string | null | undefined): WeightShare {
+  return value === 'percent' || value === 'kg' ? value : 'private';
+}
+
+/** My weigh-in reminder and who sees my weight (no row yet: no reminder, private). */
 export function useBodySettings() {
   const userId = useUserId();
   return useQuery({
@@ -449,28 +517,37 @@ export function useBodySettings() {
     queryFn: async (): Promise<BodySettings> => {
       const { data, error } = await supabase
         .from('body_settings')
-        .select('weigh_reminder_days, weigh_reminder_at')
+        .select('weigh_reminder_days, weigh_reminder_at, weight_share')
         .eq('user_id', userId)
         .maybeSingle();
       if (error) throw error;
       return {
         weighReminderDays: data?.weigh_reminder_days ?? [],
         weighReminderAt: data?.weigh_reminder_at ? data.weigh_reminder_at.slice(0, 5) : null,
+        weightShare: toWeightShare(data?.weight_share),
       };
     },
   });
 }
 
-/** Save the reminder; shows at once. Choosing days and a time switches its push category on. */
+/**
+ * Save settings; only the fields given change, shows at once. Choosing days and a time
+ * switches the reminder's push category on. Undo: save the old values again.
+ */
 export function useSaveBodySettings() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
-    mutationFn: async (settings: BodySettings) => {
+    mutationFn: async (settings: Partial<BodySettings>) => {
       const { error } = await supabase.from('body_settings').upsert({
         user_id: userId,
-        weigh_reminder_days: [...new Set(settings.weighReminderDays)].sort((a, b) => a - b),
-        weigh_reminder_at: settings.weighReminderAt,
+        ...(settings.weighReminderDays !== undefined && {
+          weigh_reminder_days: [...new Set(settings.weighReminderDays)].sort((a, b) => a - b),
+        }),
+        ...(settings.weighReminderAt !== undefined && {
+          weigh_reminder_at: settings.weighReminderAt,
+        }),
+        ...(settings.weightShare !== undefined && { weight_share: settings.weightShare }),
       });
       if (error) throw error;
     },
@@ -478,7 +555,10 @@ export function useSaveBodySettings() {
       const key = bodyKeys.settings(userId);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<BodySettings>(key);
-      queryClient.setQueryData<BodySettings>(key, settings);
+      queryClient.setQueryData<BodySettings>(key, {
+        ...(previous ?? DEFAULT_SETTINGS),
+        ...settings,
+      });
       return previous;
     },
     onError: (_error, _settings, previous) => {

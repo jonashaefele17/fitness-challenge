@@ -50,7 +50,50 @@ export interface WeightSummary {
   latestAdjustedKg: number | null;
   latestScaleId: string | null;
   latestOn: string | null;
+  /** Days with entries in the range; 0 for other people (never shown to them). */
   daysWithEntries: number;
+  /**
+   * What I see of this person: "own" (it is me), "kg", "percent", or null (nothing: not
+   * shared, no common group or nobody – looks the same as no data). For others the
+   * database leaves out what is not shared: with "percent" every kg value and the latest
+   * entry are null, with "kg" still the latest entry.
+   */
+  share: WeightShareView | null;
+}
+
+/** Ich → Einstellungen → Sichtbarkeit: nothing (default) / only % / kg. For all my groups. */
+export type WeightShare = 'private' | 'percent' | 'kg';
+
+/** What the viewer gets of a person's weight (weight_summary.share). */
+export type WeightShareView = 'own' | 'kg' | 'percent';
+
+/** A day of someone's curve (weight_progress): the 7-day trend, never single entries. */
+export interface WeightProgressDay {
+  onDate: string;
+  /** Trend against the first day with entries in the range, in %; first day 0. */
+  changePct: number;
+  /** Trend in kg; null unless it is me or the person shares in kg. */
+  trendKg: number | null;
+}
+
+/**
+ * Someone's week (feed card "Gewicht"): how the trend moved this week and over the 4 weeks
+ * ending with it. kg values only when shared in kg (or me).
+ */
+export interface WeightWeek {
+  /** Monday, "2026-12-07". */
+  weekStart: string;
+  /** Sunday. */
+  weekEnd: string;
+  /**
+   * Trend of the latest day of the week against the latest day of the week before (none:
+   * the first day of this week), in %; null without a day to compare with.
+   */
+  weekPct: number | null;
+  weekKg: number | null;
+  /** The same over the 4 weeks ending with this week (base: the week before them). */
+  fourWeeksPct: number | null;
+  fourWeeksKg: number | null;
 }
 
 /** Suggested offset of a non-main scale from the days weighed on both. */
@@ -66,6 +109,8 @@ export interface BodySettings {
   weighReminderDays: number[];
   /** "07:00" or null. */
   weighReminderAt: string | null;
+  /** Who sees my weight (the people I share a group with); default private. */
+  weightShare: WeightShare;
 }
 
 /** Ich → Körper: 4 Wochen / 3 Monate / 1 Jahr / Alles. */

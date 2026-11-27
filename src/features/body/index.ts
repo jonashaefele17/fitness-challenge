@@ -16,7 +16,9 @@ export {
   useUpdateWeighIn,
   useWeighIns,
   useWeightDays,
+  useWeightProgress,
   useWeightSummary,
+  useWeightWeek,
   type NewWeighIn,
 } from './api/useWeight';
 export {

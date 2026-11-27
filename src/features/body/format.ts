@@ -111,13 +111,16 @@ export function measuredAtOn(day: string, time: string): string {
 export const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] as const;
 
 /** The reminder in one line: "Mo, Do · 07:00" or "Aus". */
-export function reminderSummary(settings: BodySettings | undefined): string {
+export function reminderSummary(
+  settings: Pick<BodySettings, 'weighReminderDays' | 'weighReminderAt'> | undefined,
+): string {
   if (!settings || settings.weighReminderDays.length === 0) return 'Aus';
   const days = settings.weighReminderDays.map((d) => WEEKDAYS[d - 1] ?? '').join(', ');
   return settings.weighReminderAt ? `${days} · ${settings.weighReminderAt}` : days;
 }
 
-function addDays(day: string, days: number): string {
+/** "2026-12-01" plus a number of days (negative: back). */
+export function addDays(day: string, days: number): string {
   const date = new Date(`${day}T12:00:00`);
   date.setDate(date.getDate() + days);
   return dayKey(date);

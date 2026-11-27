@@ -16,7 +16,7 @@ export function ReminderSheet({
 }) {
   const settings = useBodySettings().data;
   const save = useSaveBodySettings();
-  const change = (next: BodySettings) => {
+  const change = (next: Partial<BodySettings>) => {
     save.mutate(next, {
       onError: () => {
         showToast('Erinnerung konnte nicht gespeichert werden.');

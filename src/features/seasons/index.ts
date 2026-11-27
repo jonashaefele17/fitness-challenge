@@ -22,14 +22,17 @@ export {
   applySeasonUpdate,
   canEditMySeasonGoals,
   canMarkReady,
+  catchingUp,
   correctionUndoOf,
   currentSeason,
   draftSeason,
   missingMetrics,
+  readyLocks,
   seasonGoalsByPerson,
   seasonPhase,
   seasonUpdateOf,
   seasonWeeks,
+  setupPending,
 } from './season';
 export {
   missingMetricsText,
@@ -53,3 +56,5 @@ export {
   type SetupStep,
 } from './setup';
 export { SeasonBlock } from './components/SeasonBlock';
+export { SeasonSetupFlow } from './components/SeasonSetupFlow';
+export { useSetupAutoOpen } from './components/useSetupAutoOpen';

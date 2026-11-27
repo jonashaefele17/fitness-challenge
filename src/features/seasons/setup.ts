@@ -119,11 +119,21 @@ export function seasonGoalFrame(season: Season): GoalFrame {
     name: `Saison „${season.name}“`,
     periodFixed: true,
     lockedNote: locked
-      ? season.me?.lateEntry
+      ? season.me?.lateEntry || readyAfterStart(season)
         ? 'Seit du bereit bist fest. Änderungen nur durch den Admin.'
         : 'Seit dem Saisonstart fest. Änderungen nur durch den Admin.'
       : null,
   };
+}
+
+/** Whether I tapped "Bereit" after the start day (catching up). */
+function readyAfterStart(season: Season): boolean {
+  const readyAt = season.me?.readyAt;
+  if (!readyAt) return false;
+  const d = new Date(readyAt);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const day = `${String(d.getFullYear())}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return day > season.startsOn;
 }
 
 /** My linked goal ids of a season. */
@@ -147,9 +157,13 @@ export function linkableGoals(goals: readonly Goal[], linkedIds: ReadonlySet<str
   );
 }
 
-/** How long the setup is still open: "Noch 5 Tage bis zum Start". */
-export function setupDaysLeftText(season: Pick<Season, 'daysUntilStart'>): string {
+/**
+ * How long the setup is still open: "Noch 5 Tage bis zum Start"; once the season runs
+ * (catching up): "Die Saison läuft schon".
+ */
+export function setupDaysLeftText(season: Pick<Season, 'daysUntilStart' | 'phase'>): string {
   const n = season.daysUntilStart;
+  if (season.phase === 'running') return 'Die Saison läuft schon';
   if (n <= 0) return 'Start heute';
   if (n === 1) return 'Noch 1 Tag bis zum Start';
   return `Noch ${String(n)} Tage bis zum Start`;
@@ -177,4 +191,25 @@ export function writeSetupStep(seasonId: string, step: SetupStep) {
 /** Whether I have been through the setup before (the block then says "fortsetzen"). */
 export function setupStarted(seasonId: string): boolean {
   return readSetupStep(seasonId) !== null;
+}
+
+const PROMPTED_KEY = (userId: string, seasonId: string) =>
+  `season.setup.prompted.${userId}.${seasonId}`;
+
+/** Whether the setup already opened by itself (or was opened) on this device. */
+export function readSetupPrompted(userId: string, seasonId: string): boolean {
+  try {
+    return localStorage.getItem(PROMPTED_KEY(userId, seasonId)) !== null;
+  } catch {
+    // Without storage: never open by itself (better than every time).
+    return true;
+  }
+}
+
+export function writeSetupPrompted(userId: string, seasonId: string) {
+  try {
+    localStorage.setItem(PROMPTED_KEY(userId, seasonId), '1');
+  } catch {
+    // A convenience only.
+  }
 }

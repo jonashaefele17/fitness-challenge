@@ -286,5 +286,8 @@ function participantState(
   if (p.readyAt !== null) return p.locked && seasonStarted(season) ? 'Festgeschrieben' : 'Bereit';
   if (p.lateEntry) return `Später Einstieg ab ${formatGoalDay(p.startsOn, today)} · richtet ein`;
   if (p.locked) return 'Festgeschrieben, ohne „Bereit“';
-  return missingMetricsText(p.missingMetrics, metricLabel) ?? 'Noch nicht bereit';
+  const missing = missingMetricsText(p.missingMetrics, metricLabel);
+  // Not ready at the start: sets up afterwards, fixed from "Bereit".
+  if (seasonStarted(season)) return missing ? `Richtet noch ein · ${missing}` : 'Richtet noch ein';
+  return missing ?? 'Noch nicht bereit';
 }

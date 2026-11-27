@@ -5,15 +5,18 @@ import {
   applySeasonUpdate,
   canEditMySeasonGoals,
   canMarkReady,
+  catchingUp,
   correctionUndoOf,
   currentSeason,
   daysBetween,
   draftSeason,
   missingMetrics,
+  readyLocks,
   seasonGoalsByPerson,
   seasonPhase,
   seasonUpdateOf,
   seasonWeeks,
+  setupPending,
 } from './season';
 import type { Season } from './types';
 
@@ -148,11 +151,30 @@ describe('currentSeason', () => {
 });
 
 describe('setup state', () => {
-  it('lets me edit during the setup until locked, late entrants after the start', () => {
+  it('lets me edit during the setup and after the start until locked, late entrants too', () => {
     expect(canEditMySeasonGoals(season())).toBe(true);
     expect(canEditMySeasonGoals(season({ phase: 'announced' }))).toBe(false);
-    expect(canEditMySeasonGoals(season({ phase: 'running' }))).toBe(false);
     expect(canEditMySeasonGoals(season({ me: null }))).toBe(false);
+    expect(canEditMySeasonGoals(season({ phase: 'ended' }))).toBe(false);
+    // Not ready at the start: catching up until "Bereit".
+    const catchUp = season({ phase: 'running', daysUntilStart: -2 });
+    expect(canEditMySeasonGoals(catchUp)).toBe(true);
+    expect(catchingUp(catchUp)).toBe(true);
+    expect(setupPending(catchUp)).toBe(true);
+    const locked = season({
+      phase: 'running',
+      me: {
+        startsOn: '2026-12-07',
+        lateEntry: false,
+        readyAt: '2026-12-06T10:00:00Z',
+        locked: true,
+        missingMetrics: [],
+      },
+    });
+    expect(canEditMySeasonGoals(locked)).toBe(false);
+    expect(catchingUp(locked)).toBe(false);
+    expect(setupPending(locked)).toBe(false);
+    expect(catchingUp(season())).toBe(false);
     const late = season({
       phase: 'running',
       me: {
@@ -184,6 +206,21 @@ describe('setup state', () => {
       },
     });
     expect(applyReady(late, true, 'now').me?.locked).toBe(true);
+    expect(readyLocks(late)).toBe(true);
+    expect(readyLocks(season())).toBe(false);
+    // Catching up after the start: ready locks at once.
+    const catchUp = season({
+      phase: 'running',
+      me: {
+        startsOn: '2026-12-07',
+        lateEntry: false,
+        readyAt: null,
+        locked: false,
+        missingMetrics: [],
+      },
+    });
+    expect(readyLocks(catchUp)).toBe(true);
+    expect(applyReady(catchUp, true, 'now').me?.locked).toBe(true);
   });
 
   it('knows which required metrics are still missing', () => {

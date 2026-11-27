@@ -45,7 +45,7 @@ import {
   seasonRulesLines,
   seasonWeekText,
 } from '../format';
-import { canEditMySeasonGoals, canMarkReady } from '../season';
+import { canEditMySeasonGoals, canMarkReady, readyLocks } from '../season';
 import {
   linkableGoals,
   myGoalIds,
@@ -67,7 +67,8 @@ const DEFAULT_CHECKIN_TIME = '08:00';
  * The season setup, one thing per screen: frame (read only) → training goal (required) →
  * further goals → habits → sharing the weight → rhythms (when the rules ask) → summary with
  * "Bereit". Everything is saved as it is chosen, so the flow can be closed and resumed at the
- * screen it was left on; until the start everything stays changeable.
+ * screen it was left on; everything stays changeable until the start (catching up after the
+ * start, and as a late entrant: until "Bereit").
  */
 export function SeasonSetupFlow({
   season,
@@ -206,7 +207,6 @@ function useMySeasonGoals(season: Season) {
   const update = useUpdateGoal();
   const link = useLinkSeasonGoal();
   const unlink = useUnlinkSeasonGoal();
-  const [today] = useState(goalTodayKey);
   const startsOn = season.me?.startsOn ?? season.startsOn;
 
   const refused = (fallback: string) => (error: unknown) => {
@@ -238,7 +238,8 @@ function useMySeasonGoals(season: Season) {
         minValue: values.min,
         targetValue: values.target,
         visibility: 'shared',
-        validFrom: today < startsOn ? startsOn : today,
+        // Not locked yet: the values hold for the whole season (one version from my start).
+        validFrom: startsOn,
       })
       .catch(refused('Änderung konnte nicht gespeichert werden.'));
   }
@@ -376,8 +377,9 @@ function FrameStep({
         </div>
       </FieldGroup>
       <p className="text-footnote text-text-muted">
-        Alles hier wird sofort gespeichert. Du kannst jederzeit aufhören und später weitermachen –
-        bis zum Start bleibt alles änderbar. Pflicht ist nur das Trainingsziel.
+        {readyLocks(season)
+          ? `${season.me?.lateEntry ? '' : 'Die Saison läuft schon – deine Ziele gelten trotzdem ab dem Saisonstart. '}Alles hier wird sofort gespeichert. Du kannst jederzeit aufhören und später weitermachen – bis du auf „Bereit“ tippst, bleibt alles änderbar. Pflicht ist nur das Trainingsziel.`
+          : 'Alles hier wird sofort gespeichert. Du kannst jederzeit aufhören und später weitermachen – bis zum Start bleibt alles änderbar. Pflicht ist nur das Trainingsziel.'}
       </p>
     </Screen>
   );
@@ -961,7 +963,8 @@ function SummaryStep({
   const missing = season.me ? missingMetricsText(season.me.missingMetrics, label) : null;
   const isReady = season.me?.readyAt != null;
   const editable = canEditMySeasonGoals(season);
-  const lateEntry = season.me?.lateEntry ?? false;
+  // Late entrants and those catching up: "Bereit" locks the goals at once (no undo).
+  const locksNow = readyLocks(season);
 
   function setReady(value: boolean) {
     // A promise: the flow closes right away, the answer still has to reach the toast.
@@ -993,9 +996,11 @@ function SummaryStep({
             </>
           ) : (
             <>
-              {lateEntry && (
+              {locksNow && (
                 <p className="text-center text-footnote text-text-muted">
-                  Mit „Bereit“ werden deine Ziele festgeschrieben.
+                  {season.me?.lateEntry
+                    ? 'Mit „Bereit“ werden deine Ziele festgeschrieben.'
+                    : 'Die Saison läuft schon: Mit „Bereit“ werden deine Ziele sofort festgeschrieben.'}
                 </p>
               )}
               <Button
@@ -1006,7 +1011,7 @@ function SummaryStep({
                   onDone();
                   showToast(
                     `Bereit für „${season.name}“`,
-                    lateEntry
+                    locksNow
                       ? undefined
                       : {
                           label: 'Rückgängig',
@@ -1056,7 +1061,7 @@ function SummaryStep({
         </ul>
       )}
       {missing && <p className="text-footnote text-danger">{missing}</p>}
-      {!lateEntry && editable && (
+      {!locksNow && editable && (
         <p className="text-footnote text-text-muted">
           Bis zum Start kannst du alles noch ändern. Am Start werden die Ziele festgeschrieben.
         </p>

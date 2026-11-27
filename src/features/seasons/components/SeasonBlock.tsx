@@ -10,12 +10,13 @@ import {
   seasonRulesLines,
   seasonWeekText,
 } from '../format';
-import { canEditMySeasonGoals } from '../season';
+import { canEditMySeasonGoals, catchingUp, setupPending } from '../season';
 import { setupStarted } from '../setup';
 import type { Season } from '../types';
 import { SeasonEditSheet } from './SeasonEditSheet';
 import { SeasonParticipantsSheet } from './SeasonParticipantsSheet';
 import { SeasonSetupFlow } from './SeasonSetupFlow';
+import { useSetupAutoOpen } from './useSetupAutoOpen';
 
 /**
  * The top of Ich → Ziele: the group's current season in one calm block – name, phase, week x
@@ -28,6 +29,7 @@ export function SeasonBlock({
   goalExtra,
   openSeasonId = null,
   onLinkHandled,
+  autoOpenSetup = false,
 }: {
   /** The pauses (ill, holiday) to show in their sheet, plugged in by the app. */
   pauses: ReactNode;
@@ -36,6 +38,8 @@ export function SeasonBlock({
   /** A season from a link: opens its setup when mine is still open. */
   openSeasonId?: string | null;
   onLinkHandled?: () => void;
+  /** Open my pending setup by itself (once per season and device, see useSetupAutoOpen). */
+  autoOpenSetup?: boolean;
 }) {
   const { group } = useActiveGroup();
   const isAdmin = group.role === 'admin';
@@ -54,7 +58,7 @@ export function SeasonBlock({
   if (openSeasonId === null && handled !== null) setHandled(null);
   if (settled && openSeasonId !== handled) {
     setHandled(openSeasonId);
-    if (season?.id === openSeasonId && canEditMySeasonGoals(season) && !season.me?.readyAt) {
+    if (season?.id === openSeasonId && setupPending(season)) {
       setSetupOpen(true);
     }
   }
@@ -62,6 +66,19 @@ export function SeasonBlock({
     if (settled) onLinkHandled?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per link
   }, [settled, openSeasonId]);
+
+  // A season I just created: my setup opens right away once it shows (when I take part).
+  const [created, setCreated] = useState<string | null>(null);
+  if (created !== null && season?.id === created) {
+    setCreated(null);
+    if (setupPending(season)) setSetupOpen(true);
+  }
+  useSetupAutoOpen({
+    season,
+    enabled: autoOpenSetup && openSeasonId === null,
+    open: setupOpen,
+    setOpen: setSetupOpen,
+  });
 
   if (current.isPending) return null;
   const editSheet = (
@@ -71,6 +88,7 @@ export function SeasonBlock({
       onOpenChange={(open) => {
         if (!open) setEditing(null);
       }}
+      onCreated={setCreated}
     />
   );
 
@@ -197,17 +215,40 @@ function MyState({
   }
   if (canEditMySeasonGoals(season)) {
     const ready = me.readyAt !== null;
+    if (ready) {
+      return (
+        <div className="flex flex-col items-start gap-3 pt-2">
+          <p className="flex min-w-0 items-center gap-1.5 text-subhead">
+            <CheckIcon aria-hidden className="shrink-0 text-accent" />
+            <span className="text-text">Du bist bereit</span>
+          </p>
+          <Button variant="tinted" className="shrink-0" onClick={onSetup}>
+            Ändern
+          </Button>
+        </div>
+      );
+    }
     const missing = missingMetricsText(me.missingMetrics, metricLabel);
+    const catchUp = catchingUp(season);
+    const goalsMissing = me.missingMetrics.length > 0;
     return (
-      <div className="flex flex-col items-start gap-3 pt-2">
-        <p className="flex min-w-0 items-center gap-1.5 text-subhead">
-          {ready && <CheckIcon aria-hidden className="shrink-0 text-accent" />}
-          <span className={ready ? 'text-text' : 'text-text-muted'}>
-            {ready ? 'Du bist bereit' : (missing ?? 'Noch nicht bereit')}
-          </span>
-        </p>
-        <Button variant="tinted" className="shrink-0" onClick={onSetup}>
-          {ready ? 'Ändern' : setupStarted(season.id) ? 'Setup fortsetzen' : 'Saison einrichten'}
+      <div className="flex flex-col gap-3 pt-2">
+        <div className="flex flex-col">
+          {catchUp && (
+            <p className="text-subhead font-semibold">
+              {goalsMissing
+                ? 'Saison läuft – deine Ziele fehlen noch'
+                : 'Saison läuft – du bist noch nicht bereit'}
+            </p>
+          )}
+          <p className="text-subhead text-text-muted">{missing ?? 'Noch nicht bereit'}</p>
+        </div>
+        <Button variant="tinted" fullWidth onClick={onSetup}>
+          {catchUp && goalsMissing
+            ? 'Jetzt einrichten'
+            : setupStarted(season.id)
+              ? 'Setup fortsetzen'
+              : 'Saison einrichten'}
         </Button>
       </div>
     );

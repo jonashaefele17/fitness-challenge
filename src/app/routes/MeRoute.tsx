@@ -64,6 +64,8 @@ export function MeRoute() {
   if (goalLink && params.get(targetParams.thread) === '1' && threadGoalId !== goalLink) {
     setThreadGoalId(goalLink);
   }
+  // Opened for something else (a link): the season setup does not open by itself.
+  const [linkAtMount] = useState(() => params.toString() !== '');
   const dropLink = () => {
     setParams({}, { replace: true });
   };
@@ -143,6 +145,7 @@ export function MeRoute() {
             openGoalId={goalLink}
             threadGoalId={threadGoalId}
             onLinkHandled={dropLink}
+            autoOpenSetup={!linkAtMount}
           />
         )}
         {section === 'training' && <MyExercises />}
@@ -173,12 +176,14 @@ function GoalsWithSeason({
   openGoalId,
   threadGoalId,
   onLinkHandled,
+  autoOpenSetup,
 }: {
   groupId: string;
   openSeasonId: string | null;
   openGoalId: string | null;
   threadGoalId: string | null;
   onLinkHandled: () => void;
+  autoOpenSetup: boolean;
 }) {
   const userId = useUserId();
   const season = useCurrentSeason().data ?? null;
@@ -196,6 +201,7 @@ function GoalsWithSeason({
           goalExtra={comments}
           openSeasonId={openSeasonId}
           onLinkHandled={onLinkHandled}
+          autoOpenSetup={autoOpenSetup}
         />
       }
       frameOf={(goal) => (mine.has(goal.id) ? frame : null)}

@@ -27,11 +27,14 @@ export function SeasonEditSheet({
   season,
   open,
   onOpenChange,
+  onCreated,
 }: {
   /** null: a new season. */
   season: Season | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** A new season was saved (shown at once, optimistic): its id. */
+  onCreated?: (seasonId: string) => void;
 }) {
   const { group } = useActiveGroup();
   const members = useGroupMembers(group.id).data ?? [];
@@ -81,9 +84,10 @@ export function SeasonEditSheet({
   function save() {
     onOpenChange(false);
     if (!season) {
+      const id = crypto.randomUUID();
       create.mutate(
         {
-          id: crypto.randomUUID(),
+          id,
           name: draft.name.trim(),
           startsOn: draft.startsOn,
           endsOn: draft.endsOn,
@@ -99,6 +103,7 @@ export function SeasonEditSheet({
         },
       );
       showToast('Saison angelegt');
+      onCreated?.(id);
       return;
     }
     const previous = seasonUpdateOf(season);
@@ -226,7 +231,8 @@ export function SeasonEditSheet({
                   />
                 </ul>
                 <p className="text-footnote text-text-muted">
-                  Ab „Einrichten“ setzen alle ihre Ziele. Am Start werden sie festgeschrieben.
+                  Ab „Einrichten“ setzen alle ihre Ziele. Am Start werden sie festgeschrieben – wer
+                  bis dahin nicht fertig ist, richtet danach ein, fest ab „Bereit“.
                 </p>
               </FieldGroup>
 

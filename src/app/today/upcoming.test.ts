@@ -58,17 +58,31 @@ describe('setupCardText', () => {
     missingMetrics: ['trainings_per_week'],
   };
   it('counts down to the start, and warns close to it', () => {
-    expect(setupCardText({ name: 'Winter', daysUntilStart: 10, me })).toBe(
+    const setup = { name: 'Winter', phase: 'setup' } as const;
+    expect(setupCardText({ ...setup, daysUntilStart: 10, me })).toBe(
       '„Winter“ · noch 10 Tage bis zum Start',
     );
-    expect(setupCardText({ name: 'Winter', daysUntilStart: 3, me })).toBe(
+    expect(setupCardText({ ...setup, daysUntilStart: 3, me })).toBe(
       '„Winter“ startet in 3 Tagen – noch nicht bereit',
     );
-    expect(setupCardText({ name: 'Winter', daysUntilStart: 1, me })).toBe(
+    expect(setupCardText({ ...setup, daysUntilStart: 1, me })).toBe(
       '„Winter“ startet morgen – noch nicht bereit',
     );
     expect(
-      setupCardText({ name: 'Winter', daysUntilStart: -4, me: { ...me, lateEntry: true } }),
+      setupCardText({
+        name: 'Winter',
+        phase: 'running',
+        daysUntilStart: -4,
+        me: { ...me, lateEntry: true },
+      }),
     ).toBe('„Winter“ · du steigst später ein');
+  });
+
+  it('says when I am catching up after the start', () => {
+    const running = { name: 'Winter', phase: 'running', daysUntilStart: -2 } as const;
+    expect(setupCardText({ ...running, me })).toBe('„Winter“ läuft – deine Ziele fehlen noch');
+    expect(setupCardText({ ...running, me: { ...me, missingMetrics: [] } })).toBe(
+      '„Winter“ läuft – tippe noch auf „Bereit“',
+    );
   });
 });

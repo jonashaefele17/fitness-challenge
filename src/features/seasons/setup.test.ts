@@ -98,6 +98,13 @@ describe('seasonGoalFrame', () => {
     );
     const late = { ...season, me: { ...season.me, locked: true, lateEntry: true } } as Season;
     expect(seasonGoalFrame(late).lockedNote).toMatch(/bereit/);
+    // Caught up: ready (noon, any time zone) two days after the start.
+    const caughtUp = {
+      ...season,
+      startsOn: '2026-12-07',
+      me: { ...season.me, locked: true, readyAt: '2026-12-09T12:00:00Z' },
+    } as Season;
+    expect(seasonGoalFrame(caughtUp).lockedNote).toMatch(/bereit/);
   });
 });
 
@@ -120,8 +127,18 @@ describe('linkableGoals', () => {
 
 describe('setupDaysLeftText', () => {
   it('counts the days to the start', () => {
-    expect(setupDaysLeftText({ daysUntilStart: 5 })).toBe('Noch 5 Tage bis zum Start');
-    expect(setupDaysLeftText({ daysUntilStart: 1 })).toBe('Noch 1 Tag bis zum Start');
-    expect(setupDaysLeftText({ daysUntilStart: 0 })).toBe('Start heute');
+    expect(setupDaysLeftText({ daysUntilStart: 5, phase: 'setup' })).toBe(
+      'Noch 5 Tage bis zum Start',
+    );
+    expect(setupDaysLeftText({ daysUntilStart: 1, phase: 'setup' })).toBe(
+      'Noch 1 Tag bis zum Start',
+    );
+    expect(setupDaysLeftText({ daysUntilStart: 0, phase: 'setup' })).toBe('Start heute');
+    expect(setupDaysLeftText({ daysUntilStart: 0, phase: 'running' })).toBe(
+      'Die Saison läuft schon',
+    );
+    expect(setupDaysLeftText({ daysUntilStart: -3, phase: 'running' })).toBe(
+      'Die Saison läuft schon',
+    );
   });
 });

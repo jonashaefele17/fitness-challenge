@@ -24,6 +24,8 @@ export function TodayRoute() {
   // Opened from a reminder: the check-in at that habit.
   const [params, setParams] = useSearchParams();
   const [today] = useState(() => dateLine.format(new Date()));
+  // Opened for something else (a reminder's link): the season setup does not open by itself.
+  const [linkAtMount] = useState(() => params.toString() !== '');
   const name = profile.data?.displayName;
 
   return (
@@ -44,7 +46,7 @@ export function TodayRoute() {
         />
         <WeighTodayCard />
         <CheckinTodayCard />
-        <TodayUpcoming />
+        <TodayUpcoming autoOpenSetup={!linkAtMount && !bellOpen} />
         <WeekStrip />
         <RecentNotifications
           onOpenTarget={openTarget}

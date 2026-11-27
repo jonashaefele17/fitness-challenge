@@ -476,8 +476,9 @@ export function useUnlinkSeasonGoal() {
 }
 
 /**
- * Mark me ready (needs a goal for every required metric) or not ready again (until
- * locked). A late entrant's goals lock once ready. Undo: the opposite call (before locking).
+ * Mark me ready (needs a goal for every required metric) or not ready again (only before
+ * the start). Once the season runs (catching up) and for a late entrant, ready locks the
+ * goals at once. Undo: the opposite call (before locking).
  */
 export function useSetSeasonReady() {
   const cache = useSeasonCache();
@@ -491,9 +492,14 @@ export function useSetSeasonReady() {
     },
     onMutate: async ({ seasonId, ready }) => {
       const now = new Date().toISOString();
+      let running = false;
       return [
         ...(await cache.changeLists((list) =>
-          list.map((s) => (s.id === seasonId ? applyReady(s, ready, now) : s)),
+          list.map((s) => {
+            if (s.id !== seasonId) return s;
+            running = s.phase === 'running';
+            return applyReady(s, ready, now);
+          }),
         )),
         ...(await cache.change<SeasonParticipant[]>(
           seasonKeys.participants(cache.groupId, seasonId),
@@ -503,7 +509,7 @@ export function useSetSeasonReady() {
                 ? {
                     ...p,
                     readyAt: ready ? (p.readyAt ?? now) : null,
-                    locked: p.locked || (ready && p.lateEntry),
+                    locked: p.locked || (ready && (p.lateEntry || running)),
                   }
                 : p,
             ),

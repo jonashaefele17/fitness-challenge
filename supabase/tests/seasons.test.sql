@@ -1,7 +1,9 @@
 -- Seasons (8b): only admins create / change / cancel; who sees what (group A vs B,
 -- participants vs other members, super admin); setup (link goals, ready needs the required
--- metrics); the lock at the start (owner before / not after, admin correction with feed
--- event and notification, archive / discard refused, unlinked goals free); late entry;
+-- metrics); the lock from the start for those ready (owner before / not after, admin
+-- correction with feed event and notification, archive / discard refused, unlinked goals
+-- free); late entry; catch-up (complete but never ready: locked and marked ready at the
+-- start; missing a required goal: setup open after the start until ready);
 -- season goals of others with kg still masked; goals commentable; the hourly job (setup
 -- push, reminder the day before, start card and push – once each); markers; cancelling.
 --   Group A: a1 (admin, creates S1) · a2 (participant) · a3 (member, not participating) ·
@@ -14,7 +16,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(97);
+select plan(114);
 
 insert into auth.users (id, email) values
   ('11111111-1111-4111-8111-111111111111', 'a1@test.local'),
@@ -365,7 +367,14 @@ select lives_ok(
   'and can be archived');
 select throws_ok(
   $$select public.link_season_goal('5e000000-0000-4000-8000-000000000001', '90000000-0000-4000-8000-000000000003')$$,
-  '22023', 'season_goals_locked', 'no new goals for the season after the start');
+  '22023', 'season_goals_locked', 'no new goals for the season after the start once ready');
+select tests.login('11111111-1111-4111-8111-111111111111');
+select results_eq(
+  $$select my_ready_at, my_locked
+      from public.group_seasons('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', tests.today())$$,
+  $$values (null::timestamptz, false)$$,
+  'the admin who did not set up before the start is not locked (catch-up)');
+select tests.login('22222222-2222-4222-8222-222222222222');
 select throws_ok(
   $$select public.correct_season_goal('90000000-0000-4000-8000-000000000001', null, 2, 5)$$,
   '42501', 'not_group_admin', 'the owner cannot correct their own locked goal');
@@ -573,6 +582,121 @@ select lives_ok(
   $$select public.update_goal('90000000-0000-4000-8000-000000000001', tests.today(),
       tests.today() + 90, null, 1, 2, 'private')$$,
   'and they are ordinary goals again');
+
+-- ---------------------------------------------------------------------------
+-- Catch-up (season S3 of group A): a1 ready before the start, a2 has the required goal but
+-- never taps "Bereit", a3 has nothing at the start
+-- ---------------------------------------------------------------------------
+select tests.login('11111111-1111-4111-8111-111111111111');
+select public.create_season('5e000000-0000-4000-8000-000000000003',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Sommer', tests.today() + 3, tests.today() + 90,
+  p_participants => array['11111111-1111-4111-8111-111111111111'::uuid,
+                          '22222222-2222-4222-8222-222222222222'::uuid,
+                          '33333333-3333-4333-8333-333333333333'::uuid]);
+select public.create_goal('90000000-0000-4000-8000-000000000006', 'trainings_per_week',
+  tests.today(), tests.today() + 30, null, 2, 3);
+select public.link_season_goal('5e000000-0000-4000-8000-000000000003', '90000000-0000-4000-8000-000000000006');
+select public.set_season_ready('5e000000-0000-4000-8000-000000000003', true);
+select tests.login('22222222-2222-4222-8222-222222222222');
+select public.create_goal('90000000-0000-4000-8000-000000000005', 'trainings_per_week',
+  tests.today(), tests.today() + 30, null, 2, 3);
+select public.link_season_goal('5e000000-0000-4000-8000-000000000003', '90000000-0000-4000-8000-000000000005');
+
+-- The start, two days ago: the goals linked before it.
+reset role;
+update public.seasons set setup_opens_on = tests.today() - 5, starts_on = tests.today() - 2
+ where id = '5e000000-0000-4000-8000-000000000003';
+update public.season_members set starts_on = tests.today() - 2
+ where season_id = '5e000000-0000-4000-8000-000000000003';
+update public.goals set starts_on = tests.today() - 2
+ where id in ('90000000-0000-4000-8000-000000000005', '90000000-0000-4000-8000-000000000006');
+update public.goal_versions set valid_from = tests.today() - 2
+ where goal_id in ('90000000-0000-4000-8000-000000000005', '90000000-0000-4000-8000-000000000006');
+update public.season_goals set created_at = tests.at(tests.today() - 3, '12:00')
+ where season_id = '5e000000-0000-4000-8000-000000000003';
+set local role authenticated;
+
+select tests.login('22222222-2222-4222-8222-222222222222');
+select results_eq(
+  $$select phase, my_ready_at, my_locked
+      from public.group_seasons('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', tests.today())
+     where id = '5e000000-0000-4000-8000-000000000003'$$,
+  $$values ('running'::text, null::timestamptz, true)$$,
+  'complete before the start but never "Bereit": locked from the start day, before any job');
+select throws_ok(
+  $$select public.update_goal('90000000-0000-4000-8000-000000000005', tests.today() - 2,
+      tests.today() + 90, null, 1, 2, 'shared')$$,
+  '42501', 'season_goal_locked', 'so the goal can no longer change');
+select tests.login('33333333-3333-4333-8333-333333333333');
+select results_eq(
+  $$select my_locked, my_missing_metrics
+      from public.group_seasons('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', tests.today())
+     where id = '5e000000-0000-4000-8000-000000000003'$$,
+  $$values (false, '{trainings_per_week}'::text[])$$,
+  'missing a required goal at the start: the setup stays open');
+
+reset role;
+select private.run_season_jobs(tests.at(tests.today(), '03:00'));
+select results_eq(
+  $$select user_id, ready_at is not null from public.season_members
+     where season_id = '5e000000-0000-4000-8000-000000000003' order by user_id$$,
+  $$values ('11111111-1111-4111-8111-111111111111'::uuid, true),
+           ('22222222-2222-4222-8222-222222222222'::uuid, true),
+           ('33333333-3333-4333-8333-333333333333'::uuid, false)$$,
+  'the job marks the complete ones ready (before 7:00 too), not the one missing a goal');
+select private.run_season_jobs(tests.at(tests.today(), '08:00'));
+select results_eq(
+  $$select recipient_id, data ->> 'preview' from public.notifications
+     where event = 'season_started' and target_id = '5e000000-0000-4000-8000-000000000003'
+     order by recipient_id$$,
+  $$values ('11111111-1111-4111-8111-111111111111'::uuid, 'Sommer · Deine Ziele sind jetzt festgeschrieben'::text),
+           ('22222222-2222-4222-8222-222222222222'::uuid, 'Sommer · Deine Ziele sind jetzt festgeschrieben'::text),
+           ('33333333-3333-4333-8333-333333333333'::uuid, 'Sommer läuft · Richte jetzt deine Ziele ein'::text)$$,
+  'the start push: "festgeschrieben" to the ready ones, "einrichten" to the one catching up');
+set local role authenticated;
+
+select tests.login('11111111-1111-4111-8111-111111111111');
+select results_eq(
+  $$select my_locked from public.group_seasons('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', tests.today())
+     where id = '5e000000-0000-4000-8000-000000000003'$$,
+  $$values (true)$$, 'ready before the start: locked from the start day');
+select throws_ok(
+  $$select public.set_season_ready('5e000000-0000-4000-8000-000000000003', false)$$,
+  '22023', 'season_goals_locked', 'taking "Bereit" back after the start is refused');
+
+select tests.login('33333333-3333-4333-8333-333333333333');
+select lives_ok(
+  $$select public.link_season_goal('5e000000-0000-4000-8000-000000000003', '90000000-0000-4000-8000-000000000009')$$,
+  'catching up: a goal linked after the start');
+select results_eq(
+  $$select starts_on, ends_on from public.goals where id = '90000000-0000-4000-8000-000000000009'$$,
+  $$values (tests.today() - 2, tests.today() + 90)$$,
+  'with the season''s period (the start stays the season''s start)');
+select lives_ok(
+  $$select public.update_goal('90000000-0000-4000-8000-000000000009', tests.today() - 2,
+      tests.today() + 90, null, 2, 4, 'shared', tests.today() - 2)$$,
+  'changeable until ready');
+select lives_ok(
+  $$select public.set_season_ready('5e000000-0000-4000-8000-000000000003', true)$$,
+  'and "Bereit" after the start');
+select results_eq(
+  $$select my_locked, my_ready_at is not null
+      from public.group_seasons('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', tests.today())
+     where id = '5e000000-0000-4000-8000-000000000003'$$,
+  $$values (true, true)$$, 'then locked');
+select throws_ok(
+  $$select public.update_goal('90000000-0000-4000-8000-000000000009', tests.today() - 2,
+      tests.today() + 90, null, 2, 5, 'shared')$$,
+  '42501', 'season_goal_locked', 'the goal can no longer change');
+select throws_ok(
+  $$select public.archive_goal('90000000-0000-4000-8000-000000000009', true)$$,
+  '42501', 'season_goal_locked', 'nor be archived');
+select throws_ok(
+  $$select public.unlink_season_goal('5e000000-0000-4000-8000-000000000003', '90000000-0000-4000-8000-000000000009')$$,
+  '22023', 'season_goals_locked', 'nor leave the season');
+select throws_ok(
+  $$select public.set_season_ready('5e000000-0000-4000-8000-000000000003', false)$$,
+  '22023', 'season_goals_locked', 'nor "Bereit" be taken back');
 
 select * from finish();
 rollback;

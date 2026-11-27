@@ -72,16 +72,40 @@ export function currentSeason(seasons: readonly Season[]): Season | null {
   );
 }
 
-/** Whether I can still set goals for the season (my setup is open and not locked). */
+/**
+ * Whether I can still set goals for the season: my goals are not locked (the database's
+ * rule: locked once the season has started and I am ready; late entrants once ready), and
+ * the setup is open or the season runs (catching up when I missed the start).
+ */
 export function canEditMySeasonGoals(season: Season): boolean {
   if (!season.me || season.me.locked) return false;
   if (season.phase === 'cancelled' || season.phase === 'ended') return false;
-  return season.me.lateEntry || season.phase === 'setup';
+  return season.me.lateEntry || season.phase === 'setup' || season.phase === 'running';
 }
 
 /** Whether "Bereit" can be tapped: my setup is open and no required metric is missing. */
 export function canMarkReady(season: Season): boolean {
   return canEditMySeasonGoals(season) && season.me?.missingMetrics.length === 0;
+}
+
+/** Whether my setup is open and I am not ready yet (Heute card, auto-open, block action). */
+export function setupPending(season: Season): boolean {
+  return canEditMySeasonGoals(season) && season.me?.readyAt === null;
+}
+
+/**
+ * Whether I am catching up: the season runs, I am not a late entrant and my goals are not
+ * locked – I was not ready at the start. "Bereit" then locks my goals at once.
+ */
+export function catchingUp(season: Season): boolean {
+  return (
+    season.phase === 'running' && season.me !== null && !season.me.lateEntry && !season.me.locked
+  );
+}
+
+/** Whether "Bereit" locks my goals at once (the season runs, or I entered late). */
+export function readyLocks(season: Pick<Season, 'phase' | 'me'>): boolean {
+  return (season.me?.lateEntry ?? false) || season.phase === 'running';
 }
 
 /** How a new season shows until the database has computed it (optimistic create). */
@@ -184,8 +208,8 @@ export function applyReady(season: Season, ready: boolean, now: string): Season 
     me: {
       ...season.me,
       readyAt: ready ? (season.me.readyAt ?? now) : null,
-      // A late entrant's goals lock once ready.
-      locked: season.me.locked || (ready && season.me.lateEntry),
+      // Ready locks once the season runs (catching up) and for a late entrant.
+      locked: season.me.locked || (ready && readyLocks(season)),
     },
   };
 }

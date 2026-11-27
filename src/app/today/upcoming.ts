@@ -52,11 +52,18 @@ export function upcomingLines(
 /**
  * The line under "Saison einrichten": "„Winter“ · noch 5 Tage bis zum Start", close to the
  * start "„Winter“ startet in 3 Tagen – noch nicht bereit", a late entrant "… du steigst
- * später ein".
+ * später ein", catching up after the start "„Winter“ läuft – deine Ziele fehlen noch".
  */
-export function setupCardText(season: Pick<Season, 'name' | 'daysUntilStart' | 'me'>): string {
+export function setupCardText(
+  season: Pick<Season, 'name' | 'daysUntilStart' | 'phase' | 'me'>,
+): string {
   const name = `„${season.name}“`;
   if (season.me?.lateEntry) return `${name} · du steigst später ein`;
+  if (season.phase === 'running') {
+    return season.me && season.me.missingMetrics.length === 0
+      ? `${name} läuft – tippe noch auf „Bereit“`
+      : `${name} läuft – deine Ziele fehlen noch`;
+  }
   const n = season.daysUntilStart;
   if (n <= 3) {
     const when = n <= 0 ? 'heute' : n === 1 ? 'morgen' : `in ${String(n)} Tagen`;

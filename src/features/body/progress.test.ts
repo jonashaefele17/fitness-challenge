@@ -3,7 +3,7 @@ import { weightWeek, weightWeekRange } from './progress';
 import type { WeightProgressDay } from './types';
 
 const day = (onDate: string, changePct: number, trendKg: number | null = null) =>
-  ({ onDate, changePct, trendKg }) satisfies WeightProgressDay;
+  ({ onDate, changePct, trendKg, weightKg: null }) satisfies WeightProgressDay;
 
 describe('weightWeekRange', () => {
   it('covers the 4 weeks and the week before them', () => {

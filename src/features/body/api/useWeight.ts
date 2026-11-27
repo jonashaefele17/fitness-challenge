@@ -476,6 +476,7 @@ export function weightProgressOptions(
         onDate: row.on_date,
         changePct: row.change_pct,
         trendKg: num(row.trend_kg),
+        weightKg: num(row.weight_kg),
       }));
     },
   };

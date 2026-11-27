@@ -61,11 +61,14 @@ export interface WeightSummary {
   share: WeightShareView | null;
 }
 
-/** Ich → Einstellungen → Sichtbarkeit: nothing (default) / only % / kg. For all my groups. */
-export type WeightShare = 'private' | 'percent' | 'kg';
+/**
+ * Ich → Körper → Sichtbarkeit, for all my groups: nothing (default) / only % / the 7-day
+ * trend in kg / also the unsmoothed day values.
+ */
+export type WeightShare = 'private' | 'percent' | 'kg' | 'days';
 
 /** What the viewer gets of a person's weight (weight_summary.share). */
-export type WeightShareView = 'own' | 'kg' | 'percent';
+export type WeightShareView = 'own' | 'days' | 'kg' | 'percent';
 
 /** A day of someone's curve (weight_progress): the 7-day trend, never single entries. */
 export interface WeightProgressDay {
@@ -74,6 +77,8 @@ export interface WeightProgressDay {
   changePct: number;
   /** Trend in kg; null unless it is me or the person shares in kg. */
   trendKg: number | null;
+  /** The day's unsmoothed value in kg; null unless it is me or the person shares days. */
+  weightKg: number | null;
 }
 
 /**

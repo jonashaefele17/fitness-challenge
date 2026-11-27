@@ -38,6 +38,8 @@ const time = (day: string) => new Date(`${day}T12:00:00`).getTime();
 export function percentChartLayout(
   series: readonly PercentSeries[],
   box: ChartBox,
+  /** Further values that must fit on the axis (day dots around the lines). */
+  alsoPct: readonly number[] = [],
 ): PercentChartLayout | null {
   const dates = [...new Set(series.flatMap((s) => s.days.map((d) => d.onDate)))].sort();
   const first = dates[0];
@@ -46,11 +48,13 @@ export function percentChartLayout(
   const values = [0, ...series.flatMap((s) => s.days.map((d) => d.changePct))];
   const minPct = Math.min(...values);
   const maxPct = Math.max(...values);
-  const air = (maxPct - minPct) * 0.12;
-  let lo = minPct - air;
-  let hi = maxPct + air;
+  const low = Math.min(minPct, ...alsoPct);
+  const high = Math.max(maxPct, ...alsoPct);
+  const air = (high - low) * 0.12;
+  let lo = low - air;
+  let hi = high + air;
   if (hi - lo < MIN_SPAN_PCT) {
-    const mid = (minPct + maxPct) / 2;
+    const mid = (low + high) / 2;
     lo = mid - MIN_SPAN_PCT / 2;
     hi = mid + MIN_SPAN_PCT / 2;
   }
@@ -79,4 +83,9 @@ export function valueOn<T extends { onDate: string }>(days: readonly T[], day: s
   const last = days.at(-1);
   if (!first || !last || day < first.onDate || day > last.onDate) return null;
   return days.findLast((d) => d.onDate <= day) ?? null;
+}
+
+/** A day value on the lines' axis: against the trend the person's line starts from, in %. */
+export function dayPct(weightKg: number, startTrendKg: number): number {
+  return ((weightKg - startTrendKg) / startTrendKg) * 100;
 }

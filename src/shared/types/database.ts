@@ -3062,6 +3062,7 @@ export type Database = {
           change_pct: number;
           on_date: string;
           trend_kg: number;
+          weight_kg: number;
         }[];
       };
       weight_summary: {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { percentChartLayout, valueOn } from './chart';
+import { dayPct, percentChartLayout, valueOn } from './chart';
 
 const box = { width: 300, height: 168, left: 44, right: 8, top: 10, bottom: 22 };
 const day = (onDate: string, changePct: number) => ({ onDate, changePct });
@@ -69,5 +69,39 @@ describe('valueOn', () => {
     expect(valueOn(days, '2026-10-31')).toBeNull();
     expect(valueOn(days, '2026-11-16')).toBeNull();
     expect(valueOn([], '2026-11-01')).toBeNull();
+  });
+});
+
+describe('day values around the lines', () => {
+  const box = { width: 300, height: 160, left: 40, right: 8, top: 10, bottom: 20 };
+  const series = [
+    {
+      key: 'a',
+      days: [
+        { onDate: '2026-11-01', changePct: 0 },
+        { onDate: '2026-11-08', changePct: -1 },
+      ],
+    },
+  ];
+
+  it('puts a day value on the axis against the start of the line', () => {
+    expect(dayPct(80, 80)).toBe(0);
+    expect(dayPct(79.2, 80)).toBeCloseTo(-1);
+    expect(dayPct(80.8, 80)).toBeCloseTo(1);
+  });
+
+  it('makes room for dots beyond the lines and keeps the labels on the lines', () => {
+    const plain = percentChartLayout(series, box);
+    const withDots = percentChartLayout(series, box, [2.5, -3]);
+    expect(plain && withDots).toBeTruthy();
+    if (!plain || !withDots) return;
+    // The dots fit inside the plot …
+    expect(withDots.y(2.5)).toBeGreaterThanOrEqual(box.top);
+    expect(withDots.y(-3)).toBeLessThanOrEqual(box.height - box.bottom);
+    // … which without them would be outside …
+    expect(plain.y(2.5)).toBeLessThan(box.top);
+    // … while min and max still describe the lines.
+    expect(withDots.minPct).toBe(-1);
+    expect(withDots.maxPct).toBe(0);
   });
 });

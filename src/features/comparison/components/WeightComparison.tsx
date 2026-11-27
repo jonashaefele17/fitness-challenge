@@ -13,6 +13,9 @@ const PERIODS: { value: WeightComparePeriod; label: string }[] = [
 
 // SVG geometry in px (matches the h-chart token, like the body module's WeightChart).
 const HEIGHT = 168;
+/** Day values of people who share them: small and pale, the lines stay in front. */
+const DAY_DOT_R = 2.5;
+const DAY_DOT_OPACITY = 0.35;
 const BOX = { left: 44, right: 8, top: 10, bottom: 22 };
 /** Axis labels closer than this to the zero line's label are left out. */
 const LABEL_GAP = 12;
@@ -102,6 +105,7 @@ export function WeightComparison({ onOpenSharing }: { onOpenSharing: () => void 
       </ul>
       <p className="px-1 text-footnote text-text-muted">
         Veränderung des 7-Tage-Durchschnitts seit dem ersten Eintrag im Zeitraum
+        {people.some((p) => p.dayPcts.length > 0) && ' · Punkte: einzelne Tage'}
       </p>
     </div>
   );
@@ -133,6 +137,7 @@ function PercentChart({ people }: { people: WeightPerson[] }) {
       ? percentChartLayout(
           people.map((p) => ({ key: p.id, days: p.days })),
           { width, height: HEIGHT, ...BOX },
+          people.flatMap((p) => p.dayPcts.map((d) => d.pct)),
         )
       : null;
   const pickedDay = picked !== null ? layout?.dates[picked] : undefined;
@@ -268,6 +273,19 @@ function PercentChart({ people }: { people: WeightPerson[] }) {
               />
             )}
 
+            {/* Day values of people who share them: pale dots under the lines. */}
+            {people.flatMap((person) =>
+              person.dayPcts.map((d) => (
+                <circle
+                  key={`${person.id}-${d.onDate}`}
+                  cx={layout.x(d.onDate)}
+                  cy={layout.y(d.pct)}
+                  r={DAY_DOT_R}
+                  opacity={DAY_DOT_OPACITY}
+                  style={{ fill: person.color }}
+                />
+              )),
+            )}
             {people.map((person) =>
               person.days.length > 1 ? (
                 <path

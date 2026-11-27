@@ -185,4 +185,5 @@ export const WEIGHT_SHARE_LABELS: Record<WeightShare, string> = {
   private: 'Nur ich',
   percent: 'Nur %',
   kg: 'Mit kg',
+  days: 'Mit Tageswerten',
 };

@@ -181,6 +181,7 @@ function Figures({ goal, today }: { goal: Goal; today: string }) {
           onTrack={goal.onTrack}
           // Ended early: judged as it stands, no "on course" any more.
           phase={goal.archivedAt !== null ? 'ended' : goal.phase}
+          averaged={goal.metric === 'trainings_per_week'}
         />
       )}
     </section>

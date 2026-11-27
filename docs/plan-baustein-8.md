@@ -29,14 +29,12 @@ So wird gerechnet:
 - Status mit Mindestziel dreistufig (unter dem Mindestziel / Mindestziel erreicht / Ziel erreicht), ohne zweistufig. Nach dem Enddatum eingefroren.
 - Gewicht, Kraft, Maß: aktueller Wert = Durchschnitt über 7 Tage / bester Satz seit dem Start / letzter Zwischenstand seit dem Start. Fortschritt = Anteil des Wegs vom Start zum Ziel. „Auf Kurs“ = mindestens auf der geraden Linie vom Start zum Ziel.
 - Kraftziele lauten „110 kg bei 5 Wiederholungen“; Sätze mit anderer Wiederholungszahl werden mit der Formel der Rekorde umgerechnet. Optional nur an einem Gerät.
-- Trainings pro Woche: ein Tag mit Training zählt einmal; jede abgeschlossene Woche einzeln; Pausentage verkleinern die Vorgabe wie bei Habits. Status und „auf Kurs“ vergleichen die Summe der Trainings mit der Summe der Vorgaben (Aufholen möglich); dazu „in x von y Wochen Mindestziel erreicht“.
+- Trainings pro Woche: ein Tag mit Training zählt einmal; jede abgeschlossene Woche einzeln; Pausentage verkleinern die Vorgabe wie bei Habits. Eine Woche zählt höchstens bis zum Ziel (mehr zählt nicht extra, kein Ansparen); Status und „auf Kurs“ vergleichen die Summe der so gezählten Trainings mit der Summe der Vorgaben. Eine Woche unter dem Mindestziel lässt sich also nur durch Wochen mit vollem Ziel abfedern. Der Status sagt „Im Schnitt …“; dazu „in x von y Wochen Mindestziel erreicht“.
 - Habit-Quote: wie in der Habit-Auswertung, seit dem Start.
 
 Was andere bei einem geteilten Ziel sehen: Gewichtsziel immer Fortschritt in % und Status, kg nur wenn die Gewichts-Sichtbarkeit „Mit kg“ oder „Mit Tageswerten“ ist; Körpermaß nie cm; Habit-Ziel mit Name und Quote des Habits, auch wenn das Habit selbst privat ist.
 
-Noch offen (Jonas):
-- Aufholen beim Trainingsziel so lassen oder jede Woche hart einzeln werten? Mit Aufholen kann „Mindestziel noch nicht erreicht“ neben „in 3 von 4 Wochen Mindestziel“ stehen.
-- Kraftziel als „kg bei x Wiederholungen“ so lassen?
+Entschieden (Jonas, 27.11.2026): Deckelung pro Woche beim Trainingsziel statt freiem Aufholen; Kraftziel bleibt „kg bei x Wiederholungen“.
 
 Bekannte Kleinigkeiten:
 - Ein Trainingsziel, das mitten in der Woche beginnt, zeigt für die erste Woche eine verkleinerte Vorgabe („Diese Woche 0 von 2“).

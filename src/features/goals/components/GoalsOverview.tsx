@@ -120,7 +120,12 @@ export function GoalsOverview({
                     {formatGoalPeriod(goal.startsOn, goal.endsOn, today)}
                     {goal.archivedAt !== null && goal.phase !== 'ended' && ' · vorzeitig beendet'}
                   </span>
-                  <GoalStatusLine status={goal.status} onTrack={null} phase="ended" />
+                  <GoalStatusLine
+                    status={goal.status}
+                    onTrack={null}
+                    phase="ended"
+                    averaged={goal.metric === 'trainings_per_week'}
+                  />
                 </span>
                 <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
               </button>
@@ -170,7 +175,12 @@ function GoalCard({ goal, today, onOpen }: { goal: Goal; today: string; onOpen: 
         <div className="flex flex-col gap-0.5">
           {/* Nothing judged yet but a count to show: the count says it. */}
           {(goal.status !== null || !summary) && (
-            <GoalStatusLine status={goal.status} onTrack={goal.onTrack} phase={goal.phase} />
+            <GoalStatusLine
+              status={goal.status}
+              onTrack={goal.onTrack}
+              phase={goal.phase}
+              averaged={goal.metric === 'trainings_per_week'}
+            />
           )}
           {(summary ?? week) && (
             <p className="text-footnote text-text-subtle">

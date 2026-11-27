@@ -56,11 +56,14 @@ export function GoalStatusLine({
   status,
   onTrack,
   phase,
+  averaged = false,
   className,
 }: {
   status: GoalStatus | null;
   onTrack: boolean | null;
   phase: Goal['phase'];
+  /** The status judges an average over the weeks (trainings per week): say so. */
+  averaged?: boolean;
   className?: string;
 }) {
   const track = phase === 'running' ? onTrackText(onTrack) : null;
@@ -79,17 +82,26 @@ export function GoalStatusLine({
       <span
         className={cn('truncate', status === 'target_reached' ? 'text-text' : 'text-text-muted')}
       >
-        {statusText(status, phase)}
+        {statusText(status, phase, averaged)}
         {track && <span className="text-text-subtle"> · {track}</span>}
       </span>
     </p>
   );
 }
 
+/** Weeks are averaged, so single weeks can differ from the status: the words say "im Schnitt". */
+const AVERAGED_STATUS: Record<GoalStatus, string> = {
+  target_reached: 'Im Schnitt Ziel erreicht',
+  min_reached: 'Im Schnitt Mindestziel erreicht',
+  below_min: 'Im Schnitt unter dem Mindestziel',
+  not_reached: 'Im Schnitt unter dem Ziel',
+};
+
 /**
  * While a goal runs, "below the minimum" is not a verdict yet: it says what is still open.
  */
-function statusText(status: GoalStatus | null, phase: Goal['phase']): string {
+function statusText(status: GoalStatus | null, phase: Goal['phase'], averaged: boolean): string {
+  if (averaged && status !== null) return AVERAGED_STATUS[status];
   if (phase === 'running' && status === 'below_min') return 'Mindestziel noch nicht erreicht';
   return goalStatusText(status);
 }

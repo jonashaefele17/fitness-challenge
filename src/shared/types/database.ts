@@ -769,6 +769,161 @@ export type Database = {
           },
         ];
       };
+      goal_metrics: {
+        Row: {
+          description: string;
+          key: string;
+          kind: string;
+          label: string;
+          reference: string | null;
+          sort: number;
+          unit: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          description: string;
+          key: string;
+          kind: string;
+          label: string;
+          reference?: string | null;
+          sort: number;
+          unit?: string | null;
+        };
+        Update: {
+          description?: string;
+          key?: string;
+          kind?: string;
+          label?: string;
+          reference?: string | null;
+          sort?: number;
+          unit?: string | null;
+        };
+        Relationships: [];
+      };
+      goal_versions: {
+        Row: {
+          created_at: string;
+          goal_id: string;
+          min_value: number | null;
+          target_value: number;
+          valid_from: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          goal_id: string;
+          min_value?: number | null;
+          target_value: number;
+          valid_from: string;
+        };
+        Update: {
+          created_at?: string;
+          goal_id?: string;
+          min_value?: number | null;
+          target_value?: number;
+          valid_from?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goal_versions_goal_id_fkey';
+            columns: ['goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'goals';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      goals: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          device_id: string | null;
+          ends_on: string;
+          exercise_id: string | null;
+          habit_id: string | null;
+          id: string;
+          measurement_kind: string | null;
+          metric: string;
+          reps: number | null;
+          start_value: number | null;
+          starts_on: string;
+          updated_at: string;
+          user_id: string;
+          visibility: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          device_id?: string | null;
+          ends_on: string;
+          exercise_id?: string | null;
+          habit_id?: string | null;
+          id?: string;
+          measurement_kind?: string | null;
+          metric: string;
+          reps?: number | null;
+          start_value?: number | null;
+          starts_on: string;
+          updated_at?: string;
+          user_id?: string;
+          visibility?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          device_id?: string | null;
+          ends_on?: string;
+          exercise_id?: string | null;
+          habit_id?: string | null;
+          id?: string;
+          measurement_kind?: string | null;
+          metric?: string;
+          reps?: number | null;
+          start_value?: number | null;
+          starts_on?: string;
+          updated_at?: string;
+          user_id?: string;
+          visibility?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goals_device_id_fkey';
+            columns: ['device_id'];
+            isOneToOne: false;
+            referencedRelation: 'devices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'goals_exercise_id_fkey';
+            columns: ['exercise_id'];
+            isOneToOne: false;
+            referencedRelation: 'exercises';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'goals_habit_id_fkey';
+            columns: ['habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habits';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'goals_measurement_kind_fkey';
+            columns: ['measurement_kind'];
+            isOneToOne: false;
+            referencedRelation: 'body_measurement_kinds';
+            referencedColumns: ['key'];
+          },
+          {
+            foreignKeyName: 'goals_metric_fkey';
+            columns: ['metric'];
+            isOneToOne: false;
+            referencedRelation: 'goal_metrics';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
       group_members: {
         Row: {
           group_id: string;
@@ -2755,6 +2910,7 @@ export type Database = {
         Args: { p_accept: boolean; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      archive_goal: { Args: { p_archive: boolean; p_goal_id: string }; Returns: undefined };
       archive_habit: { Args: { p_archive: boolean; p_habit_id: string }; Returns: undefined };
       body_checkin_status: {
         Args: { p_today: string; p_user_id: string };
@@ -2828,6 +2984,24 @@ export type Database = {
         }[];
       };
       copy_template: { Args: { p_template_id: string }; Returns: string };
+      create_goal: {
+        Args: {
+          p_device_id?: string;
+          p_ends_on: string;
+          p_exercise_id?: string;
+          p_habit_id?: string;
+          p_id: string;
+          p_measurement_kind?: string;
+          p_metric: string;
+          p_min_value: number;
+          p_reps?: number;
+          p_start_value: number;
+          p_starts_on: string;
+          p_target_value: number;
+          p_visibility?: string;
+        };
+        Returns: string;
+      };
       exercise_overview: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -2951,6 +3125,103 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      goal_history: {
+        Args: { p_goal_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          expected_value: number;
+          min_value: number;
+          on_date: string;
+          progress_pct: number;
+          state: string;
+          target_value: number;
+          value: number;
+        }[];
+      };
+      goal_progress: {
+        Args: {
+          p_goal_id?: string;
+          p_include_archived?: boolean;
+          p_time_zone?: string;
+          p_today?: string;
+          p_user_id?: string;
+        };
+        Returns: {
+          archived_at: string;
+          best_duration_seconds: number;
+          best_reps: number;
+          best_weight_kg: number;
+          count_unit: string;
+          counted: number;
+          created_at: string;
+          current_on: string;
+          current_value: number;
+          device_id: string;
+          ends_on: string;
+          evaluated_on: string;
+          exercise_id: string;
+          expected_value: number;
+          habit_id: string;
+          id: string;
+          measurement_kind: string;
+          metric: string;
+          metric_kind: string;
+          metric_label: string;
+          min_met: number;
+          min_value: number;
+          on_track: boolean;
+          phase: string;
+          progress_pct: number;
+          reference_detail: string;
+          reference_label: string;
+          reps: number;
+          start_value: number;
+          starts_on: string;
+          status: string;
+          target_met: number;
+          target_value: number;
+          unit: string;
+          user_id: string;
+          values_hidden: boolean;
+          visibility: string;
+          week_done: number;
+          week_min: number;
+          week_target: number;
+        }[];
+      };
+      goal_reference_options: {
+        Args: { p_metric: string };
+        Returns: {
+          detail: string;
+          device_id: string;
+          exercise_id: string;
+          habit_id: string;
+          label: string;
+          last_used_on: string;
+          measurement_kind: string;
+          needs_reps: boolean;
+          unit: string;
+        }[];
+      };
+      goal_start_suggestion: {
+        Args: {
+          p_device_id?: string;
+          p_exercise_id?: string;
+          p_habit_id?: string;
+          p_measurement_kind?: string;
+          p_metric: string;
+          p_reps?: number;
+          p_time_zone?: string;
+          p_today?: string;
+        };
+        Returns: {
+          best_duration_seconds: number;
+          best_reps: number;
+          best_weight_kg: number;
+          on_date: string;
+          reps: number;
+          value: number;
+        }[];
       };
       habit_days: {
         Args: {
@@ -3308,6 +3579,19 @@ export type Database = {
         }[];
       };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
+      update_goal: {
+        Args: {
+          p_ends_on: string;
+          p_goal_id: string;
+          p_min_value: number;
+          p_start_value: number;
+          p_starts_on: string;
+          p_target_value: number;
+          p_valid_from?: string;
+          p_visibility: string;
+        };
+        Returns: undefined;
+      };
       update_workout_time: {
         Args: { p_duration_seconds: number; p_started_at: string; p_workout_id: string };
         Returns: undefined;

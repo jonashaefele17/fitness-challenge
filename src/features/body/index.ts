@@ -19,8 +19,10 @@ export {
   useWeightProgress,
   useWeightSummary,
   useWeightWeek,
+  weightProgressOptions,
   type NewWeighIn,
 } from './api/useWeight';
+export { nearestIndex } from './chart';
 export {
   dayKey,
   formatKg,
@@ -34,3 +36,4 @@ export { BodyOverview } from './components/BodyOverview';
 export { DayWeight } from './components/DayWeight';
 export { WeighInSheet } from './components/WeighInSheet';
 export { WeighTodayCard } from './components/WeighTodayCard';
+export { WeightWeekLine } from './components/WeightWeekLine';

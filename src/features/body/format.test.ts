@@ -15,6 +15,7 @@ import {
   timeOf,
   weighDue,
   weighWindowStart,
+  weightWeekParts,
 } from './format';
 
 describe('formatting weights', () => {
@@ -149,5 +150,41 @@ describe('weighDue', () => {
 
   it('looks back six days', () => {
     expect(weighWindowStart('2026-12-02')).toBe('2026-11-26');
+  });
+});
+
+describe('weightWeekParts (Monday line in the feed)', () => {
+  const week = { weekPct: -0.42, weekKg: -0.34, fourWeeksPct: -1.78, fourWeeksKg: -1.46 };
+
+  it('only %: the change of last week and of the 4 weeks', () => {
+    expect(weightWeekParts({ ...week, weekKg: null, fourWeeksKg: null })).toEqual([
+      '−0,4 % letzte Woche',
+      '−1,8 % in 4 Wochen',
+    ]);
+  });
+
+  it('with kg: kg first, % in brackets', () => {
+    expect(weightWeekParts(week)).toEqual([
+      '−0,3 kg (−0,4 %) letzte Woche',
+      '−1,5 kg (−1,8 %) in 4 Wochen',
+    ]);
+  });
+
+  it('gains and no change are signed the same neutral way', () => {
+    expect(
+      weightWeekParts({ weekPct: 0.31, weekKg: 0.25, fourWeeksPct: 0.02, fourWeeksKg: 0.01 }),
+    ).toEqual(['+0,3 kg (+0,3 %) letzte Woche', '±0,0 kg (±0,0 %) in 4 Wochen']);
+  });
+
+  it('leaves out a part without a figure', () => {
+    expect(weightWeekParts({ ...week, weekPct: null, weekKg: null })).toEqual([
+      '−1,5 kg (−1,8 %) in 4 Wochen',
+    ]);
+  });
+
+  it('nothing to show without any figure', () => {
+    expect(
+      weightWeekParts({ weekPct: null, weekKg: null, fourWeeksPct: null, fourWeeksKg: null }),
+    ).toEqual([]);
   });
 });

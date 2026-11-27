@@ -1,4 +1,4 @@
-import type { BodySettings, WeightPeriod } from './types';
+import type { BodySettings, WeightPeriod, WeightShare, WeightWeek } from './types';
 
 const oneDecimal = new Intl.NumberFormat('de', {
   minimumFractionDigits: 1,
@@ -157,3 +157,32 @@ export function weighDue(
   }
   return null;
 }
+
+/**
+ * The parts of the feed's Monday line for a week (after "Gewicht"), e.g.
+ * ["−0,3 kg (−0,4 %) letzte Woche", "−1,5 kg (−1,8 %) in 4 Wochen"]; kg only when shared in
+ * kg. A part without a figure is left out; empty: nothing to show.
+ */
+export function weightWeekParts(
+  week: Pick<WeightWeek, 'weekPct' | 'weekKg' | 'fourWeeksPct' | 'fourWeeksKg'>,
+): string[] {
+  const part = (pct: number | null, kg: number | null, when: string) => {
+    if (pct === null) return [];
+    const figure =
+      kg === null
+        ? formatPercentChange(pct)
+        : `${formatSignedKg(kg)} kg (${formatPercentChange(pct)})`;
+    return [`${figure} ${when}`];
+  };
+  return [
+    ...part(week.weekPct, week.weekKg, 'letzte Woche'),
+    ...part(week.fourWeeksPct, week.fourWeeksKg, 'in 4 Wochen'),
+  ];
+}
+
+/** Short names of the sharing choices (segments, the row under Körper). */
+export const WEIGHT_SHARE_LABELS: Record<WeightShare, string> = {
+  private: 'Nur ich',
+  percent: 'Nur %',
+  kg: 'Mit kg',
+};

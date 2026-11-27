@@ -14,10 +14,12 @@ import {
   periodRange,
   reminderSummary,
   todayKey,
+  WEIGHT_SHARE_LABELS,
 } from '../format';
 import type { Scale, WeighIn, WeightPeriod } from '../types';
 import { ReminderSheet } from './ReminderSheet';
 import { ScalesSheet } from './ScalesSheet';
+import { SharingSheet } from './SharingSheet';
 import { WeighInSheet } from './WeighInSheet';
 import { WeightChart } from './WeightChart';
 
@@ -56,10 +58,13 @@ const date = (day: string) => new Date(`${day}T12:00:00`);
  */
 export function BodyOverview({
   openNew = false,
+  openSharing = false,
   onOpened,
 }: {
   /** Open the weigh-in right away (from the reminder push). */
   openNew?: boolean;
+  /** Open "Sichtbarkeit" right away (from the group's weight comparison). */
+  openSharing?: boolean;
   onOpened?: () => void;
 } = {}) {
   const [today] = useState(todayKey);
@@ -69,6 +74,7 @@ export function BodyOverview({
   const [editing, setEditing] = useState(false);
   const [scalesOpen, setScalesOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [sharingOpen, setSharingOpen] = useState(false);
   const entries = useWeighIns(null, today);
   const scales = useScales().data ?? [];
   const settings = useBodySettings().data;
@@ -76,18 +82,20 @@ export function BodyOverview({
   // From the reminder: open the weigh-in when the link arrives (once, not again on closing
   // while the link is still there), then let the caller drop the link (it navigates, so in
   // an effect).
-  const [linked, setLinked] = useState(false);
-  if (openNew !== linked) {
-    setLinked(openNew);
-    if (openNew) {
+  const link = openNew ? 'weigh' : openSharing ? 'sharing' : null;
+  const [linked, setLinked] = useState<typeof link>(null);
+  if (link !== linked) {
+    setLinked(link);
+    if (link === 'weigh') {
       setShownEntry(null);
       setEditing(true);
     }
+    if (link === 'sharing') setSharingOpen(true);
   }
   useEffect(() => {
-    if (openNew) onOpened?.();
+    if (link) onOpened?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per link
-  }, [openNew]);
+  }, [link]);
 
   const list = entries.data ?? [];
   const sheets = (
@@ -95,6 +103,7 @@ export function BodyOverview({
       <WeighInSheet open={editing} onOpenChange={setEditing} entry={shownEntry} />
       <ScalesSheet open={scalesOpen} onOpenChange={setScalesOpen} />
       <ReminderSheet open={reminderOpen} onOpenChange={setReminderOpen} />
+      <SharingSheet open={sharingOpen} onOpenChange={setSharingOpen} />
     </>
   );
   const rows = (
@@ -114,6 +123,13 @@ export function BodyOverview({
         value={reminderSummary(settings)}
         onOpen={() => {
           setReminderOpen(true);
+        }}
+      />
+      <SettingsRow
+        label="Sichtbarkeit"
+        value={settings ? WEIGHT_SHARE_LABELS[settings.weightShare] : ''}
+        onOpen={() => {
+          setSharingOpen(true);
         }}
       />
     </ul>

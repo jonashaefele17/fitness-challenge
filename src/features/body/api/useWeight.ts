@@ -453,7 +453,16 @@ function toShareView(value: string | null | undefined): WeightShareView | null {
   return value === 'own' || value === 'kg' || value === 'percent' ? value : null;
 }
 
-function progressOptions(userId: string, person: string, from: string | null, to: string) {
+/**
+ * Query options of someone's curve (useWeightProgress), for several people at once with
+ * useQueries. userId: the signed-in user (part of the key).
+ */
+export function weightProgressOptions(
+  userId: string,
+  person: string,
+  from: string | null,
+  to: string,
+) {
   return {
     queryKey: bodyKeys.progress(userId, person, from, to),
     queryFn: async (): Promise<WeightProgressDay[]> => {
@@ -479,7 +488,7 @@ function progressOptions(userId: string, person: string, from: string | null, to
  */
 export function useWeightProgress(from: string | null, to: string, personId?: string) {
   const userId = useUserId();
-  return useQuery(progressOptions(userId, personId ?? userId, from, to));
+  return useQuery(weightProgressOptions(userId, personId ?? userId, from, to));
 }
 
 /**
@@ -490,7 +499,7 @@ export function useWeightWeek(weekStart: string, personId?: string) {
   const userId = useUserId();
   const range = weightWeekRange(weekStart);
   return useQuery({
-    ...progressOptions(userId, personId ?? userId, range.from, range.to),
+    ...weightProgressOptions(userId, personId ?? userId, range.from, range.to),
     select: (days: WeightProgressDay[]) => weightWeek(days, weekStart),
   });
 }

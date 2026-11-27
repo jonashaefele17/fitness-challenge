@@ -24,8 +24,9 @@ const shortDate = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'short'
 const date = (day: string) => new Date(`${day}T12:00:00`);
 
 /**
- * Ich → Körper → Zwischenstand: when the next one is due, per measurement the latest value
- * with its changes and a small curve (tap: its history), the action, and all check-ins.
+ * Ich → Körper → Zwischenstand: one card with when the next one is due, the action, per
+ * measurement the latest value with its changes and a small curve (tap: its history), and
+ * a row that opens all check-ins.
  */
 export function CheckinSection({
   today,
@@ -52,15 +53,30 @@ export function CheckinSection({
   const due = status?.due ?? false;
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-3 rounded-card bg-surface-2 py-4">
-        <div className="flex items-baseline justify-between gap-3 px-4">
-          <h2 className="text-body font-semibold">Zwischenstand</h2>
-          {dueText && (
-            <span className={cn('text-footnote', due ? 'text-accent' : 'text-text-muted')}>
-              {dueText}
-            </span>
-          )}
+    <>
+      <section
+        className={cn(
+          'flex flex-col gap-3 rounded-card bg-surface-2 pt-4',
+          list.length === 0 && 'pb-4',
+        )}
+      >
+        <div className="flex items-center justify-between gap-3 px-4">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h2 className="text-body font-semibold">Zwischenstand</h2>
+            {dueText && (
+              <span className={cn('text-footnote', due ? 'text-accent' : 'text-text-muted')}>
+                {dueText}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="tinted"
+            onClick={() => {
+              onOpen(null);
+            }}
+          >
+            Starten
+          </Button>
         </div>
         {rows.length === 0 ? (
           <p className="px-4 text-subhead text-text-muted">
@@ -83,32 +99,26 @@ export function CheckinSection({
             ))}
           </ul>
         )}
+        {list.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setListOpen(true);
+            }}
+            className={cn(
+              'flex min-h-tap w-full items-center gap-3 rounded-b-card border-border px-4 py-2 text-left active:bg-surface-3',
+              // Below the measurement rows their gap is not wanted; alone it needs the line.
+              rows.length === 0 ? 'border-t' : '-mt-3 border-t',
+            )}
+          >
+            <span className="text-body">Alle Zwischenstände</span>
+            <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted tabular-nums">
+              {list.length}
+            </span>
+            <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+          </button>
+        )}
       </section>
-      <Button
-        size="lg"
-        fullWidth
-        variant={rows.length === 0 || due ? 'primary' : 'secondary'}
-        onClick={() => {
-          onOpen(null);
-        }}
-      >
-        Zwischenstand machen
-      </Button>
-      {list.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            setListOpen(true);
-          }}
-          className="flex min-h-tap w-full items-center gap-3 rounded-card bg-surface-2 px-4 py-2 text-left active:bg-surface-3"
-        >
-          <span className="text-body">Alle Zwischenstände</span>
-          <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted">
-            {list.length}
-          </span>
-          <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
-        </button>
-      )}
 
       <MeasurementHistorySheet kind={shownKind} open={historyOpen} onOpenChange={setHistoryOpen} />
       <Sheet open={listOpen} onOpenChange={setListOpen} title="Alle Zwischenstände">
@@ -140,7 +150,7 @@ export function CheckinSection({
           ))}
         </ul>
       </Sheet>
-    </div>
+    </>
   );
 }
 

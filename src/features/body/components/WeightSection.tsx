@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, ChevronRightIcon, SegmentedControl } from '@/shared/ui';
+import { Button, ChevronRightIcon, SegmentedControl, Sheet } from '@/shared/ui';
 import { useWeightDays, useWeightSummary } from '../api/useWeight';
 import { formatKg, formatPercentChange, formatSignedKg, periodRange, todayKey } from '../format';
 import type { Scale, WeighIn, WeightPeriod } from '../types';
@@ -17,7 +17,7 @@ const PERIOD_TEXT: Record<WeightPeriod, string> = {
   '1y': 'in einem Jahr',
   all: 'seit dem ersten Eintrag',
 };
-/** Entries shown at first, and added per "Mehr anzeigen". */
+/** Entries shown at first in "Alle Einträge", and added per "Mehr anzeigen". */
 const PAGE = 10;
 
 const entryDate = new Intl.DateTimeFormat('de', {
@@ -35,8 +35,9 @@ const shortDate = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'short'
 const date = (day: string) => new Date(`${day}T12:00:00`);
 
 /**
- * Ich → Körper → weight: the current value (7-day trend), its change in the period, the
- * chart and the entries; or, before the first entry, a short invitation.
+ * Ich → Körper → weight: one card with the current value (7-day trend), its change in the
+ * period, the chart and a row that opens the entries; or, before the first entry, a short
+ * invitation. The entries are not listed on the page, so what follows stays in reach.
  */
 export function WeightSection({
   entries,
@@ -51,6 +52,7 @@ export function WeightSection({
   onWeigh: (entry: WeighIn | null) => void;
 }) {
   const [period, setPeriod] = useState<WeightPeriod>('4w');
+  const [listOpen, setListOpen] = useState(false);
 
   if (entries.length === 0) {
     return (
@@ -62,7 +64,7 @@ export function WeightSection({
           </p>
         </div>
         <Button
-          size="lg"
+          variant="tinted"
           onClick={() => {
             onWeigh(null);
           }}
@@ -75,17 +77,28 @@ export function WeightSection({
 
   return (
     <>
-      <WeightCard period={period} onPeriod={setPeriod} today={today} />
-      <Button
-        size="lg"
-        fullWidth
-        onClick={() => {
+      <WeightCard
+        period={period}
+        onPeriod={setPeriod}
+        today={today}
+        entryCount={entries.length}
+        onWeigh={() => {
           onWeigh(null);
         }}
-      >
-        Gewicht eintragen
-      </Button>
-      <Entries entries={entries} scales={scales} onOpen={onWeigh} />
+        onList={() => {
+          setListOpen(true);
+        }}
+      />
+      <Sheet open={listOpen} onOpenChange={setListOpen} title="Alle Einträge">
+        <Entries
+          entries={entries}
+          scales={scales}
+          onOpen={(entry) => {
+            setListOpen(false);
+            onWeigh(entry);
+          }}
+        />
+      </Sheet>
     </>
   );
 }
@@ -94,10 +107,16 @@ function WeightCard({
   period,
   onPeriod,
   today,
+  entryCount,
+  onWeigh,
+  onList,
 }: {
   period: WeightPeriod;
   onPeriod: (period: WeightPeriod) => void;
   today: string;
+  entryCount: number;
+  onWeigh: () => void;
+  onList: () => void;
 }) {
   const range = periodRange(period, today);
   // The current value is the latest trend, whatever the period shows.
@@ -107,14 +126,19 @@ function WeightCard({
   const hasChange = summary && summary.daysWithEntries >= 2 && summary.changeKg !== null;
 
   return (
-    <section className="flex flex-col gap-4 rounded-card bg-surface-2 p-4">
+    <section className="flex flex-col gap-4 rounded-card bg-surface-2 px-4 pt-4">
       <div className="flex flex-col gap-1">
-        <p className="flex items-baseline gap-1.5">
-          <span className="text-large-title font-bold tabular-nums">
-            {formatKg(current?.currentTrendKg ?? null)}
-          </span>
-          <span className="text-title-3 text-text-muted">kg</span>
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="flex items-baseline gap-1.5">
+            <span className="text-large-title font-bold tabular-nums">
+              {formatKg(current?.currentTrendKg ?? null)}
+            </span>
+            <span className="text-title-3 text-text-muted">kg</span>
+          </p>
+          <Button variant="tinted" onClick={onWeigh}>
+            Eintragen
+          </Button>
+        </div>
         <p className="text-footnote text-text-muted">
           Ø 7 Tage
           {current?.currentOn && current.currentOn !== today
@@ -146,6 +170,17 @@ function WeightCard({
           Keine Einträge in diesem Zeitraum
         </div>
       )}
+      <button
+        type="button"
+        onClick={onList}
+        className="-mx-4 flex min-h-tap items-center gap-3 rounded-b-card border-t border-border px-4 py-2 text-left active:bg-surface-3"
+      >
+        <span className="text-body">Alle Einträge</span>
+        <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted tabular-nums">
+          {entryCount}
+        </span>
+        <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+      </button>
     </section>
   );
 }
@@ -168,8 +203,7 @@ function Entries({
     (entry.scaleId ? scales.find((s) => s.id === entry.scaleId) : main)?.name ?? null;
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-footnote font-semibold text-text-muted">Einträge</h2>
+    <div className="flex flex-col gap-2">
       <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
         {entries.slice(0, shown).map((entry) => {
           const scale = named ? scaleName(entry) : null;
@@ -210,6 +244,6 @@ function Entries({
           Mehr anzeigen
         </Button>
       )}
-    </section>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronRightIcon } from '@/shared/ui';
 import { useCheckins } from '../api/useCheckins';
+import { usePhotoPurgeOnStart } from '../api/usePhotos';
 import { useBodySettings, useScales, useWeighIns } from '../api/useWeight';
 import { checkinOn, checkinRhythmSummary } from '../checkin';
 import { reminderSummary, todayKey, WEIGHT_SHARE_LABELS } from '../format';
@@ -46,6 +47,8 @@ export function BodyOverview({
   const scales = useScales().data ?? [];
   const settings = useBodySettings().data;
   const checkins = useCheckins().data;
+  // Photos deleted (and not brought back) lose their files after the grace period.
+  usePhotoPurgeOnStart();
 
   const weigh = (entry: WeighIn | null) => {
     setShownEntry(entry);

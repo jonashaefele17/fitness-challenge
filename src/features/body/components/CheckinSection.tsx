@@ -10,9 +10,11 @@ import {
 import { useBodySettings } from '../api/useWeight';
 import { checkinDueText, formatCm, formatSignedCm } from '../checkin';
 import { kindHistory, measurementRows } from '../checkinFlow';
+import { checkinsWithPhotos } from '../photos';
 import type { BodyCheckin, MeasurementKind, MeasurementStat } from '../types';
 import { MeasurementSparkline } from './MeasurementChart';
 import { MeasurementHistorySheet } from './MeasurementHistorySheet';
+import { PhotosSheet } from './PhotosSheet';
 
 const listDate = new Intl.DateTimeFormat('de', {
   weekday: 'short',
@@ -45,9 +47,11 @@ export function CheckinSection({
   const [shownKind, setShownKind] = useState<MeasurementKind | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [listOpen, setListOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
 
   if (!kinds.data || !checkins.data || !stats.data) return null;
   const list = checkins.data;
+  const withPhotos = checkinsWithPhotos(list);
   const rows = measurementRows(kinds.data, settings?.hiddenMeasurementKinds ?? [], stats.data);
   const dueText = status ? checkinDueText(status) : null;
   const due = status?.due ?? false;
@@ -100,27 +104,49 @@ export function CheckinSection({
           </ul>
         )}
         {list.length > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              setListOpen(true);
-            }}
+          <div
             className={cn(
-              'flex min-h-tap w-full items-center gap-3 rounded-b-card border-border px-4 py-2 text-left active:bg-surface-3',
+              'flex flex-col divide-y divide-border border-t border-border',
               // Below the measurement rows their gap is not wanted; alone it needs the line.
-              rows.length === 0 ? 'border-t' : '-mt-3 border-t',
+              rows.length > 0 && '-mt-3',
             )}
           >
-            <span className="text-body">Alle Zwischenstände</span>
-            <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted tabular-nums">
-              {list.length}
-            </span>
-            <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
-          </button>
+            {withPhotos.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPhotosOpen(true);
+                }}
+                className="flex min-h-tap w-full items-center gap-3 px-4 py-2 text-left active:bg-surface-3"
+              >
+                <span className="text-body">Fotos</span>
+                <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted tabular-nums">
+                  {withPhotos.length === 1
+                    ? '1 Zwischenstand'
+                    : `${String(withPhotos.length)} Zwischenstände`}
+                </span>
+                <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setListOpen(true);
+              }}
+              className="flex min-h-tap w-full items-center gap-3 rounded-b-card px-4 py-2 text-left active:bg-surface-3"
+            >
+              <span className="text-body">Alle Zwischenstände</span>
+              <span className="min-w-0 flex-1 truncate text-right text-subhead text-text-muted tabular-nums">
+                {list.length}
+              </span>
+              <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+            </button>
+          </div>
         )}
       </section>
 
       <MeasurementHistorySheet kind={shownKind} open={historyOpen} onOpenChange={setHistoryOpen} />
+      <PhotosSheet open={photosOpen} onOpenChange={setPhotosOpen} />
       <Sheet open={listOpen} onOpenChange={setListOpen} title="Alle Zwischenstände">
         <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
           {list.map((checkin) => (
@@ -156,7 +182,12 @@ export function CheckinSection({
 
 function measuresText(checkin: BodyCheckin): string {
   const count = Object.keys(checkin.values).length;
-  return count === 1 ? '1 Maß' : `${String(count)} Maße`;
+  const photos = checkin.photos.length;
+  const parts = [
+    count > 0 || photos === 0 ? (count === 1 ? '1 Maß' : `${String(count)} Maße`) : null,
+    photos > 0 ? (photos === 1 ? '1 Foto' : `${String(photos)} Fotos`) : null,
+  ];
+  return parts.filter(Boolean).join(' · ');
 }
 
 function KindRow({

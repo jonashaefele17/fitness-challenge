@@ -365,6 +365,14 @@ export function Sheet({
                   event.preventDefault();
                   contentRef.current?.focus();
                 }}
+                // "Rückgängig" on a toast must not close the sheet.
+                onInteractOutside={(event) => {
+                  if (
+                    event.target instanceof Element &&
+                    event.target.closest('[data-toaster]') !== null
+                  )
+                    event.preventDefault();
+                }}
               >
                 <motion.div
                   ref={(el) => {

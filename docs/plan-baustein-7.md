@@ -2,7 +2,7 @@
 
 Branch: `feat/body`. Grundlage: Konzept (Version 1.46) – „Module und Navigation“ (Ich → Körper), „Vergleich“ (Gewicht), „Datenmodell“ (Körper). Der Prototyp zeigt dazu nur drei Stellen: den Reiter „Gewicht“ im Vergleich (Kurve in %), einen Feed-Eintrag zum Gewicht und die Einstellung „Sichtbarkeit: Gewicht nur in %“. Alles andere ist hier neu entworfen.
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a und 7b gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 7a, 7b und 7c gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -68,14 +68,24 @@ Beim Staging-Test prüfen:
 - Montagskarte erscheint am Montag nach 7 Uhr
 - Linien und Punkte bei 3 Monaten und 1 Jahr lesbar?
 
-## 7c – Zwischenstand: Maße
+## 7c – Zwischenstand: Maße (gebaut am 28.11.2026, Staging-Test offen)
 
-- Zwischenstand alle 4 Wochen: Erinnerung per Push (Kategorie „Körper“) und Karte auf „Heute“, bis er erledigt oder für diesmal übersprungen ist. Der Rhythmus ist einstellbar.
-- Ein Durchgang wie beim Habit-Check-in: ein Maß pro Bildschirm, vorbelegt mit dem letzten Wert, „Überspringen“ möglich.
-- Pro Maß eine kurze Anleitung mit Bild, wo und wie gemessen wird (z. B. „Bauch: auf Nabelhöhe, entspannt, nach dem Ausatmen“; „Oberarm: angespannt, dickste Stelle“; „Oberschenkel: stehend, Mitte zwischen Hüfte und Knie“). Bei Oberarm und Oberschenkel immer dieselbe Seite.
-- Maß-Arten als Daten (Tabelle, nicht im Code): Bauch, Taille, Brust, Hüfte, Oberarm, Oberschenkel; jede Person blendet aus, was sie nicht misst.
-- Ansicht: pro Maß aktueller Wert, Veränderung seit dem letzten und seit dem ersten Zwischenstand, kleine Kurve; Antippen öffnet den Verlauf.
-- Datenbank: `body_measurement_kinds` (global), `body_measurements`; Zugriffsregeln und Tests.
+- [x] Rhythmus unter Ich → Körper → „Zwischenstand“: aus / alle 2, 4, 6 oder 8 Wochen, Erinnerung per Push mit Uhrzeit (abschaltbar), welche Maße man misst. Ohne Rhythmus keine Erinnerung; eintragen geht jederzeit
+- [x] Der erste Zwischenstand ist fällig, sobald der Rhythmus eingeschaltet wird (Ausgangsstand); danach jeweils so viele Wochen nach dem letzten
+- [x] Fällig: eine Push pro Zyklus, kein Nachhaken; Karte auf „Heute“ mit „Starten“ und „Auslassen“. Auslassen verschiebt um einen Zyklus und gilt auf allen Geräten
+- [x] Ablauf: ein Maß pro Bildschirm mit Messanleitung, Rad in 0,5-cm-Schritten, vorbelegt mit dem letzten Wert (grau, bis man dreht); „Weiter“ übernimmt den angezeigten Wert, „Überspringen“ lässt das Maß aus, „Zurück“; am Ende eine Zusammenfassung mit den Veränderungen und „Speichern“ mit „Rückgängig“. Schließen mit eingegebenen Werten fragt „Verwerfen?“
+- [x] Nachtragen: Datum oben im Ablauf wählbar; ein bestehender Zwischenstand öffnet sich in der Zusammenfassung zum Ändern oder Löschen
+- [x] Maße als Daten: Bauch, Taille, Brust, Hüfte, Oberarm, Oberschenkel, einzeln ausblendbar (bereits gemessene Werte bleiben erhalten)
+- [x] Ich → Körper: pro Maß aktueller Wert, Veränderung seit dem letzten und seit dem ersten Zwischenstand, kleine Kurve; Antippen zeigt den Verlauf mit Messanleitung; „Alle Zwischenstände“ als Liste
+- [x] Datenbank: `body_measurement_kinds`, `body_checkins`, `body_measurements`; Fälligkeit und Veränderungen berechnet; nur die eigene Person; Datenbank-Tests (59)
+
+Abweichung vom Plan: Die Messanleitung ist vorerst nur Text. Bilder (Figur mit markierter Messstelle im Stil der Katalogbilder) kommen später aus dem Render-Werkzeug; das Bildfeld ist vorbereitet.
+
+Beim Staging-Test prüfen:
+- Rhythmus einschalten: Karte auf „Heute“ erscheint, erster Zwischenstand fällig
+- Ablauf auf dem iPhone: Rad, Tippen zum Eingeben, Datum wählen
+- Sind die Messanleitungen verständlich genug ohne Bild?
+- Erinnerung kommt zur Uhrzeit, Antippen öffnet den Ablauf
 
 ## 7d – Zwischenstand: Fotos
 

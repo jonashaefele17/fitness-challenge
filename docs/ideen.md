@@ -90,6 +90,7 @@ Für den Pilot nicht nötig; festgehalten am 23.11.2026 beim Echtzeit-Umbau des 
 ## Körper
 
 - [ ] Waagen-Abgleich ohne denselben Tag: Der Vorschlag für den Unterschied zweier Waagen zählt auch aufeinanderfolgende Tage (letzter Morgen am einen Ort, erster Morgen am anderen) und erscheint erst ab etwa drei Wechseln („Aus 4 Wechseln: ca. +0,6 kg“). Anlass: Jonas' Waagen stehen 150 km auseinander. Bis dahin: Unterschied von Hand eintragen oder ohne Abgleich nutzen.
+- [ ] Bilder zur Messanleitung der Maße (Figur mit markierter Messstelle, aus dem Render-Werkzeug der Katalogbilder); das Feld `image_path` an den Maß-Arten ist vorbereitet.
 - [ ] Punkte in der Gewichtskurve je Waage unterscheidbar, damit Sprünge beim Ortswechsel erklärbar sind.
 
 ## Saisons

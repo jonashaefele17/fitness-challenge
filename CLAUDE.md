@@ -68,6 +68,7 @@ Diese Datei gilt für jede Sitzung in diesem Repository. Das fachliche Konzept s
 ## Arbeitsweise
 - Gebaut wird in der Reihenfolge aus `docs/konzept.md` (Abschnitt „Umsetzungsreihenfolge“). Ein Baustein pro Branch, Merge nach Test auf Staging.
 - Vor größeren Änderungen kurz den Plan nennen und auf Jonas' OK warten.
+- Umsetzung pro Etappe: Die Hauptsitzung plant mit Jonas und schreibt den Plan in `docs/plan-baustein-X.md`. Den Kern der Etappe (Datenbank, Hooks, Oberfläche) gibt sie an einen Opus-Unteragenten ab (Agent-Tool mit `model: opus`), mit Plan-Datei, betroffenen Dateien und Prüfbefehlen im Auftrag. Danach prüft die Hauptsitzung das Ergebnis selbst und macht den Feinschliff und Feedback-Runden ohne Unteragent.
 - Neue Ideen, die nicht im Konzept stehen: in `docs/ideen.md` notieren, nicht einfach einbauen.
 - Keine Secrets ins Repo. Lokale Werte in `.env.local` (steht in `.gitignore`); `.env.example` pflegen.
 - Commits klein und beschreibend (Conventional Commits).

@@ -24,58 +24,59 @@ export function SharingSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const settings = useBodySettings().data;
-  const save = useSaveBodySettings();
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Sichtbarkeit">
-      {settings && (
-        <div className="flex flex-col gap-4 pt-1">
-          <div
-            role="radiogroup"
-            aria-label="Wer sieht dein Gewicht"
-            className="flex flex-col gap-2"
-          >
-            {LEVELS.map((level) => {
-              const selected = settings.weightShare === level;
-              return (
-                <button
-                  key={level}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => {
-                    if (selected) return;
-                    save.mutate(
-                      { weightShare: level },
-                      {
-                        onError: () => {
-                          showToast('Sichtbarkeit konnte nicht gespeichert werden.');
-                        },
-                      },
-                    );
-                  }}
-                  className={cn(
-                    'flex min-h-tap w-full items-center justify-between gap-3 rounded-card border px-4 py-3 text-left',
-                    selected
-                      ? 'border-accent bg-surface-3'
-                      : 'border-border bg-surface-2 active:bg-surface-3',
-                  )}
-                >
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-body font-semibold">{WEIGHT_SHARE_LABELS[level]}</span>
-                    <span className="text-footnote text-text-muted">{DESCRIPTIONS[level]}</span>
-                  </span>
-                  {selected && <CheckIcon aria-hidden className="shrink-0 text-accent" />}
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-footnote text-text-subtle">
-            Mehrere Einträge eines Tages, ihre Uhrzeit und deine Waagen sieht nie jemand außer dir.
-          </p>
-        </div>
-      )}
+      <WeightShareChoice />
     </Sheet>
+  );
+}
+
+/** The four sharing levels as rows (saved at once); also asked in the season setup. */
+export function WeightShareChoice() {
+  const settings = useBodySettings().data;
+  const save = useSaveBodySettings();
+  if (!settings) return null;
+  return (
+    <div className="flex flex-col gap-4 pt-1">
+      <div role="radiogroup" aria-label="Wer sieht dein Gewicht" className="flex flex-col gap-2">
+        {LEVELS.map((level) => {
+          const selected = settings.weightShare === level;
+          return (
+            <button
+              key={level}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => {
+                if (selected) return;
+                save.mutate(
+                  { weightShare: level },
+                  {
+                    onError: () => {
+                      showToast('Sichtbarkeit konnte nicht gespeichert werden.');
+                    },
+                  },
+                );
+              }}
+              className={cn(
+                'flex min-h-tap w-full items-center justify-between gap-3 rounded-card border px-4 py-3 text-left',
+                selected
+                  ? 'border-accent bg-surface-3'
+                  : 'border-border bg-surface-2 active:bg-surface-3',
+              )}
+            >
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-body font-semibold">{WEIGHT_SHARE_LABELS[level]}</span>
+                <span className="text-footnote text-text-muted">{DESCRIPTIONS[level]}</span>
+              </span>
+              {selected && <CheckIcon aria-hidden className="shrink-0 text-accent" />}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-footnote text-text-subtle">
+        Mehrere Einträge eines Tages, ihre Uhrzeit und deine Waagen sieht nie jemand außer dir.
+      </p>
+    </div>
   );
 }

@@ -40,4 +40,27 @@ export {
   thisWeekText,
 } from './format';
 export { todayKey as goalTodayKey } from './dates';
+export {
+  addDays as addGoalDays,
+  daysBetween as goalDaysBetween,
+  formatGoalDay,
+  formatGoalPeriod,
+  matchingPeriodChoice,
+  periodEnd,
+  snapToStep,
+  targetWheelStart,
+  unitCaption,
+  wheelStep,
+  type PeriodChoice,
+} from './view';
 export { GoalsOverview } from './components/GoalsOverview';
+export { GoalCreateFlow } from './components/GoalCreateFlow';
+export { GoalDetailSheet } from './components/GoalDetailSheet';
+export {
+  FlowStepHeader,
+  GoalProgressBar,
+  GoalStatusLine,
+  GoalValues,
+  GoalValueWheel,
+} from './components/GoalBits';
+export { DateRow } from './components/GoalFields';

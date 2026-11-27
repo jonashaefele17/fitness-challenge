@@ -376,7 +376,8 @@ function Reminders() {
   );
 }
 
-function Pauses() {
+/** Pauses (ill, holiday): the list and "Pause eintragen"; also under Ich → Ziele (season). */
+export function Pauses() {
   const pauses = usePauses().data ?? [];
   const add = useAddPause();
   const remove = useRemovePause();

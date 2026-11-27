@@ -4,19 +4,27 @@ import { motion } from 'motion/react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useSignOut, useUserId } from '@/features/auth';
 import { BodyOverview } from '@/features/body';
-import { GoalsOverview } from '@/features/goals';
+import { GoalsOverview, type Goal } from '@/features/goals';
 import { groupKeys, useActiveGroup, useGroupMembers } from '@/features/groups';
-import { HabitsOverview } from '@/features/habits';
+import { HabitPauses, HabitsOverview } from '@/features/habits';
 import {
   NotificationBell,
   NotificationSettingsPanel,
   useDisablePush,
 } from '@/features/notifications';
 import { Avatar, ColorPicker, useMyProfile, useSetMyColor } from '@/features/profile';
+import {
+  myGoalIds,
+  SeasonBlock,
+  seasonGoalFrame,
+  useCurrentSeason,
+  useSeasonGoalLinks,
+} from '@/features/seasons';
 import { MyExercises, TrainingSettings, useHomeStudio, usePlaces } from '@/features/training';
 import { pressScale, spring } from '@/shared/design-tokens';
 import { showToast } from '@/shared/lib';
 import { Button, Card, ChevronLeftIcon, GearIcon, Screen, SegmentedControl } from '@/shared/ui';
+import { GoalComments } from '../goals/GoalComments';
 import { paths } from '../paths';
 import { settingsPath, targetParams, useOpenTarget } from '../targets';
 
@@ -46,6 +54,19 @@ export function MeRoute() {
   // From the Zwischenstand reminder: Körper with the Zwischenstand open.
   const checkin = params.get(targetParams.bodyCheckin) === '1';
   if ((weigh || sharing || checkin) && section !== 'body') setSection('body');
+  // From a season push, the feed or Heute: Ziele with the season (its setup while open).
+  const seasonLink = params.get(targetParams.season);
+  // From a correction push or a comment: Ziele with that goal open.
+  const goalLink = params.get(targetParams.goal);
+  if ((seasonLink || goalLink) && section !== 'goals') setSection('goals');
+  // A comment notification also opens the goal's thread (kept past dropping the link).
+  const [threadGoalId, setThreadGoalId] = useState<string | null>(null);
+  if (goalLink && params.get(targetParams.thread) === '1' && threadGoalId !== goalLink) {
+    setThreadGoalId(goalLink);
+  }
+  const dropLink = () => {
+    setParams({}, { replace: true });
+  };
 
   if (params.get(targetParams.settings) === '1') {
     return (
@@ -115,8 +136,15 @@ export function MeRoute() {
           ]}
         />
 
-        {/* 8b mounts the current season here (header slot above my goals). */}
-        {section === 'goals' && <GoalsOverview />}
+        {section === 'goals' && (
+          <GoalsWithSeason
+            groupId={group.id}
+            openSeasonId={seasonLink}
+            openGoalId={goalLink}
+            threadGoalId={threadGoalId}
+            onLinkHandled={dropLink}
+          />
+        )}
         {section === 'training' && <MyExercises />}
         {section === 'habits' && <HabitsOverview />}
         {section === 'body' && (
@@ -131,6 +159,50 @@ export function MeRoute() {
         )}
       </div>
     </Screen>
+  );
+}
+
+/**
+ * Ich → Ziele with the season composed in: the season block on top (pauses from habits,
+ * comments on goals), and my goals marked as season goals – tagged, listed first, and
+ * locked from the start.
+ */
+function GoalsWithSeason({
+  groupId,
+  openSeasonId,
+  openGoalId,
+  threadGoalId,
+  onLinkHandled,
+}: {
+  groupId: string;
+  openSeasonId: string | null;
+  openGoalId: string | null;
+  threadGoalId: string | null;
+  onLinkHandled: () => void;
+}) {
+  const userId = useUserId();
+  const season = useCurrentSeason().data ?? null;
+  const links = useSeasonGoalLinks(season?.id ?? null).data ?? [];
+  const mine = myGoalIds(links, userId);
+  const frame = season ? seasonGoalFrame(season) : null;
+  const comments = (goal: Goal) => (
+    <GoalComments goal={goal} groupId={groupId} defaultOpen={goal.id === threadGoalId} />
+  );
+  return (
+    <GoalsOverview
+      header={
+        <SeasonBlock
+          pauses={<HabitPauses />}
+          goalExtra={comments}
+          openSeasonId={openSeasonId}
+          onLinkHandled={onLinkHandled}
+        />
+      }
+      frameOf={(goal) => (mine.has(goal.id) ? frame : null)}
+      detailFooter={(goal) => (mine.has(goal.id) ? comments(goal) : null)}
+      openGoalId={openGoalId}
+      onGoalOpened={onLinkHandled}
+    />
   );
 }
 

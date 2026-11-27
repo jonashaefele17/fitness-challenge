@@ -493,26 +493,29 @@ select results_eq(
   $$values ('55555555-5555-4555-8555-555555555555'::uuid), ('66666666-6666-4666-8666-666666666666'::uuid)$$,
   'the day before the start a reminder, once, to every participant not ready');
 select private.run_season_jobs(tests.at(tests.today() + 10, '06:59'));
-select is((select count(*)::integer from public.feed_events where type = 'season_started'), 0,
+select is((select count(*)::integer from public.feed_events
+            where type = 'season_started' and target_id = '5e000000-0000-4000-8000-000000000002'), 0,
   'no start card before 7:00');
 select private.run_season_jobs(tests.at(tests.today() + 10, '07:05'));
 select private.run_season_jobs(tests.at(tests.today() + 10, '08:05'));
 select results_eq(
   $$select fe.group_id, fe.actor_id, fe.target_id, fd.kind, fd.day
       from public.feed_events fe join public.feed_days fd on fd.id = fe.feed_day_id
-     where fe.type = 'season_started'$$,
+     where fe.type = 'season_started' and fe.target_id = '5e000000-0000-4000-8000-000000000002'$$,
   $$values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid, '55555555-5555-4555-8555-555555555555'::uuid,
             '5e000000-0000-4000-8000-000000000002'::uuid, 'season'::text, tests.today() + 10)$$,
   'on the start day from 7:00 "Saison gestartet", once, on the group''s season card');
 select results_eq(
-  $$select recipient_id from public.notifications where event = 'season_started'
+  $$select recipient_id from public.notifications
+     where event = 'season_started' and target_id = '5e000000-0000-4000-8000-000000000002'
      order by recipient_id$$,
   $$values ('55555555-5555-4555-8555-555555555555'::uuid), ('66666666-6666-4666-8666-666666666666'::uuid)$$,
   'and the start push to the participants, once');
-select is((select count(*)::integer from public.notifications
-            where group_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-              and event in ('season_ready_reminder', 'season_started')), 0,
-  'the job sent nothing more for the running season of group A');
+-- Group A's season started without a job run on its start day: caught up, once.
+select is((select count(*)::integer from public.feed_events
+            where type = 'season_started'
+              and target_id = '5e000000-0000-4000-8000-000000000001'), 1,
+  'a start the job missed gets its card on a later run, once');
 set local role authenticated;
 
 -- ---------------------------------------------------------------------------

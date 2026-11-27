@@ -174,6 +174,32 @@ export interface GoalReferenceOption {
   lastUsedOn: string | null;
 }
 
+/**
+ * How a frame outside this module (8b: a season of a group) marks one of my goals. The app
+ * works it out and passes it in; the goals module only shows it.
+ */
+export interface GoalFrame {
+  /** Short tag next to the title ("Saison"). */
+  tag: string;
+  /** Its name in the detail ("Saison „Winterform“"). */
+  name: string;
+  /** Period and visibility come from the frame: not editable here. */
+  periodFixed: boolean;
+  /** Locked: no editing or ending, this one line says why instead. null: not locked. */
+  lockedNote: string | null;
+}
+
+/**
+ * A create flow inside a frame (8b: the season setup): period and visibility are given (their
+ * screens are left out), optionally the metric too (the flow starts at what it is about).
+ */
+export interface GoalCreatePreset {
+  metric?: string;
+  startsOn: string;
+  endsOn: string;
+  visibility: GoalVisibility;
+}
+
 /** What useCreateGoal takes. */
 export interface CreateGoalInput {
   /** Client-generated (crypto.randomUUID()). */

@@ -201,3 +201,24 @@ export const GearIcon = (p: IconProps) => (
     <circle cx="12" cy="12" r="3" />
   </Icon>
 );
+
+export const FlagIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
+  </Icon>
+);
+
+/** A finish flag (chequered): the season's end. */
+export const FinishFlagIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 21V4M5 4h14v8H5" />
+    <path d="M5 4h4.7v4H5zM14.3 4H19v4h-4.7zM9.7 8h4.6v4H9.7z" fill="currentColor" stroke="none" />
+  </Icon>
+);
+
+export const ScaleIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+    <path d="M8.5 9a5 5 0 0 1 7 0M12 9.5l1-1.5" />
+  </Icon>
+);

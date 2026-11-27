@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { showToast } from '@/shared/lib';
 import { Button, Sheet } from '@/shared/ui';
 import { useArchiveGoal, useGoalHistory, useRestoreGoal, useUpdateGoal } from '../api/useGoals';
@@ -13,7 +13,7 @@ import {
   thisWeekText,
 } from '../format';
 import { undoGoalUpdate } from '../goal';
-import type { Goal, UpdateGoalInput } from '../types';
+import type { Goal, GoalFrame, UpdateGoalInput } from '../types';
 import { formatGoalDay, formatGoalPeriod, periodStateText } from '../view';
 import { GoalChart } from './GoalChart';
 import { GoalEditSheet } from './GoalEditSheet';
@@ -22,17 +22,27 @@ import { GoalProgressBar, GoalStatusLine } from './GoalBits';
 /**
  * A goal in detail: where it stands now, the figures, its course against the line, and
  * "Bearbeiten" / "Ziel beenden" (archived ones: "Wieder aufnehmen"). Changes and ending
- * apply at once with "Rückgängig".
+ * apply at once with "Rückgängig". Someone else's goal (readOnly) only shows; a locked goal
+ * of a frame (a season) says why instead of offering changes.
  */
 export function GoalDetailSheet({
   goal,
   open,
   onOpenChange,
+  frame = null,
+  readOnly = false,
+  footer,
 }: {
   /** Kept by the caller while the sheet closes. */
   goal: Goal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The frame the goal belongs to (tag, fixed period, lock), from the app. */
+  frame?: GoalFrame | null;
+  /** Someone else's goal: no changes offered. */
+  readOnly?: boolean;
+  /** Below the figures, e.g. comments or an admin's correction (plugged in by the app). */
+  footer?: ReactNode;
 }) {
   // The mutations live here, outside the sheet's content, so "Rückgängig" still works after
   // the sheet has closed.
@@ -108,8 +118,11 @@ export function GoalDetailSheet({
               <GoalChart goal={goal} points={history.data ?? []} today={today} />
             )}
           </section>
-          <Rows goal={goal} today={today} />
-          {goal.archivedAt === null ? (
+          <Rows goal={goal} today={today} frame={frame} />
+          {footer}
+          {readOnly ? null : frame?.lockedNote ? (
+            <p className="px-1 text-footnote text-text-muted">{frame.lockedNote}</p>
+          ) : goal.archivedAt === null ? (
             <div className="flex flex-col gap-2">
               <Button
                 variant="tinted"
@@ -146,6 +159,7 @@ export function GoalDetailSheet({
             open={open && editing}
             onOpenChange={setEditing}
             onSave={save}
+            periodFixed={frame?.periodFixed ?? false}
           />
         </div>
       )}
@@ -210,7 +224,7 @@ function currentLabel(goal: Goal, today: string): string {
 }
 
 /** The figures as rows: start, minimum, target, line today, period, visibility. */
-function Rows({ goal, today }: { goal: Goal; today: string }) {
+function Rows({ goal, today, frame }: { goal: Goal; today: string; frame: GoalFrame | null }) {
   const rows: { label: string; value: string }[] = [];
   if (goal.metricKind === 'level') {
     rows.push({ label: 'Start', value: formatGoalTarget(goal.startValue, goal) });
@@ -252,6 +266,7 @@ function Rows({ goal, today }: { goal: Goal; today: string }) {
           }`}
         />
         <Row label="Sichtbar für" value={goal.visibility === 'shared' ? 'Gruppe' : 'Nur mich'} />
+        {frame && <Row label="Gehört zu" value={frame.name} />}
       </ul>
       {(summary ?? week) && (
         <p className="px-1 text-footnote text-text-muted">

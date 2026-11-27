@@ -10,6 +10,7 @@ import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen, SegmentedControl } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
 import { CardHabits } from '../feed/CardHabits';
+import { CardSeason } from '../feed/CardSeason';
 import { CardWeight } from '../feed/CardWeight';
 import { CardWorkouts } from '../feed/CardWorkouts';
 import { paths } from '../paths';
@@ -82,6 +83,14 @@ export function GroupRoute() {
                   <CardWorkouts card={card} onOpen={setWorkoutId} />
                   <CardHabits card={card} />
                   <CardWeight card={card} />
+                  <CardSeason
+                    card={card}
+                    onOpenSetup={(seasonId) => {
+                      void navigate(
+                        `${paths.me}?${new URLSearchParams({ [targetParams.season]: seasonId }).toString()}`,
+                      );
+                    }}
+                  />
                 </>
               )}
               renderActions={(card) => {

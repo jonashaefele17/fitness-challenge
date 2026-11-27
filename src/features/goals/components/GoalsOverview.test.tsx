@@ -76,4 +76,47 @@ describe('GoalsOverview', () => {
     expect(screen.getByText(/Hinter Plan/)).toBeTruthy();
     expect(screen.getByRole('button', { name: /Beendet/ }).textContent).toContain('1');
   });
+
+  it('marks goals of a frame, lists them first, and opens a locked one without changes', () => {
+    // The detail's chart measures itself.
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    goals.data = [
+      weight,
+      { ...weight, id: 'g2', metric: 'trainings_per_week', metricLabel: 'Trainings pro Woche' },
+    ];
+    const onGoalOpened = vi.fn();
+    render(
+      <GoalsOverview
+        frameOf={(goal) =>
+          goal.id === 'g2'
+            ? {
+                tag: 'Saison',
+                name: 'Saison „Winter“',
+                periodFixed: true,
+                lockedNote: 'Seit dem Saisonstart fest. Änderungen nur durch den Admin.',
+              }
+            : null
+        }
+        openGoalId="g2"
+        onGoalOpened={onGoalOpened}
+      />,
+    );
+    // Earlier renders stay in the document: look at the cards' titles only.
+    const titles = [...document.querySelectorAll('ul button span.text-body.font-semibold')].map(
+      (e) => e.textContent,
+    );
+    expect(titles.slice(-2)).toEqual(['Trainings pro Woche', 'Körpergewicht']);
+    expect(screen.getAllByText('Saison').length).toBeGreaterThan(0);
+    expect(screen.getByText(/Seit dem Saisonstart fest/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Bearbeiten' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ziel beenden' })).toBeNull();
+    expect(onGoalOpened).toHaveBeenCalled();
+  });
 });

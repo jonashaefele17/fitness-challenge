@@ -11,7 +11,13 @@ import {
 import { todayKey } from '../dates';
 import { formatGoalTarget, formatGoalValue } from '../format';
 import { noReference, validateGoalValues, validatePeriod } from '../goal';
-import type { GoalMetric, GoalReferenceOption, GoalUnit, GoalVisibility } from '../types';
+import type {
+  GoalCreatePreset,
+  GoalMetric,
+  GoalReferenceOption,
+  GoalUnit,
+  GoalVisibility,
+} from '../types';
 import {
   createSteps,
   formatGoalDay,
@@ -45,17 +51,17 @@ interface Answers {
   visibility: GoalVisibility;
 }
 
-function freshAnswers(today: string): Answers {
+function freshAnswers(today: string, preset: GoalCreatePreset | null): Answers {
   return {
-    metric: null,
+    metric: preset?.metric ?? null,
     option: null,
     reps: null,
     start: undefined,
     target: null,
     min: null,
-    startsOn: today,
-    endsOn: periodEnd(today, '8w'),
-    visibility: 'private',
+    startsOn: preset?.startsOn ?? today,
+    endsOn: preset?.endsOn ?? periodEnd(today, '8w'),
+    visibility: preset?.visibility ?? 'private',
   };
 }
 
@@ -63,21 +69,30 @@ function freshAnswers(today: string): Answers {
  * A new goal, one thing per screen: metric → what it is about (exercise, habit, measure)
  * → reps (weight exercises) → start (levels; prefilled) → target → minimum (skippable) →
  * period → visibility → summary. Saving closes at once with "Rückgängig"; closing with
- * something chosen asks before throwing it away.
+ * something chosen asks before throwing it away. Inside a frame (`preset`, the season setup)
+ * period and visibility are given and their screens left out; a preset metric skips the
+ * first screen.
  */
 export function GoalCreateFlow({
   open,
   onOpenChange,
+  preset = null,
+  title = 'Neues Ziel',
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preset?: GoalCreatePreset | null;
+  title?: string;
+  /** After the goal is saved (e.g. to link it to the season). */
+  onCreated?: (goalId: string) => void;
 }) {
   // The mutations live here, outside the screens, so "Rückgängig" still works after closing.
   const create = useCreateGoal();
   const discard = useDiscardGoal();
   const metrics = useGoalMetrics().data ?? [];
   const [today] = useState(todayKey);
-  const [answers, setAnswers] = useState<Answers>(() => freshAnswers(today));
+  const [answers, setAnswers] = useState<Answers>(() => freshAnswers(today, preset));
   const [index, setIndex] = useState(0);
   const [confirming, setConfirming] = useState(false);
 
@@ -86,7 +101,7 @@ export function GoalCreateFlow({
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) {
-      setAnswers(freshAnswers(today));
+      setAnswers(freshAnswers(today, preset));
       setIndex(0);
       setConfirming(false);
     }
@@ -95,7 +110,11 @@ export function GoalCreateFlow({
   const metric = metrics.find((m) => m.key === answers.metric) ?? null;
   const option = answers.option;
   const unit: GoalUnit | null = metric ? (metric.unit ?? option?.unit ?? null) : null;
-  const steps = createSteps(metric, option);
+  const steps = createSteps(metric, option).filter(
+    (s) =>
+      !preset ||
+      (s !== 'period' && s !== 'visibility' && (s !== 'metric' || preset.metric === undefined)),
+  );
   const step: CreateStep = steps[index] ?? 'metric';
   const counted = steps.filter((s) => s !== 'summary');
   const counter =
@@ -156,7 +175,11 @@ export function GoalCreateFlow({
   };
 
   function requestClose() {
-    if (answers.metric !== null) setConfirming(true);
+    const chosen =
+      preset?.metric !== undefined
+        ? answers.option !== null || answers.target !== null
+        : answers.metric !== null;
+    if (chosen) setConfirming(true);
     else onOpenChange(false);
   }
 
@@ -164,8 +187,10 @@ export function GoalCreateFlow({
     if (!metric || !unit || answers.target === null) return;
     const id = crypto.randomUUID();
     onOpenChange(false);
-    create.mutate(
-      {
+    // A promise, not callbacks: what follows (onCreated) must run even when the caller's
+    // screen is gone by then.
+    create
+      .mutateAsync({
         input: {
           id,
           metric: metric.key,
@@ -184,13 +209,15 @@ export function GoalCreateFlow({
           referenceLabel: option?.label ?? null,
           referenceDetail: option?.detail ?? null,
         },
-      },
-      {
-        onError: () => {
+      })
+      .then(
+        () => {
+          onCreated?.(id);
+        },
+        () => {
           showToast('Ziel konnte nicht gespeichert werden.');
         },
-      },
-    );
+      );
     showToast('Ziel angelegt', {
       label: 'Rückgängig',
       onAction: () => {
@@ -216,7 +243,11 @@ export function GoalCreateFlow({
                 onSelect={() => {
                   if (m.key !== answers.metric) {
                     // Another metric: what came after it no longer fits.
-                    set({ ...freshAnswers(today), metric: m.key, visibility: answers.visibility });
+                    set({
+                      ...freshAnswers(today, preset),
+                      metric: m.key,
+                      visibility: answers.visibility,
+                    });
                   }
                   setIndex(1);
                 }}
@@ -547,19 +578,28 @@ export function GoalCreateFlow({
         <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
           {rows.map((row) => (
             <li key={row.label}>
-              <button
-                type="button"
-                onClick={() => {
-                  goTo(row.step);
-                }}
-                className="flex min-h-tap w-full items-center gap-3 px-4 py-2 text-left active:bg-surface-3"
-              >
-                <span className="shrink-0 text-body">{row.label}</span>
-                <span className="min-w-0 flex-1 text-right text-subhead text-text-muted tabular-nums">
-                  {row.value}
-                </span>
-                <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
-              </button>
+              {steps.includes(row.step) ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    goTo(row.step);
+                  }}
+                  className="flex min-h-tap w-full items-center gap-3 px-4 py-2 text-left active:bg-surface-3"
+                >
+                  <span className="shrink-0 text-body">{row.label}</span>
+                  <span className="min-w-0 flex-1 text-right text-subhead text-text-muted tabular-nums">
+                    {row.value}
+                  </span>
+                  <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+                </button>
+              ) : (
+                <div className="flex min-h-tap w-full items-center gap-3 px-4 py-2">
+                  <span className="shrink-0 text-body">{row.label}</span>
+                  <span className="min-w-0 flex-1 text-right text-subhead text-text-muted tabular-nums">
+                    {row.value}
+                  </span>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -578,7 +618,7 @@ export function GoalCreateFlow({
         onOpenChange={(nextOpen) => {
           if (!nextOpen) requestClose();
         }}
-        title="Neues Ziel"
+        title={title}
         // One height for every screen: the sheet does not jump between them.
         className="min-h-sheet-min"
       >

@@ -1,5 +1,6 @@
 import type { BodyDayMarkerKind } from '@/features/body';
 import type { SeasonDayMarkerKind } from '@/features/seasons';
+import type { CalendarDayMarker } from '@/features/training';
 
 /**
  * Special days in the calendar, put together here from the modules that compute them
@@ -29,5 +30,39 @@ export function markersByDay<T extends DayMarker>(markers: readonly T[]): Map<st
   for (const list of days.values()) {
     list.sort((a, b) => RANK.indexOf(a.kind) - RANK.indexOf(b.kind));
   }
+  return days;
+}
+
+/** A marker with what the day sheet names it by (the season's name). */
+export interface NamedDayMarker extends DayMarker {
+  seasonName?: string;
+}
+
+const LABELS: Record<DayMarkerKind, string> = {
+  season_start: 'Saisonstart',
+  season_end: 'Saisonende',
+  weigh_day: 'Wiegetag',
+  checkin_due: 'Zwischenstand',
+};
+
+/** How the calendar shows a marker: flag (season), finish flag (end, highlighted), scale. */
+export function toCalendarMarker(marker: NamedDayMarker): CalendarDayMarker {
+  const season = marker.kind === 'season_start' || marker.kind === 'season_end';
+  return {
+    icon: marker.kind === 'season_end' ? 'finish' : season ? 'flag' : 'scale',
+    label: marker.seasonName
+      ? `${LABELS[marker.kind]} · ${marker.seasonName}`
+      : LABELS[marker.kind],
+    scope: season ? 'group' : 'personal',
+    strong: marker.kind === 'season_end',
+  };
+}
+
+/** The calendar's markers per day, in rank order (see markersByDay). */
+export function calendarMarkersByDay(
+  markers: readonly NamedDayMarker[],
+): Map<string, CalendarDayMarker[]> {
+  const days = new Map<string, CalendarDayMarker[]>();
+  for (const [day, list] of markersByDay(markers)) days.set(day, list.map(toCalendarMarker));
   return days;
 }

@@ -8,7 +8,9 @@ import type { PlanOccurrence } from '../../types';
 import { addDays, addMonths, dayKey, monthWeeks, startOfMonth } from '../../calendar';
 import { PlanSocialContext } from '../plans/social';
 import { DaySheet } from './DaySheet';
+import { DayMarkerIcon } from './DayMarkerIcon';
 import { DayMarks } from './DayMarks';
+import { CalendarMarkersContext, markerLabels } from './markers';
 import { byDay, dayTitle, monthTitle, WEEKDAYS, type LogRow } from './logData';
 
 /** Horizontal finger travel (px) that flips the month. */
@@ -63,6 +65,10 @@ export function MonthView({
     if (plan.status === 'done') continue;
     plansByDay.set(plan.onDate, [...(plansByDay.get(plan.onDate) ?? []), plan]);
   }
+  const markers = useContext(CalendarMarkersContext)({
+    from: dayKey(planRange.from),
+    to: dayKey(planRange.to),
+  });
   const me: LogRow = { id: 'me', initial: '', name: 'Du', color, workouts };
   const todayKey = dayKey(today);
 
@@ -155,7 +161,7 @@ export function MonthView({
                 <button
                   key={key}
                   type="button"
-                  aria-label={`${dayTitle.format(day)}${list.length ? `: ${String(list.length)} Training${list.length > 1 ? 's' : ''}` : ''}`}
+                  aria-label={`${dayTitle.format(day)}${list.length ? `: ${String(list.length)} Training${list.length > 1 ? 's' : ''}` : ''}${markerLabels(markers.get(key))}`}
                   onClick={() => {
                     setDay(key);
                   }}
@@ -169,7 +175,7 @@ export function MonthView({
                 >
                   <span
                     className={cn(
-                      'flex size-5 items-center justify-center rounded-pill text-caption tabular-nums [@media(max-height:700px)]:size-4',
+                      'relative flex size-5 items-center justify-center rounded-pill text-caption tabular-nums [@media(max-height:700px)]:size-4',
                       key === todayKey
                         ? 'bg-accent font-semibold text-on-accent'
                         : day > today
@@ -178,6 +184,7 @@ export function MonthView({
                     )}
                   >
                     {day.getDate()}
+                    <DayMarkerIcon marker={markers.get(key)?.[0]} />
                   </span>
                   <DayMarks
                     workouts={list}

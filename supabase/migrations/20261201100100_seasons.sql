@@ -513,7 +513,7 @@ begin
     insert into public.notifications
       (recipient_id, group_id, category, event, actor_id, target_type, target_id, data)
     select d.user_id, d.group_id, 'seasons', 'season_setup', p_actor, 'season', p_season_id,
-           jsonb_build_object('preview', format('„%s“ · Richte jetzt deine Ziele ein', d.name))
+           jsonb_build_object('preview', format('%s · Richte jetzt deine Ziele ein', d.name))
       from due d
     returning recipient_id
   )
@@ -574,7 +574,7 @@ begin
         insert into public.notifications
           (recipient_id, group_id, category, event, target_type, target_id, data)
         select d.user_id, s.group_id, 'seasons', 'season_ready_reminder', 'season', s.id,
-               jsonb_build_object('preview', format('„%s“ · Ziele einrichten und „Bereit“ tippen', s.name))
+               jsonb_build_object('preview', format('%s · Ziele einrichten und auf Bereit tippen', s.name))
           from due d
         returning recipient_id
       )
@@ -584,7 +584,9 @@ begin
       v_count := v_count + v_n;
     end if;
 
-    if v_today = s.starts_on and v_actor is not null then
+    -- From the start day on, not only on it: a missed job run or a season created to start
+    -- today still gets its card and push (once: unique index and log).
+    if v_today >= s.starts_on and v_actor is not null then
       insert into public.feed_events (group_id, actor_id, type, target_type, target_id, data, occurred_at)
       values (s.group_id, v_actor, 'season_started', 'season', s.id,
               jsonb_build_object('seasonId', s.id), p_now)
@@ -603,7 +605,7 @@ begin
         insert into public.notifications
           (recipient_id, group_id, category, event, target_type, target_id, data)
         select d.user_id, s.group_id, 'seasons', 'season_started', 'season', s.id,
-               jsonb_build_object('preview', format('„%s“ · Deine Ziele sind jetzt festgeschrieben', s.name))
+               jsonb_build_object('preview', format('%s · Deine Ziele sind jetzt festgeschrieben', s.name))
           from due d
         returning recipient_id
       )

@@ -33,11 +33,14 @@ export function GoalEditSheet({
   open,
   onOpenChange,
   onSave,
+  periodFixed = false,
 }: {
   goal: Goal;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: UpdateGoalInput) => void;
+  /** Period and visibility come from a frame (a season): only the values change here. */
+  periodFixed?: boolean;
 }) {
   const [today] = useState(todayKey);
   const [draft, setDraft] = useState<Draft>(() => draftOf(goal));
@@ -156,32 +159,40 @@ export function GoalEditSheet({
             />
           </ValueCard>
         </div>
-        <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
-          <DateRow
-            label="Start"
-            day={draft.startsOn}
-            today={today}
-            onChange={(startsOn) => {
-              set({ startsOn });
-            }}
-          />
-          <DateRow
-            label="Ende"
-            day={draft.endsOn}
-            today={today}
-            min={draft.startsOn}
-            onChange={(endsOn) => {
-              set({ endsOn });
-            }}
-          />
-        </ul>
-        <VisibilityChoice
-          value={draft.visibility}
-          note={sharingNote(goal.metric)}
-          onChange={(visibility) => {
-            set({ visibility });
-          }}
-        />
+        {periodFixed ? (
+          <p className="text-footnote text-text-muted">
+            Zeitraum und Sichtbarkeit gibt die Saison vor.
+          </p>
+        ) : (
+          <>
+            <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
+              <DateRow
+                label="Start"
+                day={draft.startsOn}
+                today={today}
+                onChange={(startsOn) => {
+                  set({ startsOn });
+                }}
+              />
+              <DateRow
+                label="Ende"
+                day={draft.endsOn}
+                today={today}
+                min={draft.startsOn}
+                onChange={(endsOn) => {
+                  set({ endsOn });
+                }}
+              />
+            </ul>
+            <VisibilityChoice
+              value={draft.visibility}
+              note={sharingNote(goal.metric)}
+              onChange={(visibility) => {
+                set({ visibility });
+              }}
+            />
+          </>
+        )}
         {error && changed && <p className="text-footnote text-danger">{error}</p>}
       </div>
     </Sheet>

@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button, ChevronRightIcon, PlusIcon, Sheet } from '@/shared/ui';
 import { useGoals } from '../api/useGoals';
 import { todayKey } from '../dates';
 import { goalTitle, rateSummaryText, thisWeekText } from '../format';
-import type { Goal } from '../types';
+import type { Goal, GoalFrame } from '../types';
 import { formatGoalDay, formatGoalPeriod, periodStateText, splitGoals } from '../view';
 import { GoalCreateFlow } from './GoalCreateFlow';
 import { GoalDetailSheet } from './GoalDetailSheet';
@@ -16,9 +16,21 @@ import { GoalProgressBar, GoalStatusLine, GoalValues } from './GoalBits';
  */
 export function GoalsOverview({
   header,
+  frameOf,
+  detailFooter,
+  openGoalId = null,
+  onGoalOpened,
 }: {
   /** Shown above my goals (8b: the current season, mounted from the app). */
   header?: ReactNode;
+  /** The frame a goal belongs to (8b: its season), from the app; those come first. */
+  frameOf?: (goal: Goal) => GoalFrame | null;
+  /** Below a goal's figures in its detail (e.g. comments), from the app. */
+  detailFooter?: (goal: Goal) => ReactNode;
+  /** A goal to open (a link from a push or the feed): opened once it is loaded. */
+  openGoalId?: string | null;
+  /** The link was handled (the caller drops it). */
+  onGoalOpened?: () => void;
 }) {
   const [today] = useState(todayKey);
   // One list with the archived ones: the overview counts them for "Beendet".
@@ -28,13 +40,32 @@ export function GoalsOverview({
   // Kept while the sheet closes, so it does not empty on the way out.
   const [shownId, setShownId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const { active, ended } = splitGoals(goals.data ?? []);
+  const split = splitGoals(goals.data ?? []);
+  const framed = (goal: Goal) => (frameOf?.(goal) ? 0 : 1);
+  // Goals of a frame (the season) first, otherwise in the module's order.
+  const active = [...split.active].sort((a, b) => framed(a) - framed(b));
+  const { ended } = split;
   const shown = (goals.data ?? []).find((g) => g.id === shownId) ?? null;
 
   function open(goal: Goal) {
     setShownId(goal.id);
     setDetailOpen(true);
   }
+
+  // From a link: open the goal once it is there (once per link), then let the caller drop
+  // the link (it navigates, so in an effect).
+  const linked = openGoalId ? (goals.data?.find((g) => g.id === openGoalId) ?? null) : null;
+  const [handledLink, setHandledLink] = useState<string | null>(null);
+  const settled = openGoalId !== null && (linked !== null || !goals.isPending);
+  if (openGoalId === null && handledLink !== null) setHandledLink(null);
+  if (settled && openGoalId !== handledLink) {
+    setHandledLink(openGoalId);
+    if (linked) open(linked);
+  }
+  useEffect(() => {
+    if (settled) onGoalOpened?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per link
+  }, [settled, openGoalId]);
 
   const newGoal = (
     <Button
@@ -78,6 +109,7 @@ export function GoalsOverview({
                 <GoalCard
                   goal={goal}
                   today={today}
+                  frame={frameOf?.(goal) ?? null}
                   onOpen={() => {
                     open(goal);
                   }}
@@ -135,13 +167,29 @@ export function GoalsOverview({
       </Sheet>
 
       <GoalCreateFlow open={creating} onOpenChange={setCreating} />
-      <GoalDetailSheet goal={shown} open={detailOpen} onOpenChange={setDetailOpen} />
+      <GoalDetailSheet
+        goal={shown}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        frame={shown ? (frameOf?.(shown) ?? null) : null}
+        footer={shown ? detailFooter?.(shown) : null}
+      />
     </div>
   );
 }
 
 /** One goal on the overview; a tap opens its detail. */
-function GoalCard({ goal, today, onOpen }: { goal: Goal; today: string; onOpen: () => void }) {
+function GoalCard({
+  goal,
+  today,
+  frame,
+  onOpen,
+}: {
+  goal: Goal;
+  today: string;
+  frame: GoalFrame | null;
+  onOpen: () => void;
+}) {
   const title = goalTitle(goal);
   const sub = [
     title !== goal.metricLabel ? goal.metricLabel : null,
@@ -160,7 +208,14 @@ function GoalCard({ goal, today, onOpen }: { goal: Goal; today: string; onOpen: 
     >
       <div className="flex w-full items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-body font-semibold">{title}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-body font-semibold">{title}</span>
+            {frame && (
+              <span className="shrink-0 rounded-pill bg-surface-3 px-2 py-0.5 text-caption font-semibold text-text-muted">
+                {frame.tag}
+              </span>
+            )}
+          </span>
           <span className="truncate text-footnote text-text-muted">{sub}</span>
         </div>
         <ChevronRightIcon aria-hidden className="mt-0.5 shrink-0 text-text-subtle" />

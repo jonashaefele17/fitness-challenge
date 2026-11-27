@@ -41,3 +41,15 @@ export {
   seasonRulesLines,
   seasonWeekText,
 } from './format';
+export {
+  myGoalIds,
+  newSeasonDraft,
+  nextMonday,
+  seasonGoalFrame,
+  seasonStarted,
+  setupSteps,
+  validateSeasonDraft,
+  type SeasonDraft,
+  type SetupStep,
+} from './setup';
+export { SeasonBlock } from './components/SeasonBlock';

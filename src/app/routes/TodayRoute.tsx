@@ -8,6 +8,7 @@ import { useMyProfile } from '@/features/profile';
 import { Screen } from '@/shared/ui';
 import { targetParams, useOpenTarget } from '../targets';
 import { TodayHero } from '../today/TodayHero';
+import { TodayUpcoming } from '../today/TodayUpcoming';
 import { WeekStrip } from '../today/WeekStrip';
 
 const dateLine = new Intl.DateTimeFormat('de', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -43,6 +44,7 @@ export function TodayRoute() {
         />
         <WeighTodayCard />
         <CheckinTodayCard />
+        <TodayUpcoming />
         <WeekStrip />
         <RecentNotifications
           onOpenTarget={openTarget}

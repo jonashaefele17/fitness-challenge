@@ -143,7 +143,15 @@ export function FeedList({ groupId, renderBody, renderActions, highlightId }: Fe
         </Card>
       ) : (
         cards.map((card) =>
-          card.kind === 'joined' ? (
+          card.kind === 'season' ? (
+            <SeasonCard
+              key={card.id}
+              card={card}
+              highlighted={card.id === highlighted}
+              body={renderBody?.(card)}
+              actions={renderActions?.(card)}
+            />
+          ) : card.kind === 'joined' ? (
             <JoinCard
               key={card.id}
               card={card}
@@ -247,6 +255,47 @@ function JoinCard({
         <span className="block text-footnote text-text-subtle">{dayLabel(card.day)}</span>
       </p>
       {actions && <div className="flex items-center gap-1">{actions}</div>}
+    </Card>
+  );
+}
+
+/**
+ * A season's news (announced, started, a goal corrected) as a small card from the admin;
+ * what it says comes from the app (renderBody). Nothing to say: no card.
+ */
+function SeasonCard({
+  card,
+  highlighted,
+  body,
+  actions,
+}: {
+  card: FeedCard;
+  highlighted: boolean;
+  body: ReactNode;
+  actions: ReactNode;
+}) {
+  const member = useMemberLookup(card.groupId)(card.actorId);
+  return (
+    <Card
+      id={`feed-${card.id}`}
+      className={cn(
+        'flex flex-col gap-3 transition-colors duration-(--duration-base)',
+        'has-[[data-feed-body]:empty]:hidden',
+        highlighted && 'border-accent',
+      )}
+    >
+      <div className="flex items-center gap-3">
+        {member && <Avatar profile={member} size="sm" />}
+        <p className="min-w-0 flex-1 truncate text-footnote text-text-subtle">
+          <span className="font-semibold text-text-muted">Saison</span>
+          {' · '}
+          {member?.displayName ?? 'Admin'} · {dayLabel(card.day)}
+        </p>
+      </div>
+      <div data-feed-body className="contents">
+        {body}
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </Card>
   );
 }

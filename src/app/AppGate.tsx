@@ -4,6 +4,7 @@ import { useCalendarPeople, useHabitCompare, useHistoryCompare } from '@/feature
 import { HabitCompareContext } from '@/features/habits';
 import { ActiveGroupProvider, useMyGroups } from '@/features/groups';
 import {
+  CalendarMarkersContext,
   CalendarPeopleContext,
   HistoryCompareContext,
   LiveWorkoutContext,
@@ -15,6 +16,7 @@ import { planSocialSlots, useInvitationsRealtime } from '@/features/invitations'
 import { liveWorkoutSlots } from '@/features/live-training';
 import { useMyProfile } from '@/features/profile';
 import { Button } from '@/shared/ui';
+import { useCalendarMarkers } from './calendar/useDayMarkers';
 import { WorkoutSocialProvider } from './feed/WorkoutSocial';
 import { paths } from './paths';
 import { router } from './router';
@@ -59,22 +61,25 @@ export function AppGate() {
       <HistoryCompareContext.Provider value={useHistoryCompare}>
         <HabitCompareContext.Provider value={useHabitCompare}>
           <CalendarPeopleContext.Provider value={useCalendarPeople}>
-            {/* Comments and reactions plug into every workout detail. */}
-            <WorkoutSocialProvider>
-              {/* Training opens finished workouts for editing through the app's route. */}
-              <WorkoutEditContext.Provider value={editWorkout}>
-                <OpenLiveWorkoutContext.Provider value={openLiveWorkout}>
-                  {/* Invitations plug into plans (who comes along, answers, "Ich komm mit"). */}
-                  <PlanSocialContext.Provider value={planSocialSlots}>
-                    {/* Training together: shared exercises, the others' sets. */}
-                    <LiveWorkoutContext.Provider value={liveWorkoutSlots}>
-                      <InvitationsSync />
-                      <RouterProvider router={router} />
-                    </LiveWorkoutContext.Provider>
-                  </PlanSocialContext.Provider>
-                </OpenLiveWorkoutContext.Provider>
-              </WorkoutEditContext.Provider>
-            </WorkoutSocialProvider>
+            {/* Seasons and body put their special days into the calendar. */}
+            <CalendarMarkersContext.Provider value={useCalendarMarkers}>
+              {/* Comments and reactions plug into every workout detail. */}
+              <WorkoutSocialProvider>
+                {/* Training opens finished workouts for editing through the app's route. */}
+                <WorkoutEditContext.Provider value={editWorkout}>
+                  <OpenLiveWorkoutContext.Provider value={openLiveWorkout}>
+                    {/* Invitations plug into plans (who comes along, answers, "Ich komm mit"). */}
+                    <PlanSocialContext.Provider value={planSocialSlots}>
+                      {/* Training together: shared exercises, the others' sets. */}
+                      <LiveWorkoutContext.Provider value={liveWorkoutSlots}>
+                        <InvitationsSync />
+                        <RouterProvider router={router} />
+                      </LiveWorkoutContext.Provider>
+                    </PlanSocialContext.Provider>
+                  </OpenLiveWorkoutContext.Provider>
+                </WorkoutEditContext.Provider>
+              </WorkoutSocialProvider>
+            </CalendarMarkersContext.Provider>
           </CalendarPeopleContext.Provider>
         </HabitCompareContext.Provider>
       </HistoryCompareContext.Provider>

@@ -7,7 +7,9 @@ import { addDays, dayKey, startOfWeek } from '../../calendar';
 import type { CalendarWorkout, PlanOccurrence } from '../../types';
 import { PlanSocialContext, type PlanPerson } from '../plans/social';
 import { DaySheet } from './DaySheet';
+import { DayMarkerIcon } from './DayMarkerIcon';
 import { DayMarks } from './DayMarks';
+import { CalendarMarkersContext, markerLabels, type CalendarDayMarker } from './markers';
 import { ACCENT, byDay, dayTitle, monthTitle, plansByDay, WEEKDAYS, type LogRow } from './logData';
 import { CalendarPeopleContext } from './people';
 
@@ -107,6 +109,17 @@ export function GroupWeeks({
     ]),
   );
   const ownPlansByRow = rows.map((row) => plansByDay(row.plans));
+  // Special days: the group's at the date row (once for all), mine in my row.
+  const markers = useContext(CalendarMarkersContext)({
+    from: dayKey(range.from),
+    to: dayKey(addDays(range.to, -1)),
+  });
+  const groupMarker = (key: string) => markers.get(key)?.find((m) => m.scope === 'group');
+  const myMarkers = new Map<string, CalendarDayMarker>();
+  for (const [key, list] of markers) {
+    const mine = list.find((m) => m.scope === 'personal');
+    if (mine) myMarkers.set(key, mine);
+  }
 
   // Reach down to the screen edge and run on behind the (translucent) navigation like any
   // iOS list; the bottom padding lets the last week scroll clear of it. Start at today's week.
@@ -232,7 +245,7 @@ export function GroupWeeks({
                       <button
                         key={key}
                         type="button"
-                        aria-label={dayTitle.format(date)}
+                        aria-label={`${dayTitle.format(date)}${markerLabels(markers.get(key))}`}
                         onClick={() => {
                           setDay(key);
                         }}
@@ -240,7 +253,7 @@ export function GroupWeeks({
                       >
                         <span
                           className={cn(
-                            'flex size-6 items-center justify-center rounded-pill',
+                            'relative flex size-6 items-center justify-center rounded-pill',
                             isToday
                               ? 'bg-accent font-semibold text-on-accent'
                               : date > today
@@ -249,6 +262,7 @@ export function GroupWeeks({
                           )}
                         >
                           {date.getDate()}
+                          <DayMarkerIcon marker={groupMarker(key)} className="-right-2" />
                         </span>
                       </button>
                     );
@@ -263,6 +277,7 @@ export function GroupWeeks({
                     planMap={rowPlans[rowIndex] ?? new Map<string, PlanOccurrence[]>()}
                     personId={personOf(row)}
                     peopleOf={peopleOf}
+                    markers={row.id === 'me' ? myMarkers : undefined}
                     onOpen={onOpen}
                     onDay={setDay}
                   />
@@ -295,6 +310,7 @@ function PersonWeek({
   planMap,
   personId,
   peopleOf,
+  markers,
   onOpen,
   onDay,
 }: {
@@ -304,6 +320,8 @@ function PersonWeek({
   planMap: Map<string, PlanOccurrence[]>;
   personId: string;
   peopleOf: (plan: PlanOccurrence) => PlanPerson[];
+  /** My special days (weigh day …): a small mark in the cell's corner. */
+  markers?: ReadonlyMap<string, CalendarDayMarker> | undefined;
   onOpen: (workoutId: string) => void;
   onDay: (key: string) => void;
 }) {
@@ -321,18 +339,23 @@ function PersonWeek({
         const workouts = map.get(key) ?? [];
         const plans = planMap.get(key) ?? [];
         const first = workouts[0];
+        const marker = markers?.get(key);
+        // In the corner, never over the training's icon.
+        const mark = <DayMarkerIcon marker={marker} className="top-1 right-1" />;
         // Empty: the whole cell opens the day (like the date above), e.g. to plan.
         if (!first && plans.length === 0) {
           return (
             <button
               key={key}
               type="button"
-              aria-label={`${row.name}, ${dayTitle.format(date)}`}
+              aria-label={`${row.name}, ${dayTitle.format(date)}${marker ? `, ${marker.label}` : ''}`}
               onClick={() => {
                 onDay(key);
               }}
-              className="min-h-tap rounded-sm active:bg-surface-3"
-            />
+              className="relative min-h-tap rounded-sm active:bg-surface-3"
+            >
+              {mark}
+            </button>
           );
         }
         return (
@@ -345,9 +368,10 @@ function PersonWeek({
               if (first && workouts.length === 1 && plans.length === 0) onOpen(first.id);
               else onDay(key);
             }}
-            className="flex min-h-tap min-w-0 items-center justify-center rounded-sm active:bg-surface-3"
+            className="relative flex min-h-tap min-w-0 items-center justify-center rounded-sm active:bg-surface-3"
             style={{ color: row.color }}
           >
+            {mark}
             <DayMarks
               workouts={workouts}
               plans={plans}

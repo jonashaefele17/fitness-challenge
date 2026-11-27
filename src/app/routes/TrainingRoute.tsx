@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { DayWeight } from '@/features/body';
 import { NotificationBell } from '@/features/notifications';
 import { LinkedPlanSheet, TemplatesView, WorkoutLog } from '@/features/training';
+import { DaySpecial } from '../calendar/DaySpecial';
 import { paths } from '../paths';
 import { targetParams, useOpenTarget } from '../targets';
 import { Screen, SegmentedControl } from '@/shared/ui';
@@ -29,7 +29,7 @@ export function TrainingRoute() {
           ]}
         />
         {section === 'calendar' ? (
-          <WorkoutLog daySpecial={(day) => <DayWeight day={day} />} />
+          <WorkoutLog daySpecial={(day) => <DaySpecial day={day} />} />
         ) : (
           <TemplatesView
             onStarted={() => {

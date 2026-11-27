@@ -23,6 +23,118 @@ export type Database = {
   };
   public: {
     Tables: {
+      body_checkin_reminder_log: {
+        Row: {
+          due_on: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          due_on: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          due_on?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_checkins: {
+        Row: {
+          created_at: string;
+          id: string;
+          on_date: string;
+          skipped: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          on_date: string;
+          skipped?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          on_date?: string;
+          skipped?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      body_measurement_kinds: {
+        Row: {
+          hint: string;
+          image_path: string | null;
+          key: string;
+          label: string;
+          sort: number;
+          step: number;
+          unit: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          hint: string;
+          image_path?: string | null;
+          key: string;
+          label: string;
+          sort: number;
+          step?: number;
+          unit?: string;
+        };
+        Update: {
+          hint?: string;
+          image_path?: string | null;
+          key?: string;
+          label?: string;
+          sort?: number;
+          step?: number;
+          unit?: string;
+        };
+        Relationships: [];
+      };
+      body_measurements: {
+        Row: {
+          checkin_id: string;
+          kind: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          checkin_id: string;
+          kind: string;
+          value: number;
+        };
+        Update: {
+          checkin_id?: string;
+          kind?: string;
+          value?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'body_measurements_checkin_id_fkey';
+            columns: ['checkin_id'];
+            isOneToOne: false;
+            referencedRelation: 'body_checkins';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'body_measurements_kind_fkey';
+            columns: ['kind'];
+            isOneToOne: false;
+            referencedRelation: 'body_measurement_kinds';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
       body_reminder_log: {
         Row: {
           on_date: string;
@@ -44,6 +156,9 @@ export type Database = {
       };
       body_settings: {
         Row: {
+          checkin_every_weeks: number | null;
+          checkin_reminder_at: string | null;
+          hidden_measurement_kinds: string[];
           updated_at: string;
           user_id: string;
           weigh_reminder_at: string | null;
@@ -52,6 +167,9 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          checkin_every_weeks?: number | null;
+          checkin_reminder_at?: string | null;
+          hidden_measurement_kinds?: string[];
           updated_at?: string;
           user_id?: string;
           weigh_reminder_at?: string | null;
@@ -59,6 +177,9 @@ export type Database = {
           weight_share?: string;
         };
         Update: {
+          checkin_every_weeks?: number | null;
+          checkin_reminder_at?: string | null;
+          hidden_measurement_kinds?: string[];
           updated_at?: string;
           user_id?: string;
           weigh_reminder_at?: string | null;
@@ -2542,6 +2663,40 @@ export type Database = {
         Returns: undefined;
       };
       archive_habit: { Args: { p_archive: boolean; p_habit_id: string }; Returns: undefined };
+      body_checkin_status: {
+        Args: { p_today: string; p_user_id: string };
+        Returns: {
+          days_until: number;
+          due: boolean;
+          every_weeks: number;
+          last_done_on: string;
+          last_on: string;
+          next_due_on: string;
+        }[];
+      };
+      body_measurement_history: {
+        Args: { p_kind: string; p_user_id: string };
+        Returns: {
+          checkin_id: string;
+          on_date: string;
+          value: number;
+        }[];
+      };
+      body_measurement_stats: {
+        Args: { p_user_id: string };
+        Returns: {
+          change_since_first: number;
+          change_since_previous: number;
+          first_on: string;
+          first_value: number;
+          kind: string;
+          latest_on: string;
+          latest_value: number;
+          previous_on: string;
+          previous_value: number;
+          value_count: number;
+        }[];
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -2929,6 +3084,10 @@ export type Database = {
         Returns: undefined;
       };
       restore_workout: { Args: { p_snapshot: Json; p_workout_id: string }; Returns: undefined };
+      save_body_checkin: {
+        Args: { p_id?: string; p_on_date: string; p_values: Json };
+        Returns: string;
+      };
       save_habit: {
         Args: { p_def: Json; p_habit_id: string; p_template_id: string; p_valid_from: string };
         Returns: string;
@@ -2985,6 +3144,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      skip_body_checkin: { Args: { p_id?: string; p_on_date: string }; Returns: string };
       start_workout: {
         Args: {
           p_location_id?: string;

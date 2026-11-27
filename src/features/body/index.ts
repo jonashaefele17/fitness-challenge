@@ -1,6 +1,6 @@
 export type * from './types';
+export { bodyKeys } from './api/keys';
 export {
-  bodyKeys,
   newWeighIn,
   useAddWeighIn,
   useArchiveScale,
@@ -22,6 +22,27 @@ export {
   weightProgressOptions,
   type NewWeighIn,
 } from './api/useWeight';
+export {
+  useCheckins,
+  useCheckinStatus,
+  useDeleteCheckin,
+  useMeasurementHistory,
+  useMeasurementKinds,
+  useMeasurementStats,
+  useRestoreCheckin,
+  useSaveCheckin,
+  useSkipCheckin,
+} from './api/useCheckins';
+export {
+  checkinDueText,
+  checkinOn,
+  checkinRhythmSummary,
+  formatCm,
+  formatSignedCm,
+  newCheckin,
+  parseCm,
+  visibleKinds,
+} from './checkin';
 export { nearestIndex } from './chart';
 export {
   dayKey,

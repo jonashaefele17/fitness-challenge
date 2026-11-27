@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import { weightWeek, weightWeekRange } from '../progress';
+import { bodyKeys } from './keys';
 import type {
   BodySettings,
   Scale,
@@ -13,25 +14,6 @@ import type {
   WeightShareView,
   WeightSummary,
 } from '../types';
-
-export const bodyKeys = {
-  all: (userId: string) => ['body', userId] as const,
-  scales: (userId: string) => [...bodyKeys.all(userId), 'scales'] as const,
-  weighInsAll: (userId: string) => [...bodyKeys.all(userId), 'weigh-ins'] as const,
-  /** from null: from the first entry ("Alles"). */
-  weighIns: (userId: string, from: string | null, to: string) =>
-    [...bodyKeys.weighInsAll(userId), from, to] as const,
-  days: (userId: string, from: string | null, to: string) =>
-    [...bodyKeys.all(userId), 'days', from, to] as const,
-  /** personId: whose figures (default: mine). */
-  summary: (userId: string, from: string | null, to: string, personId: string = userId) =>
-    [...bodyKeys.all(userId), 'summary', from, to, personId] as const,
-  progress: (userId: string, personId: string, from: string | null, to: string) =>
-    [...bodyKeys.all(userId), 'progress', personId, from, to] as const,
-  suggestion: (userId: string, scaleId: string) =>
-    [...bodyKeys.all(userId), 'suggestion', scaleId] as const,
-  settings: (userId: string) => [...bodyKeys.all(userId), 'settings'] as const,
-};
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
@@ -450,7 +432,9 @@ export function useWeightSummary(from: string | null, to: string, personId?: str
 }
 
 function toShareView(value: string | null | undefined): WeightShareView | null {
-  return value === 'own' || value === 'kg' || value === 'percent' ? value : null;
+  return value === 'own' || value === 'days' || value === 'kg' || value === 'percent'
+    ? value
+    : null;
 }
 
 /**
@@ -513,13 +497,19 @@ const DEFAULT_SETTINGS: BodySettings = {
   weighReminderDays: [],
   weighReminderAt: null,
   weightShare: 'private',
+  checkinEveryWeeks: null,
+  checkinReminderAt: null,
+  hiddenMeasurementKinds: [],
 };
 
 function toWeightShare(value: string | null | undefined): WeightShare {
-  return value === 'percent' || value === 'kg' ? value : 'private';
+  return value === 'percent' || value === 'kg' || value === 'days' ? value : 'private';
 }
 
-/** My weigh-in reminder and who sees my weight (no row yet: no reminder, private). */
+/**
+ * My weigh-in reminder, who sees my weight, the Zwischenstand rhythm and the measurements I
+ * leave out (no row yet: no reminder, private, no rhythm, nothing hidden).
+ */
 export function useBodySettings() {
   const userId = useUserId();
   return useQuery({
@@ -527,7 +517,9 @@ export function useBodySettings() {
     queryFn: async (): Promise<BodySettings> => {
       const { data, error } = await supabase
         .from('body_settings')
-        .select('weigh_reminder_days, weigh_reminder_at, weight_share')
+        .select(
+          'weigh_reminder_days, weigh_reminder_at, weight_share, checkin_every_weeks, checkin_reminder_at, hidden_measurement_kinds',
+        )
         .eq('user_id', userId)
         .maybeSingle();
       if (error) throw error;
@@ -535,14 +527,18 @@ export function useBodySettings() {
         weighReminderDays: data?.weigh_reminder_days ?? [],
         weighReminderAt: data?.weigh_reminder_at ? data.weigh_reminder_at.slice(0, 5) : null,
         weightShare: toWeightShare(data?.weight_share),
+        checkinEveryWeeks: data?.checkin_every_weeks ?? null,
+        checkinReminderAt: data?.checkin_reminder_at ? data.checkin_reminder_at.slice(0, 5) : null,
+        hiddenMeasurementKinds: data?.hidden_measurement_kinds ?? [],
       };
     },
   });
 }
 
 /**
- * Save settings; only the fields given change, shows at once. Choosing days and a time
- * switches the reminder's push category on. Undo: save the old values again.
+ * Save settings; only the fields given change, shows at once. Choosing days and a time (or a
+ * check-in rhythm and a time) for the first time switches the "Körper" push category on.
+ * Undo: save the old values again.
  */
 export function useSaveBodySettings() {
   const queryClient = useQueryClient();
@@ -558,6 +554,15 @@ export function useSaveBodySettings() {
           weigh_reminder_at: settings.weighReminderAt,
         }),
         ...(settings.weightShare !== undefined && { weight_share: settings.weightShare }),
+        ...(settings.checkinEveryWeeks !== undefined && {
+          checkin_every_weeks: settings.checkinEveryWeeks,
+        }),
+        ...(settings.checkinReminderAt !== undefined && {
+          checkin_reminder_at: settings.checkinReminderAt,
+        }),
+        ...(settings.hiddenMeasurementKinds !== undefined && {
+          hidden_measurement_kinds: [...new Set(settings.hiddenMeasurementKinds)],
+        }),
       });
       if (error) throw error;
     },
@@ -574,6 +579,12 @@ export function useSaveBodySettings() {
     onError: (_error, _settings, previous) => {
       queryClient.setQueryData(bodyKeys.settings(userId), previous);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: bodyKeys.settings(userId) }),
+    onSettled: async (_data, _error, settings) => {
+      await queryClient.invalidateQueries({ queryKey: bodyKeys.settings(userId) });
+      // The rhythm decides when the Zwischenstand is due.
+      if (settings.checkinEveryWeeks !== undefined) {
+        await queryClient.invalidateQueries({ queryKey: bodyKeys.checkinsAll(userId) });
+      }
+    },
   });
 }

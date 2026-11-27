@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Entwurf vom 27.11.2026, mit Jonas in Abstimmung. Entschieden ist, was unter „Entschieden“ steht; die Punkte unter „Offen“ müssen vor dem Bauen geklärt sein.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -28,7 +28,7 @@ Daraus folgen zwei getrennte Dinge:
   - ein Körpermaß (z. B. Bauchumfang)
 - Berechnet, nicht gespeichert: aktueller Wert, Fortschritt in %, Status „auf Kurs / hinter Plan“ gegen die Linie vom Start zum Ziel, „erreicht“.
 - Startwert automatisch vorgeschlagen und änderbar: Gewicht = aktueller Durchschnitt, Kraft = bester Satz der letzten 4 Wochen, Maß = letzter Zwischenstand.
-- Oberfläche: Ziele unter „Ich“ (siehe offene Frage 5), Ziel anlegen in wenigen Schritten, Detail mit Verlauf gegen die Ziellinie.
+- Oberfläche: neuer Reiter „Ziele“ unter „Ich“ an erster Stelle; „Einstellungen“ wandert aus der Reiterleiste in ein Zahnrad oben rechts. Ziel anlegen in wenigen Schritten, Detail mit Verlauf gegen die Ziellinie.
 - Änderungen sind versioniert (`valid_from`); archivieren statt löschen.
 - Technik: neues persönliches Modul `goals`. Die Werte der Messgrößen kommen aus SQL-Funktionen über Training, Körper und Habits, weil persönliche Module sich im Frontend nicht gegenseitig importieren.
 
@@ -37,7 +37,16 @@ Daraus folgen zwei getrennte Dinge:
 - Admin legt an: Name, Zeitraum, Setup-Phase, Teilnehmer, Regeln. Alle Teilnehmer bekommen eine Push.
 - Regeln der Saison (als Daten): Wiegen pro Woche, Zwischenstand alle x Wochen, Pflicht-Zielarten.
   - Die Regeln stellen bei den Teilnehmern die persönlichen Rhythmen aus Baustein 7 ein (Wiege-Erinnerung, Zwischenstand-Rhythmus); der Wochentag und die Uhrzeit bleiben persönlich.
-- Setup-Phase: jede Person setzt ihre Saisonziele und ihre Sichtbarkeit. Die Ziele der anderen sind sichtbar und kommentierbar.
+- Setup-Phase: jede Person richtet die Saison zum Durchklicken ein, ausgelöst durch die Push und eine Karte auf „Heute“. Die Ziele der anderen sind sichtbar und kommentierbar.
+  1. Rahmen (Name, Zeitraum, Teilnehmer, Regeln; nur lesen)
+  2. Trainingsziel (Pflicht) mit Mindestziel und Ziel
+  3. Weitere Ziele: Zielarten wählen, pro Art ein Bildschirm mit vorgeschlagenem Startwert
+  4. Habits: vorhandene ankreuzen, die in der Saison zählen, jeweils mit Quote; neues Habit über den vorhandenen Editor
+  5. Gewicht teilen
+  6. Rhythmen: Wiegetag und Uhrzeiten der Erinnerungen
+  7. Zusammenfassung, „Bereit“
+  - Jeder Schritt wird gespeichert (abbrechen und später weitermachen); nur Schritt 2 ist Pflicht; bis zum Saisonstart bleibt alles änderbar.
+- Im Reiter „Ziele“ steht die laufende Saison ganz oben: Name, Woche x von y, Tage bis zum Ende, Regeln und der eigene Stand dazu; darunter die Saisonziele, dann die privaten Ziele. Dort auch „Pause eintragen (krank, Urlaub)“.
 - Start: Ziele werden festgeschrieben, Feed-Karte „Saison gestartet“. Danach Korrekturen nur durch den Admin, sichtbar im Feed. Private Zusatzziele bleiben jederzeit möglich und zählen nicht im Vergleich.
 - Später Einstieg mit eigenem Startdatum.
 - Kalender-Marker an der Tageszahl (berechnet, nicht gespeichert): Saisonstart und Saisonende als Fahne, Wiegetag und Zwischenstand als Waage. Pro Tag höchstens ein Marker; alles Weitere im Tages-Sheet unter „Besonderes“. Der Platz für Trainings bleibt frei.
@@ -75,12 +84,8 @@ Daraus folgen zwei getrennte Dinge:
 - Die Regeln „wöchentlich wiegen“ und „Zwischenstand alle x Wochen“ zählen in der Konsistenz („in x von y Wochen gewogen“), ohne Werte zu zeigen.
 - Dauer und Setup-Phase legt der Admin pro Saison fest.
 - 8d (Saisonende, Rückblick, Archiv) wird zurückgehalten und während der ersten Saison gebaut.
-
-## Offen – vor dem Bauen entscheiden
-
-1. **Pausen:** Krankheit und Urlaub gibt es schon bei den Habits (Ich → Habits → Einstellungen → „Pausen“, von – bis). Vorschlag: dieselbe Pause gilt auch für Trainingsziel und Saisonregeln; eintragen an einer Stelle, die nicht nach Habits aussieht.
-2. **Wo Ziele und Saison stehen:** eigener Reiter unter „Ich“ an erster Stelle, oben die laufende Saison mit ihren Rahmenbedingungen, darunter die Ziele. Name des Reiters und Platz bei dann fünf Reitern offen.
-3. **Ablauf des Setups** einer Saison für die Teilnehmer.
+- Pausen: Die Pause aus den Habits (krank, Urlaub, von – bis) gilt auch für das Trainingsziel und die Saisonregeln; eingetragen wird sie im Reiter „Ziele“.
+- Der Reiter heißt „Ziele“, nicht „Saison“, damit er ohne laufende Saison nicht leer ist.
 
 ## Reihenfolge und Umfang
 

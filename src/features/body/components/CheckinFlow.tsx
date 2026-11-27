@@ -12,6 +12,7 @@ import { useBodySettings } from '../api/useWeight';
 import { checkinOn, formatCm, formatSignedCm, newCheckin, parseCm } from '../checkin';
 import {
   answersChanged,
+  canSaveCheckin,
   checkinSteps,
   checkinValues,
   initialAnswers,
@@ -85,8 +86,9 @@ export function CheckinFlow({
     }
   }
 
+  // The photos screen is not built yet: leave its step out until it is.
   const steps: CheckinStep[] = kinds
-    ? checkinSteps(kinds, settings?.hiddenMeasurementKinds ?? [])
+    ? checkinSteps(kinds, settings?.hiddenMeasurementKinds ?? []).filter((s) => s.type !== 'photos')
     : [];
   const summaryIndex = steps.findIndex((s) => s.type === 'summary');
   const initial = initialAnswers(checkin, steps);
@@ -204,7 +206,7 @@ export function CheckinFlow({
             onEdit={(kind) => {
               setIndex(steps.findIndex((s) => s.type === 'measure' && s.kind.key === kind.key));
             }}
-            canSave={Object.keys(checkinValues(steps, answers, checkin)).length > 0}
+            canSave={canSaveCheckin(steps, answers, checkin)}
             onSave={saveCheckin}
             onDelete={
               checkin

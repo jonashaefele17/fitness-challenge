@@ -138,6 +138,83 @@ export type Database = {
           },
         ];
       };
+      body_photo_poses: {
+        Row: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          label: string;
+          sort: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          sort?: number;
+        };
+        Relationships: [];
+      };
+      body_photos: {
+        Row: {
+          bytes: number;
+          checkin_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          height: number;
+          id: string;
+          path: string;
+          pose: string;
+          thumb_path: string;
+          user_id: string;
+          width: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes: number;
+          checkin_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          height: number;
+          id?: string;
+          path: string;
+          pose: string;
+          thumb_path: string;
+          user_id?: string;
+          width: number;
+        };
+        Update: {
+          bytes?: number;
+          checkin_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          height?: number;
+          id?: string;
+          path?: string;
+          pose?: string;
+          thumb_path?: string;
+          user_id?: string;
+          width?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'body_photos_checkin_id_user_id_fkey';
+            columns: ['checkin_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'body_checkins';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'body_photos_pose_fkey';
+            columns: ['pose'];
+            isOneToOne: false;
+            referencedRelation: 'body_photo_poses';
+            referencedColumns: ['key'];
+          },
+        ];
+      };
       body_reminder_log: {
         Row: {
           on_date: string;
@@ -2657,6 +2734,19 @@ export type Database = {
         Args: { p_on_date: string; p_plan_id: string; p_user_id: string };
         Returns: undefined;
       };
+      add_body_photo: {
+        Args: {
+          p_bytes: number;
+          p_checkin_id: string;
+          p_height: number;
+          p_id?: string;
+          p_path: string;
+          p_pose: string;
+          p_thumb_path: string;
+          p_width: number;
+        };
+        Returns: string;
+      };
       adopt_habit: {
         Args: { p_def: Json; p_source_id: string; p_valid_from: string };
         Returns: string;
@@ -2698,6 +2788,14 @@ export type Database = {
           previous_on: string;
           previous_value: number;
           value_count: number;
+        }[];
+      };
+      body_photos_to_purge: {
+        Args: { p_grace_seconds?: number };
+        Returns: {
+          id: string;
+          path: string;
+          thumb_path: string;
         }[];
       };
       check_invite: {
@@ -3122,6 +3220,10 @@ export type Database = {
           measure: Database['public']['Enums']['exercise_measure'];
           name: string;
         }[];
+      };
+      set_body_checkin_photos: {
+        Args: { p_checkin_id: string; p_photo_ids: string[] };
+        Returns: number;
       };
       set_habit_entry: {
         Args: { p_habit_id: string; p_on_date: string; p_source?: string; p_value: Json };

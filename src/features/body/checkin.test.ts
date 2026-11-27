@@ -17,6 +17,7 @@ const checkin = (id: string, onDate: string, skipped = false): BodyCheckin => ({
   onDate,
   skipped,
   values: skipped ? {} : { bauch: 90 },
+  photos: [],
   createdAt: '2026-11-01T08:00:00Z',
   updatedAt: '2026-11-01T08:00:00Z',
 });

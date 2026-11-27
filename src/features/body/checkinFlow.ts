@@ -1,5 +1,6 @@
 import type {
   BodyCheckin,
+  BodyPhoto,
   MeasurementKind,
   MeasurementPoint,
   MeasurementStat,
@@ -8,10 +9,11 @@ import type {
 import { visibleKinds } from './checkin';
 
 /**
- * The screens of a Zwischenstand, in order: one per measurement I take, then the summary.
- * A later step (photos) goes in before the summary.
+ * The screens of a Zwischenstand, in order: one per measurement I take, the photos, then the
+ * summary.
  */
-export type CheckinStep = { type: 'measure'; kind: MeasurementKind } | { type: 'summary' };
+export type CheckinStep =
+  { type: 'measure'; kind: MeasurementKind } | { type: 'photos' } | { type: 'summary' };
 
 /**
  * How far a person got with a measurement in the flow: a value (confirmed with "Weiter" or
@@ -25,13 +27,21 @@ export interface SuggestedValue {
   onDate: string;
 }
 
-/** The steps for my visible kinds in catalogue order, the summary last. */
+/**
+ * What the photos step holds per pose key: a new picture to upload (as picked; it is
+ * downscaled when uploading), or null for "removed". A pose not in here keeps the check-in's
+ * photo (or stays without one).
+ */
+export type PhotoAnswers = Partial<Record<string, Blob | null>>;
+
+/** The steps for my visible kinds in catalogue order, then the photos, the summary last. */
 export function checkinSteps(
   kinds: readonly MeasurementKind[],
   hidden: readonly string[],
 ): CheckinStep[] {
   return [
     ...visibleKinds(kinds, hidden).map((kind) => ({ type: 'measure' as const, kind })),
+    { type: 'photos' },
     { type: 'summary' },
   ];
 }
@@ -167,15 +177,62 @@ export function summaryRows(
   });
 }
 
-/** Something was entered or changed (closing asks before throwing it away). */
-export function answersChanged(initial: CheckinAnswers, answers: CheckinAnswers): boolean {
+/**
+ * What saving does with the photos: upload the new pictures (each replaces the pose's live
+ * photo), delete the removed ones; `photos` is how many the check-in has afterwards.
+ */
+export interface PhotoPlan {
+  add: { pose: string; file: Blob }[];
+  remove: BodyPhoto[];
+  photos: number;
+}
+
+export function photoPlan(existing: readonly BodyPhoto[], photos: PhotoAnswers): PhotoPlan {
+  const add: PhotoPlan['add'] = [];
+  const remove: BodyPhoto[] = [];
+  for (const [pose, answer] of Object.entries(photos)) {
+    if (answer) add.push({ pose, file: answer });
+    else if (answer === null) {
+      const old = existing.find((p) => p.pose === pose);
+      if (old) remove.push(old);
+    }
+  }
+  const kept = existing.filter((p) => photos[p.pose] === undefined).length;
+  return { add, remove, photos: kept + add.length };
+}
+
+/**
+ * Something was entered or changed (closing asks before throwing it away): a measurement,
+ * a new picture, or a removed photo of the check-in.
+ */
+export function answersChanged(
+  initial: CheckinAnswers,
+  answers: CheckinAnswers,
+  photos: PhotoAnswers = {},
+  existingPhotos: readonly BodyPhoto[] = [],
+): boolean {
   const keys = new Set([...Object.keys(initial), ...Object.keys(answers)]);
   for (const key of keys) {
     const before = initial[key] ?? null;
     const after = answers[key] ?? null;
     if (before !== after) return true;
   }
-  return false;
+  const plan = photoPlan(existingPhotos, photos);
+  return plan.add.length > 0 || plan.remove.length > 0;
+}
+
+/**
+ * Saving needs at least one measurement or one photo (a check-in with photos only is fine;
+ * the database takes an empty one, so this is where the rule lives).
+ */
+export function canSaveCheckin(
+  steps: readonly CheckinStep[],
+  answers: CheckinAnswers,
+  existing: BodyCheckin | null,
+  photos: PhotoAnswers = {},
+): boolean {
+  if (Object.keys(checkinValues(steps, answers, existing)).length > 0) return true;
+  return photoPlan(existing?.photos ?? [], photos).photos > 0;
 }
 
 /** Ich → Körper: my visible kinds that have a value, with their figures (catalogue order). */

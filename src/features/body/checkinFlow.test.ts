@@ -1,19 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import {
   answersChanged,
+  canSaveCheckin,
   checkinSteps,
   checkinValues,
   initialAnswers,
   kindHistory,
   measurementRows,
   measureSteps,
+  photoPlan,
   previousValues,
   stepResult,
   suggestedValues,
   summaryRows,
   wheelValue,
 } from './checkinFlow';
-import type { BodyCheckin, MeasurementKind, MeasurementStat, MeasurementValues } from './types';
+import type {
+  BodyCheckin,
+  BodyPhoto,
+  MeasurementKind,
+  MeasurementStat,
+  MeasurementValues,
+} from './types';
 
 const kind = (key: string, sort: number): MeasurementKind => ({
   key,
@@ -32,11 +40,13 @@ const checkin = (
   onDate: string,
   values: MeasurementValues,
   skipped = false,
+  photos: BodyPhoto[] = [],
 ): BodyCheckin => ({
   id,
   onDate,
   skipped,
   values,
+  photos,
   createdAt: '2026-11-01T08:00:00Z',
   updatedAt: '2026-11-01T08:00:00Z',
 });
@@ -55,18 +65,22 @@ const stat = (key: string): MeasurementStat => ({
 });
 
 describe('checkinSteps', () => {
-  it('asks the visible kinds in catalogue order, the summary last', () => {
+  it('asks the visible kinds in catalogue order, then the photos, the summary last', () => {
     const steps = checkinSteps(kinds, ['taille']);
     expect(steps.map((s) => (s.type === 'measure' ? s.kind.key : s.type))).toEqual([
       'bauch',
       'brust',
+      'photos',
       'summary',
     ]);
     expect(measureSteps(steps).map((k) => k.key)).toEqual(['bauch', 'brust']);
   });
 
-  it('is only the summary when everything is hidden', () => {
-    expect(checkinSteps(kinds, ['bauch', 'taille', 'brust'])).toEqual([{ type: 'summary' }]);
+  it('is only the photos and the summary when every kind is hidden', () => {
+    expect(checkinSteps(kinds, ['bauch', 'taille', 'brust'])).toEqual([
+      { type: 'photos' },
+      { type: 'summary' },
+    ]);
   });
 });
 
@@ -189,5 +203,54 @@ describe('overview rows', () => {
       { onDate: '2026-09-20', value: 86, checkinId: 'c1' },
       { onDate: '2026-11-20', value: 84, checkinId: 'c3' },
     ]);
+  });
+});
+
+describe('photos in the flow', () => {
+  const photo = (id: string, pose: string): BodyPhoto => ({
+    id,
+    checkinId: 'c1',
+    pose,
+    path: `u/c1/${pose}-${id}.jpg`,
+    thumbPath: `u/c1/${pose}-${id}-thumb.jpg`,
+    width: 1200,
+    height: 1600,
+    bytes: 300_000,
+    createdAt: '2026-11-01T08:00:00Z',
+  });
+  const picked = new Blob(['x'], { type: 'image/jpeg' });
+  const front = photo('p1', 'front');
+  const side = photo('p2', 'side');
+  const steps = checkinSteps(kinds, []);
+
+  it('plans uploads, removals and how many photos remain', () => {
+    expect(photoPlan([front, side], {})).toEqual({ add: [], remove: [], photos: 2 });
+    expect(photoPlan([front, side], { front: picked, side: null, back: picked })).toEqual({
+      add: [
+        { pose: 'front', file: picked },
+        { pose: 'back', file: picked },
+      ],
+      remove: [side],
+      photos: 2,
+    });
+    // Removing a pose without a photo does nothing.
+    expect(photoPlan([], { back: null })).toEqual({ add: [], remove: [], photos: 0 });
+  });
+
+  it('saves with photos only, but not with nothing', () => {
+    expect(canSaveCheckin(steps, {}, null)).toBe(false);
+    expect(canSaveCheckin(steps, {}, null, { front: picked })).toBe(true);
+    expect(canSaveCheckin(steps, { bauch: 84 }, null)).toBe(true);
+    const withPhotos = checkin('c1', '2026-11-01', {}, false, [front]);
+    expect(canSaveCheckin(steps, {}, withPhotos)).toBe(true);
+    expect(canSaveCheckin(steps, {}, withPhotos, { front: null })).toBe(false);
+    expect(canSaveCheckin(steps, {}, withPhotos, { front: null, side: picked })).toBe(true);
+  });
+
+  it('notices a new picture or a removed photo', () => {
+    expect(answersChanged({}, {}, {}, [front])).toBe(false);
+    expect(answersChanged({}, {}, { front: picked }, [])).toBe(true);
+    expect(answersChanged({}, {}, { front: null }, [front])).toBe(true);
+    expect(answersChanged({}, {}, { side: null }, [front])).toBe(false);
   });
 });

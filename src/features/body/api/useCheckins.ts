@@ -4,6 +4,7 @@ import { supabase } from '@/shared/lib/supabase';
 import { byNewestCheckin, checkinOn } from '../checkin';
 import type {
   BodyCheckin,
+  BodyPhoto,
   CheckinStatus,
   MeasurementKind,
   MeasurementPoint,
@@ -11,6 +12,7 @@ import type {
   SaveCheckinInput,
 } from '../types';
 import { bodyKeys } from './keys';
+import { schedulePhotoPurge } from './usePhotos';
 
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 /** The generated types do not know that computed columns may be null. */
@@ -50,7 +52,10 @@ export function useMeasurementKinds() {
 // Check-ins (optimistic, with rollback)
 // ---------------------------------------------------------------------------
 
-/** All my check-ins with their values, newest first (skipped ones included). */
+/**
+ * All my check-ins with their values and live photos, newest first (skipped ones included).
+ * This list is the cache of my photos, too.
+ */
 export function useCheckins() {
   const userId = useUserId();
   return useQuery({
@@ -58,8 +63,11 @@ export function useCheckins() {
     queryFn: async (): Promise<BodyCheckin[]> => {
       const { data, error } = await supabase
         .from('body_checkins')
-        .select('id, on_date, skipped, created_at, updated_at, body_measurements (kind, value)')
+        .select(
+          'id, on_date, skipped, created_at, updated_at, body_measurements (kind, value), body_photos (id, pose, path, thumb_path, width, height, bytes, created_at, deleted_at)',
+        )
         .eq('user_id', userId)
+        .is('body_photos.deleted_at', null)
         .order('on_date', { ascending: false });
       if (error) throw error;
       return data.map((row) => ({
@@ -67,6 +75,19 @@ export function useCheckins() {
         onDate: row.on_date,
         skipped: row.skipped,
         values: Object.fromEntries(row.body_measurements.map((m) => [m.kind, m.value])),
+        photos: row.body_photos
+          .filter((p) => p.deleted_at === null)
+          .map((p): BodyPhoto => ({
+            id: p.id,
+            checkinId: row.id,
+            pose: p.pose,
+            path: p.path,
+            thumbPath: p.thumb_path,
+            width: p.width,
+            height: p.height,
+            bytes: p.bytes,
+            createdAt: p.created_at,
+          })),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -127,6 +148,7 @@ export function useSaveCheckin() {
           onDate: input.onDate,
           skipped: false,
           values: { ...input.values },
+          photos: old?.photos ?? [],
           createdAt: old?.createdAt ?? now,
           updatedAt: now,
         });
@@ -165,6 +187,7 @@ export function useSkipCheckin() {
             onDate: input.onDate,
             skipped: true,
             values: {},
+            photos: [],
             createdAt: now,
             updatedAt: now,
           },
@@ -177,7 +200,11 @@ export function useSkipCheckin() {
   });
 }
 
-/** Delete a check-in with its values. Undo: useRestoreCheckin with the deleted BodyCheckin. */
+/**
+ * Delete a check-in with its values and photos. Undo: useRestoreCheckin with the deleted
+ * BodyCheckin (brings the photos back, too). Without undo the photo files are purged once
+ * the grace period has passed.
+ */
 export function useDeleteCheckin() {
   const cache = useCheckinCache();
   return useMutation({
@@ -186,6 +213,9 @@ export function useDeleteCheckin() {
       if (error) throw error;
     },
     onMutate: (checkinId) => cache.change((list) => list.filter((c) => c.id !== checkinId)),
+    onSuccess: () => {
+      schedulePhotoPurge();
+    },
     onError: (_error, _input, snapshot) => {
       cache.rollback(snapshot);
     },
@@ -194,8 +224,9 @@ export function useDeleteCheckin() {
 }
 
 /**
- * Undo: puts a check-in back as it was (same id, day, values; a skipped one as skipped),
- * after a delete or in place of a later save of that day.
+ * Undo: puts a check-in back as it was (same id, day, values, exactly its photos; a skipped
+ * one as skipped), after a delete or in place of a later save of that day. Photos added
+ * since are deleted (and purged later); photos purged meanwhile cannot come back.
  */
 export function useRestoreCheckin() {
   const cache = useCheckinCache();
@@ -223,8 +254,16 @@ export function useRestoreCheckin() {
         p_id: checkin.id,
       });
       if (error) throw error;
+      const { error: photosError } = await supabase.rpc('set_body_checkin_photos', {
+        p_checkin_id: checkin.id,
+        p_photo_ids: checkin.photos.map((p) => p.id),
+      });
+      if (photosError) throw photosError;
     },
     onMutate: (checkin) => cache.change((list) => upsert(list, checkin)),
+    onSuccess: () => {
+      schedulePhotoPurge();
+    },
     onError: (_error, _input, snapshot) => {
       cache.rollback(snapshot);
     },

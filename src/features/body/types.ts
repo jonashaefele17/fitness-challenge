@@ -161,8 +161,46 @@ export interface BodyCheckin {
   /** Skipped for this time: no values, only moves the rhythm on. */
   skipped: boolean;
   values: MeasurementValues;
+  /** Its live progress photos (at most one per pose; any order). */
+  photos: BodyPhoto[];
   createdAt: string;
   updatedAt: string;
+}
+
+/** A fixed pose for progress photos (body_photo_poses): "front" / "Vorne", … */
+export interface PhotoPose {
+  key: string;
+  label: string;
+  sort: number;
+}
+
+/**
+ * A progress photo of a check-in. The files are private (bucket "body-photos"): show them
+ * through useBodyPhotoUrls / useBodyPhotoUrl, which sign the paths.
+ */
+export interface BodyPhoto {
+  id: string;
+  checkinId: string;
+  /** PhotoPose key. */
+  pose: string;
+  /** Full size (1600 px on the longer side). */
+  path: string;
+  /** Thumbnail (320 px on the longer side). */
+  thumbPath: string;
+  /** Of the full-size image. */
+  width: number;
+  height: number;
+  bytes: number;
+  createdAt: string;
+}
+
+/** What useAddBodyPhoto takes: the picture as picked (it is downscaled on the device). */
+export interface AddBodyPhotoInput {
+  checkinId: string;
+  pose: string;
+  file: Blob;
+  /** Client-generated; default: a new one. */
+  id?: string;
 }
 
 /** Where my rhythm stands (body_checkin_status). */

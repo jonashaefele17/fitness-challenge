@@ -19,7 +19,15 @@ export const bodyKeys = {
   measurementKinds: (userId: string) => [...bodyKeys.all(userId), 'measurement-kinds'] as const,
   /** Everything computed from check-ins (invalidated together after a change). */
   checkinsAll: (userId: string) => [...bodyKeys.all(userId), 'checkins'] as const,
+  /** The list includes each check-in's live photos. */
   checkins: (userId: string) => [...bodyKeys.checkinsAll(userId), 'list'] as const,
+  photoPoses: (userId: string) => [...bodyKeys.all(userId), 'photo-poses'] as const,
+  /**
+   * Signed URLs of photo files (sorted paths). Outside bodyKeys.all on purpose: refreshing the
+   * body data must not sign them anew (new URLs would load every picture again).
+   */
+  photoUrls: (userId: string, paths: readonly string[]) =>
+    ['body-photo-urls', userId, ...paths] as const,
   checkinStatus: (userId: string, today: string) =>
     [...bodyKeys.checkinsAll(userId), 'status', today] as const,
   measurementStats: (userId: string) => [...bodyKeys.checkinsAll(userId), 'stats'] as const,

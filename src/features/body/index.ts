@@ -34,6 +34,33 @@ export {
   useSkipCheckin,
 } from './api/useCheckins';
 export {
+  purgeDeletedPhotos,
+  useAddBodyPhoto,
+  useBodyPhotoUrl,
+  useBodyPhotoUrls,
+  useDeleteBodyPhoto,
+  usePhotoPoses,
+  usePhotoPurgeOnStart,
+  useRestoreBodyPhoto,
+} from './api/usePhotos';
+export {
+  canSaveCheckin,
+  photoPlan,
+  type CheckinStep,
+  type PhotoAnswers,
+  type PhotoPlan,
+} from './checkinFlow';
+export {
+  checkinsWithPhotos,
+  compareCheckins,
+  PHOTO_PURGE_GRACE_MS,
+  photoOfPose,
+  photosInPoseOrder,
+  weightAt,
+  type CheckinComparison,
+  type CompareRow,
+} from './photos';
+export {
   checkinDueText,
   checkinOn,
   checkinRhythmSummary,

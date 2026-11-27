@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState, type PointerEvent } from 'react';
+import { useState, type PointerEvent } from 'react';
 import { dotRadius, nearestIndex, weightChartLayout } from '../chart';
 import { formatKg } from '../format';
 import type { WeightDay } from '../types';
+import { useWidth } from './useWidth';
 
 // SVG geometry in px (matches the h-chart token; the chart measures its own width).
 const HEIGHT = 168;
@@ -15,23 +16,6 @@ const dayLabel = new Intl.DateTimeFormat('de', {
 const shortDate = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'short' });
 const withYear = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'short', year: '2-digit' });
 const date = (day: string) => new Date(`${day}T12:00:00`);
-
-function useWidth() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry) setWidth(Math.round(entry.contentRect.width));
-    });
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-  return [ref, width] as const;
-}
 
 /**
  * Weight over the period: each day's value as a quiet dot, the 7-day trend as the accent

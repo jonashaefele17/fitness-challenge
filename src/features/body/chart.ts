@@ -3,6 +3,8 @@ import type { WeightDay } from './types';
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** The y axis spans at least this much, so a flat week does not look like a roller coaster. */
 const MIN_SPAN_KG = 1;
+/** The same for body measurements: a flat line stays flat. */
+export const MIN_SPAN_CM = 2;
 
 export interface ChartBox {
   width: number;
@@ -24,38 +26,61 @@ export interface WeightChartLayout {
 
 const time = (day: string) => new Date(`${day}T12:00:00`).getTime();
 
+/** Positions of a series by date, and the y scale around its values. */
+export interface TimeChartLayout {
+  /** x of each point (same order as the input). */
+  xs: number[];
+  y: (value: number) => number;
+  /** Lowest and highest value given. */
+  min: number;
+  max: number;
+}
+
+/**
+ * Points by date (gaps stay gaps), a single one in the middle; the y axis around `values`
+ * with a little air and at least `minSpan` high.
+ */
+export function timeChartLayout(
+  dates: readonly string[],
+  values: readonly number[],
+  box: ChartBox,
+  minSpan: number,
+): TimeChartLayout | null {
+  const first = dates[0];
+  const last = dates.at(-1);
+  if (first === undefined || last === undefined || values.length === 0) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const air = (max - min) * 0.12;
+  let lo = min - air;
+  let hi = max + air;
+  if (hi - lo < minSpan) {
+    const mid = (min + max) / 2;
+    lo = mid - minSpan / 2;
+    hi = mid + minSpan / 2;
+  }
+  const plotW = Math.max(1, box.width - box.left - box.right);
+  const plotH = Math.max(1, box.height - box.top - box.bottom);
+  const t0 = time(first);
+  const span = Math.max(DAY_MS, time(last) - t0);
+  const xs = dates.map((d) =>
+    dates.length === 1 ? box.left + plotW / 2 : box.left + ((time(d) - t0) / span) * plotW,
+  );
+  return { xs, y: (value) => box.top + (1 - (value - lo) / (hi - lo)) * plotH, min, max };
+}
+
 /**
  * Positions for the weight chart: days by date (gaps stay gaps), one day in the middle;
  * the y axis around the values with a little air and at least 1 kg high.
  */
 export function weightChartLayout(days: WeightDay[], box: ChartBox): WeightChartLayout | null {
-  const first = days[0];
-  const last = days.at(-1);
-  if (!first || !last) return null;
-  const values = days.flatMap((d) => [d.weightKg, d.trendKg]);
-  const minKg = Math.min(...values);
-  const maxKg = Math.max(...values);
-  const air = (maxKg - minKg) * 0.12;
-  let lo = minKg - air;
-  let hi = maxKg + air;
-  if (hi - lo < MIN_SPAN_KG) {
-    const mid = (minKg + maxKg) / 2;
-    lo = mid - MIN_SPAN_KG / 2;
-    hi = mid + MIN_SPAN_KG / 2;
-  }
-  const plotW = Math.max(1, box.width - box.left - box.right);
-  const plotH = Math.max(1, box.height - box.top - box.bottom);
-  const t0 = time(first.onDate);
-  const span = Math.max(DAY_MS, time(last.onDate) - t0);
-  const xs = days.map((d) =>
-    days.length === 1 ? box.left + plotW / 2 : box.left + ((time(d.onDate) - t0) / span) * plotW,
+  const layout = timeChartLayout(
+    days.map((d) => d.onDate),
+    days.flatMap((d) => [d.weightKg, d.trendKg]),
+    box,
+    MIN_SPAN_KG,
   );
-  return {
-    xs,
-    y: (kg) => box.top + (1 - (kg - lo) / (hi - lo)) * plotH,
-    minKg,
-    maxKg,
-  };
+  return layout && { xs: layout.xs, y: layout.y, minKg: layout.min, maxKg: layout.max };
 }
 
 /** Index of the x closest to `px` (-1 without points). */

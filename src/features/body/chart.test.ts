@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dotRadius, nearestIndex, weightChartLayout } from './chart';
+import { dotRadius, nearestIndex, timeChartLayout, weightChartLayout } from './chart';
 import type { WeightDay } from './types';
 
 const box = { width: 320, height: 168, left: 40, right: 10, top: 10, bottom: 20 };
@@ -60,5 +60,18 @@ describe('nearestIndex', () => {
 describe('dotRadius', () => {
   it('gets smaller with many days', () => {
     expect(dotRadius(2)).toBeGreaterThan(dotRadius(300));
+  });
+});
+
+describe('timeChartLayout', () => {
+  it('lays out any series by date with the given minimum span', () => {
+    expect(timeChartLayout([], [], box, 2)).toBeNull();
+    const one = timeChartLayout(['2026-11-01'], [84.5], box, 2);
+    expect(one?.xs).toEqual([40 + 270 / 2]);
+    // A 2 cm axis around a single value: 1 cm above is the top of the plot.
+    expect(one?.y(85.5)).toBeCloseTo(10);
+    const two = timeChartLayout(['2026-10-01', '2026-11-01'], [86, 84], box, 2);
+    expect(two?.xs).toEqual([40, 310]);
+    expect(two && two.y(86) < two.y(84)).toBe(true);
   });
 });

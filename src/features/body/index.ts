@@ -54,6 +54,7 @@ export {
   todayKey,
 } from './format';
 export { BodyOverview } from './components/BodyOverview';
+export { CheckinTodayCard } from './components/CheckinTodayCard';
 export { DayWeight } from './components/DayWeight';
 export { WeighInSheet } from './components/WeighInSheet';
 export { WeighTodayCard } from './components/WeighTodayCard';

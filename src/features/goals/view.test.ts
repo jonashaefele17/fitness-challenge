@@ -3,8 +3,10 @@ import type { Goal } from './types';
 import {
   addDays,
   createSteps,
+  fitMinGoal,
   formatGoalPeriod,
   matchingPeriodChoice,
+  minGoalRange,
   minMarkerPct,
   parseGoalNumber,
   periodEnd,
@@ -152,5 +154,28 @@ describe('splitGoals', () => {
     ]);
     expect(active.map((g) => g.id)).toEqual(['a', 'd']);
     expect(ended.map((g) => g.id)).toEqual(['b', 'c']);
+  });
+});
+
+describe('minGoalRange', () => {
+  it('keeps a rate minimum below the target', () => {
+    expect(minGoalRange('rate', null, 4, 1)).toEqual({ min: 1, max: 3, initial: 3 });
+    expect(minGoalRange('rate', null, 1, 1)).toBeNull();
+    expect(minGoalRange('rate', null, null, 1)).toBeNull();
+  });
+
+  it('puts a level minimum between start and target, whichever way the goal goes', () => {
+    // Losing weight: the minimum lies above the target.
+    expect(minGoalRange('level', 85, 80, 0.5)).toEqual({ min: 80.5, max: 85, initial: 82.5 });
+    // Gaining strength: below it.
+    expect(minGoalRange('level', 100, 120, 2.5)).toEqual({ min: 100, max: 117.5, initial: 110 });
+    expect(minGoalRange('level', 84.3, 84.5, 0.5)).toBeNull();
+    expect(minGoalRange('level', null, 80, 0.5)).toBeNull();
+  });
+
+  it('pulls a minimum back into its range after the target moved', () => {
+    expect(fitMinGoal(4, minGoalRange('rate', null, 3, 1))).toBe(2);
+    expect(fitMinGoal(2, minGoalRange('rate', null, 1, 1))).toBeNull();
+    expect(fitMinGoal(null, minGoalRange('rate', null, 4, 1))).toBeNull();
   });
 });

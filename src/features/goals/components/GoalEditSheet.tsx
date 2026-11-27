@@ -1,12 +1,19 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Button, Sheet } from '@/shared/ui';
 import { todayKey } from '../dates';
 import { formatGoalTarget } from '../format';
 import { validateGoalValues, validatePeriod } from '../goal';
 import type { Goal, GoalVisibility, UpdateGoalInput } from '../types';
-import { sharingNote, snapToStep, targetWheelStart, unitCaption, wheelStep } from '../view';
+import {
+  fitMinGoal,
+  minGoalRange,
+  sharingNote,
+  targetWheelStart,
+  unitCaption,
+  wheelStep,
+} from '../view';
 import { DateRow, VisibilityChoice } from './GoalFields';
-import { GoalValueWheel } from './GoalBits';
+import { GoalValueCard, GoalValueWheel, MinGoalCard } from './GoalBits';
 
 interface Draft {
   target: number | null;
@@ -68,13 +75,6 @@ export function GoalEditSheet({
     draft.startsOn !== goal.startsOn ||
     draft.endsOn !== goal.endsOn ||
     draft.visibility !== goal.visibility;
-  const minStart =
-    draft.target === null
-      ? 0
-      : goal.metricKind === 'level' && goal.startValue !== null
-        ? snapToStep((goal.startValue + draft.target) / 2, goalStep)
-        : Math.max(0, draft.target - goalStep);
-
   return (
     <Sheet
       fullHeight
@@ -118,7 +118,7 @@ export function GoalEditSheet({
           </p>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <ValueCard label="Ziel" unit={unitCaption(goal.unit)}>
+          <GoalValueCard label="Ziel" unit={unitCaption(goal.unit)}>
             <GoalValueWheel
               value={draft.target}
               step={goalStep}
@@ -126,38 +126,27 @@ export function GoalEditSheet({
               unit={goal.unit}
               label={`Ziel ${unitCaption(goal.unit)}`}
               onChange={(target) => {
-                set({ target });
+                set({
+                  target,
+                  min: fitMinGoal(
+                    draft.min,
+                    minGoalRange(goal.metricKind, goal.startValue, target, goalStep),
+                  ),
+                });
               }}
             />
-          </ValueCard>
-          <ValueCard
-            label="Mindestziel"
-            unit={unitCaption(goal.unit)}
-            action={
-              draft.min !== null ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    set({ min: null });
-                  }}
-                  className="min-h-tap px-2 text-footnote font-semibold text-accent"
-                >
-                  Entfernen
-                </button>
-              ) : null
-            }
-          >
-            <GoalValueWheel
-              value={draft.min}
-              step={goalStep}
-              emptyStart={minStart}
-              unit={goal.unit}
-              label={`Mindestziel ${unitCaption(goal.unit)}`}
-              onChange={(min) => {
-                set({ min });
-              }}
-            />
-          </ValueCard>
+          </GoalValueCard>
+          <MinGoalCard
+            metric={goal.metric}
+            kind={goal.metricKind}
+            unit={goal.unit}
+            start={goal.startValue}
+            target={draft.target}
+            value={draft.min}
+            onChange={(min) => {
+              set({ min });
+            }}
+          />
         </div>
         {periodFixed ? (
           <p className="text-footnote text-text-muted">
@@ -196,30 +185,5 @@ export function GoalEditSheet({
         {error && changed && <p className="text-footnote text-danger">{error}</p>}
       </div>
     </Sheet>
-  );
-}
-
-function ValueCard({
-  label,
-  unit,
-  action,
-  children,
-}: {
-  label: string;
-  unit: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1 rounded-card bg-surface-2 pt-2 pb-3">
-      <div className="flex min-h-tap w-full items-center justify-between gap-1 pr-1 pl-3">
-        <span className="flex flex-col">
-          <span className="text-footnote font-semibold">{label}</span>
-          <span className="text-caption text-text-muted">{unit}</span>
-        </span>
-        {action}
-      </div>
-      {children}
-    </div>
   );
 }

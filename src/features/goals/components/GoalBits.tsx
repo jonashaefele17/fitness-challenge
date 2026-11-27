@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib';
-import { CheckIcon, ChevronLeftIcon, NumberWheel } from '@/shared/ui';
+import { Button, CheckIcon, ChevronLeftIcon, NumberWheel } from '@/shared/ui';
 import {
   formatGoalNumber,
   formatGoalTarget,
@@ -8,8 +9,8 @@ import {
   onTrackText,
   progressBarPct,
 } from '../format';
-import type { Goal, GoalStatus, GoalUnit } from '../types';
-import { minMarkerPct, parseGoalNumber } from '../view';
+import type { Goal, GoalMetricKind, GoalStatus, GoalUnit } from '../types';
+import { minGoalRange, minMarkerPct, parseGoalNumber, unitCaption, wheelStep } from '../view';
 
 /**
  * A thin bar from start (left) to target (right), filled to the progress; a minimum shows
@@ -187,6 +188,8 @@ export function GoalValueWheel({
   emptyStart,
   unit,
   label,
+  min,
+  max,
   onChange,
 }: {
   value: number | null;
@@ -195,6 +198,8 @@ export function GoalValueWheel({
   emptyStart: number;
   unit: GoalUnit;
   label: string;
+  min?: number | undefined;
+  max?: number | undefined;
   onChange: (value: number) => void;
 }) {
   return (
@@ -204,11 +209,117 @@ export function GoalValueWheel({
       step={step}
       emptyStart={emptyStart}
       label={label}
+      {...(min === undefined ? {} : { min })}
+      {...(max === undefined ? {} : { max })}
       format={(v) => (unit === 'seconds' ? String(Math.round(v)) : formatGoalNumber(v, unit))}
       parse={(text) => parseGoalNumber(text) ?? Number.NaN}
       onChange={(next) => {
         if (Number.isFinite(next) && next >= 0) onChange(Math.round(next * 100) / 100);
       }}
     />
+  );
+}
+
+/** A labelled card around a value wheel (target and minimum side by side). */
+export function GoalValueCard({
+  label,
+  unit,
+  action,
+  children,
+}: {
+  label: string;
+  unit: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1 rounded-card bg-surface-2 pt-2 pb-3">
+      <div className="flex min-h-tap w-full items-center justify-between gap-1 pr-1 pl-3">
+        <span className="flex flex-col">
+          <span className="text-footnote font-semibold">{label}</span>
+          <span className="text-caption text-text-muted">{unit}</span>
+        </span>
+        {action}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * The optional minimum: without one the card offers to set it – no empty wheel. With one,
+ * the wheel only reaches values on the easier side of the target.
+ */
+export function MinGoalCard({
+  metric,
+  kind,
+  unit,
+  start,
+  target,
+  value,
+  onChange,
+}: {
+  metric: string;
+  kind: GoalMetricKind;
+  unit: GoalUnit;
+  start: number | null;
+  target: number | null;
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const step = wheelStep(metric, unit, 'goal');
+  const range = minGoalRange(kind, start, target, step);
+  const caption = unitCaption(unit);
+  return (
+    <GoalValueCard
+      label="Mindestziel"
+      unit={value === null ? 'optional' : caption}
+      action={
+        value !== null ? (
+          <button
+            type="button"
+            onClick={() => {
+              onChange(null);
+            }}
+            className="min-h-tap px-2 text-footnote font-semibold text-accent"
+          >
+            Entfernen
+          </button>
+        ) : null
+      }
+    >
+      {value === null ? (
+        <div className="flex h-wheel items-center">
+          <Button
+            variant="tinted"
+            missing={
+              target === null
+                ? 'Stell zuerst das Ziel ein.'
+                : range === null
+                  ? kind === 'level'
+                    ? 'Zwischen Start und Ziel ist kein Platz für ein Mindestziel.'
+                    : 'Unter diesem Ziel ist kein Platz für ein Mindestziel.'
+                  : null
+            }
+            onClick={() => {
+              if (range) onChange(range.initial);
+            }}
+          >
+            Festlegen
+          </Button>
+        </div>
+      ) : (
+        <GoalValueWheel
+          value={value}
+          step={step}
+          emptyStart={value}
+          unit={unit}
+          label={`Mindestziel ${caption}`}
+          min={range?.min}
+          max={range?.max}
+          onChange={onChange}
+        />
+      )}
+    </GoalValueCard>
   );
 }

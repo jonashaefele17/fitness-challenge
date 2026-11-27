@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react';
 import {
+  fitMinGoal,
+  GoalValueCard,
   GoalValueWheel,
-  snapToStep,
+  MinGoalCard,
+  minGoalRange,
   targetWheelStart,
   unitCaption,
   wheelStep,
@@ -35,17 +37,11 @@ export function GoalValuesEditor({
   onChange: (values: GoalValues) => void;
 }) {
   const goalStep = wheelStep(metric, unit, 'goal');
-  const minStart =
-    values.target === null
-      ? 0
-      : kind === 'level' && values.start !== null
-        ? snapToStep((values.start + values.target) / 2, goalStep)
-        : Math.max(0, values.target - goalStep);
   const caption = unitCaption(unit);
   return (
     <div className="flex flex-col gap-3">
       {withStart && kind === 'level' && (
-        <ValueCard label="Start" unit={caption}>
+        <GoalValueCard label="Start" unit={caption}>
           <GoalValueWheel
             value={values.start}
             step={wheelStep(metric, unit, 'start')}
@@ -53,13 +49,17 @@ export function GoalValuesEditor({
             unit={unit}
             label={`Start ${caption}`}
             onChange={(start) => {
-              onChange({ ...values, start });
+              onChange({
+                ...values,
+                start,
+                min: fitMinGoal(values.min, minGoalRange(kind, start, values.target, goalStep)),
+              });
             }}
           />
-        </ValueCard>
+        </GoalValueCard>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <ValueCard label="Ziel" unit={caption}>
+        <GoalValueCard label="Ziel" unit={caption}>
           <GoalValueWheel
             value={values.target}
             step={goalStep}
@@ -67,64 +67,26 @@ export function GoalValuesEditor({
             unit={unit}
             label={`Ziel ${caption}`}
             onChange={(target) => {
-              onChange({ ...values, target });
+              onChange({
+                ...values,
+                target,
+                min: fitMinGoal(values.min, minGoalRange(kind, values.start, target, goalStep)),
+              });
             }}
           />
-        </ValueCard>
-        <ValueCard
-          label="Mindestziel"
-          unit={`${caption} · optional`}
-          action={
-            values.min !== null ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onChange({ ...values, min: null });
-                }}
-                className="min-h-tap px-2 text-footnote font-semibold text-accent"
-              >
-                Entfernen
-              </button>
-            ) : null
-          }
-        >
-          <GoalValueWheel
-            value={values.min}
-            step={goalStep}
-            emptyStart={minStart}
-            unit={unit}
-            label={`Mindestziel ${caption}`}
-            onChange={(min) => {
-              onChange({ ...values, min });
-            }}
-          />
-        </ValueCard>
+        </GoalValueCard>
+        <MinGoalCard
+          metric={metric}
+          kind={kind}
+          unit={unit}
+          start={values.start}
+          target={values.target}
+          value={values.min}
+          onChange={(min) => {
+            onChange({ ...values, min });
+          }}
+        />
       </div>
-    </div>
-  );
-}
-
-function ValueCard({
-  label,
-  unit,
-  action,
-  children,
-}: {
-  label: string;
-  unit: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-1 rounded-card bg-surface-2 pt-2 pb-3">
-      <div className="flex min-h-tap w-full items-center justify-between gap-1 pr-1 pl-3">
-        <span className="flex flex-col">
-          <span className="text-footnote font-semibold">{label}</span>
-          <span className="text-caption text-text-muted">{unit}</span>
-        </span>
-        {action}
-      </div>
-      {children}
     </div>
   );
 }

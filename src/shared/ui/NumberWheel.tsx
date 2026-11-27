@@ -31,6 +31,9 @@ export interface NumberWheelProps {
    * an empty wheel starts at 0, which is useless for values like a body weight.
    */
   emptyStart?: number;
+  /** Lowest and highest value the wheel (and typing) allows. */
+  min?: number;
+  max?: number;
 }
 
 /**
@@ -48,6 +51,8 @@ export function NumberWheel({
   onChange,
   disabled = false,
   emptyStart = 0,
+  min,
+  max,
 }: NumberWheelProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -58,12 +63,22 @@ export function NumberWheel({
   const [anchor, setAnchor] = useState<number | null>(null);
   const base = anchor ?? value ?? emptyStart;
   const y = useMotionValue(0);
-  // Steps we may go down before reaching 0.
-  const minIndex = -Math.floor(base / step + 1e-9);
+  // Steps we may go down before reaching 0 (or the lower bound), and up to the upper bound.
+  const minIndex = Math.min(
+    0,
+    Math.max(
+      -Math.floor(base / step + 1e-9),
+      min === undefined ? -RANGE : Math.ceil((min - base) / step - 1e-9),
+    ),
+  );
+  const maxIndex = Math.max(
+    0,
+    max === undefined ? RANGE : Math.min(RANGE, Math.floor((max - base) / step + 1e-9)),
+  );
 
   const round = (n: number) => Math.round(n * 100) / 100;
   const indexAt = (offset: number) => Math.round(-offset / ITEM_PX);
-  const clampIndex = (index: number) => Math.min(RANGE, Math.max(minIndex, index));
+  const clampIndex = (index: number) => Math.min(maxIndex, Math.max(minIndex, index));
   const [lastIndex, setLastIndex] = useState(0);
 
   useMotionValueEvent(y, 'change', (latest) => {
@@ -123,7 +138,9 @@ export function NumberWheel({
         }}
         onBlur={() => {
           const parsed = parse(draft);
-          if (Number.isFinite(parsed) && parsed >= 0) onChange(parsed);
+          if (Number.isFinite(parsed) && parsed >= 0) {
+            onChange(Math.min(max ?? parsed, Math.max(min ?? parsed, parsed)));
+          }
           setEditing(false);
         }}
         onKeyDown={(event) => {
@@ -135,7 +152,7 @@ export function NumberWheel({
   }
 
   const items = [];
-  for (let index = Math.max(minIndex, -RANGE); index <= RANGE; index++) {
+  for (let index = Math.max(minIndex, -RANGE); index <= maxIndex; index++) {
     items.push(index);
   }
 

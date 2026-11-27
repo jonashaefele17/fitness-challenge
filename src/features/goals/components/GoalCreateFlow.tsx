@@ -27,7 +27,7 @@ import {
   periodEnd,
   roundGoalValue,
   sharingNote,
-  snapToStep,
+  minGoalRange,
   targetWheelStart,
   unitCaption,
   wheelStep,
@@ -408,10 +408,9 @@ export function GoalCreateFlow({
     );
   } else if (step === 'min' && metric && unit && answers.target !== null) {
     const goalStep = wheelStep(metric.key, unit, 'goal');
-    const minStart =
-      metric.kind === 'level' && start !== null
-        ? snapToStep((start + answers.target) / 2, goalStep)
-        : Math.max(0, answers.target - goalStep);
+    const range = minGoalRange(metric.kind, start, answers.target, goalStep);
+    // The wheel starts on a sensible value; "Weiter" takes what it shows.
+    const shownMin = answers.min ?? range?.initial ?? null;
     content = (
       <Screen
         header={<FlowStepHeader onBack={back} counter={counter} />}
@@ -422,9 +421,18 @@ export function GoalCreateFlow({
             <Button
               size="lg"
               missing={
-                answers.min === null ? 'Dreh am Rad oder wähle „Ohne Mindestziel“.' : valuesError
+                shownMin === null
+                  ? 'Hier ist kein Platz für ein Mindestziel – wähle „Ohne Mindestziel“.'
+                  : validateGoalValues(metric, {
+                      startValue: start,
+                      minValue: shownMin,
+                      targetValue: answers.target,
+                    })
               }
-              onClick={next}
+              onClick={() => {
+                set({ min: shownMin });
+                next();
+              }}
             >
               Weiter
             </Button>
@@ -445,11 +453,14 @@ export function GoalCreateFlow({
           note={`Ziel: ${formatGoalTarget(answers.target, { unit, reps })}`}
         >
           <GoalValueWheel
-            value={answers.min}
+            value={shownMin}
+            suggested={answers.min === null}
             step={goalStep}
-            emptyStart={minStart}
+            emptyStart={shownMin ?? 0}
             unit={unit}
             label={`Mindestziel ${unitCaption(unit)}`}
+            min={range?.min}
+            max={range?.max}
             onChange={(v) => {
               set({ min: v });
             }}

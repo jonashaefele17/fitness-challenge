@@ -44,8 +44,10 @@ export {
   addDays as addGoalDays,
   daysBetween as goalDaysBetween,
   formatGoalDay,
+  fitMinGoal,
   formatGoalPeriod,
   matchingPeriodChoice,
+  minGoalRange,
   periodEnd,
   snapToStep,
   targetWheelStart,
@@ -60,7 +62,9 @@ export {
   FlowStepHeader,
   GoalProgressBar,
   GoalStatusLine,
+  GoalValueCard,
   GoalValues,
   GoalValueWheel,
+  MinGoalCard,
 } from './components/GoalBits';
 export { DateRow } from './components/GoalFields';

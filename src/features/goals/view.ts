@@ -95,6 +95,54 @@ export function snapToStep(value: number, step: number): number {
   return Math.round(Math.round(value / step) * step * 100) / 100;
 }
 
+export interface MinGoalRange {
+  min: number;
+  max: number;
+  /** Where a fresh minimum starts. */
+  initial: number;
+}
+
+/**
+ * Where a minimum may lie: strictly on the easier side of the target. Rates (trainings per
+ * week): below the target. Levels: between start and target, whichever way the goal goes
+ * (weight 85 → 80: the minimum lies above the target). null when there is no room.
+ */
+export function minGoalRange(
+  kind: GoalMetric['kind'],
+  start: number | null,
+  target: number | null,
+  step: number,
+): MinGoalRange | null {
+  if (target === null) return null;
+  const r = (n: number) => Math.round(n * 100) / 100;
+  let min: number;
+  let max: number;
+  let initial: number;
+  if (kind === 'level') {
+    if (start === null || start === target) return null;
+    min = target > start ? start : r(target + step);
+    max = target > start ? r(target - step) : start;
+    initial = snapToStep((start + target) / 2, step);
+  } else {
+    min = step;
+    max = r(target - step);
+    initial = max;
+  }
+  if (max < min) return null;
+  // Stay on the wheel's grid (it counts in steps from the target).
+  const steps = Math.round((initial - target) / step);
+  initial = r(target + steps * step);
+  while (initial > max) initial = r(initial - step);
+  while (initial < min) initial = r(initial + step);
+  return initial > max ? null : { min, max, initial };
+}
+
+/** A minimum after the target moved: pulled back into its range, dropped when none is left. */
+export function fitMinGoal(min: number | null, range: MinGoalRange | null): number | null {
+  if (min === null || range === null) return null;
+  return Math.min(range.max, Math.max(range.min, min));
+}
+
 /** "82,5" / "82.5" → 82.5; null when it is not a number ≥ 0. */
 export function parseGoalNumber(text: string): number | null {
   const normalized = text.trim().replace(',', '.');

@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Entwurf vom 27.11.2026, noch nicht mit Jonas abgestimmt. Die Fragen unter „Offen“ müssen vor dem Bauen entschieden sein.
+Stand: Entwurf vom 27.11.2026, mit Jonas in Abstimmung. Entschieden ist, was unter „Entschieden“ steht; die Punkte unter „Offen“ müssen vor dem Bauen geklärt sein.
 
 ## Worum es geht
 
@@ -17,7 +17,9 @@ Daraus folgen zwei getrennte Dinge:
 
 ### 8a – Persönliche Ziele
 
-- Ein Ziel besteht aus Messgröße, Startwert, Zielwert, Zeitraum (von – bis) und Sichtbarkeit.
+- Ein Ziel besteht aus Messgröße, Startwert, Zielwert, optionalem Mindestziel, Zeitraum (von – bis) und Sichtbarkeit.
+- Mindestziel und Ziel: Das Mindestziel ist das, worauf man sich festlegt, das Ziel das, was man erreichen will. Status dreistufig: unter dem Mindestziel / Mindestziel erreicht / Ziel erreicht. Wer nur einen Wert setzt, hat ein normales Ziel.
+- Ein Ziel auf einem Habit legt sich über dessen Regel: Das Habit sagt, was ein guter Tag ist, das Ziel, an wie viel Prozent der Tage (oder Wochen) man das schaffen will.
 - Messgrößen stehen als Daten in einer Tabelle, neue kommen ohne Umbau dazu. Für den Anfang:
   - Trainings pro Woche (Wochenziel, zählt erfüllte Wochen)
   - Körpergewicht (Durchschnitt über 7 Tage)
@@ -65,15 +67,20 @@ Daraus folgen zwei getrennte Dinge:
 - Saisons vorschlagen durch Teilnehmer; vorerst legt nur der Admin an.
 - Eigene Events im Kalender (Termin-Art „Event“).
 
+## Entschieden (Jonas, 27.11.2026)
+
+- Mindestziel und Ziel als zwei Werte pro Ziel (Mindestziel freiwillig).
+- Pflicht in einer Saison ist nur „Trainings pro Woche“; alle anderen Ziele wählt jede Person selbst.
+- Die Saison verlangt nicht, das Gewicht zu teilen. Sie fragt beim Setup einmal danach; wer nicht teilt, fehlt im Gewichtsvergleich.
+- Die Regeln „wöchentlich wiegen“ und „Zwischenstand alle x Wochen“ zählen in der Konsistenz („in x von y Wochen gewogen“), ohne Werte zu zeigen.
+- Dauer und Setup-Phase legt der Admin pro Saison fest.
+- 8d (Saisonende, Rückblick, Archiv) wird zurückgehalten und während der ersten Saison gebaut.
+
 ## Offen – vor dem Bauen entscheiden
 
-1. **Pflicht-Zielarten:** Muss jede Person in der Saison bestimmte Ziele haben (z. B. ein Gewichtsziel, ein Trainingsziel), oder ist alles freiwillig? Vorschlag: Pflicht ist nur „Trainings pro Woche“; alles andere wählt jeder selbst.
-2. **Gewicht in der Saison:** Das Gewicht ist standardmäßig privat. Soll eine Saison verlangen, dass man es mindestens in % teilt? Vorschlag: nein; die Saison fragt beim Setup einmal danach, wer nicht teilt, fehlt im Gewichtsvergleich.
-3. **Wie zählen die Regeln:** Sind „wöchentlich wiegen“ und „Zwischenstand alle 4 Wochen“ nur Erinnerung und Marker, oder zählen sie sichtbar für die Gruppe (Konsistenz)? Vorschlag: sie zählen in der Konsistenz als „in x von y Wochen gewogen“, ohne Werte zu zeigen.
-4. **Pausen:** Krankheit und Urlaub gibt es schon bei den Habits. Vorschlag: dieselbe Pause gilt auch für Trainingsziel und Saisonregeln, keine zweite Art von Pause.
-5. **Wo die Ziele stehen:** Das Konzept sieht sie oben unter Ich → Training vor. Ziele betreffen aber auch Gewicht, Maße und Habits. Vorschlag: ein eigener Reiter „Ziele“ unter „Ich“ an erster Stelle.
-6. **Umfang vor dem Start der ersten Saison:** 8d wird erst am Saisonende gebraucht. Vorschlag: 8a bis 8c bauen, auf Live umziehen, Saison starten, 8d während der Saison bauen. Die Daten bleiben dabei sauber, weil 8d nur rechnet und nichts nachträglich umbaut.
-7. **Dauer und Setup-Phase:** Beides pro Saison frei wählbar (Vorschlag), oder feste Längen?
+1. **Pausen:** Krankheit und Urlaub gibt es schon bei den Habits (Ich → Habits → Einstellungen → „Pausen“, von – bis). Vorschlag: dieselbe Pause gilt auch für Trainingsziel und Saisonregeln; eintragen an einer Stelle, die nicht nach Habits aussieht.
+2. **Wo Ziele und Saison stehen:** eigener Reiter unter „Ich“ an erster Stelle, oben die laufende Saison mit ihren Rahmenbedingungen, darunter die Ziele. Name des Reiters und Platz bei dann fünf Reitern offen.
+3. **Ablauf des Setups** einer Saison für die Teilnehmer.
 
 ## Reihenfolge und Umfang
 

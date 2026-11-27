@@ -1,11 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useUserId } from '@/features/auth';
 import { formatGoalDay, goalTodayKey, useGoalMetrics, type Goal } from '@/features/goals';
 import { useActiveGroup } from '@/features/groups';
+import { HabitSheet, useMyHabits, type Habit } from '@/features/habits';
 import { Button, CheckIcon, ChevronRightIcon, Sheet } from '@/shared/ui';
-import { useCurrentSeason } from '../api/useSeasons';
+import { useCurrentSeason, useRefreshSeasons, useSeasonHabits } from '../api/useSeasons';
 import {
   missingMetricsText,
   seasonCountdownText,
+  seasonHabitEditText,
   seasonPhaseLabel,
   seasonRulesLines,
   seasonWeekText,
@@ -51,6 +54,13 @@ export function SeasonBlock({
   const [setupOpen, setSetupOpen] = useState(false);
   const [peopleOpen, setPeopleOpen] = useState(false);
   const [pausesOpen, setPausesOpen] = useState(false);
+  const userId = useUserId();
+  // My season habits an admin opened for a change: a row each, straight to the habit.
+  const seasonHabits = useSeasonHabits(season?.me ? season.id : null).data ?? [];
+  const myHabits = useMyHabits().data ?? [];
+  const refresh = useRefreshSeasons();
+  const [habitOpen, setHabitOpen] = useState<Habit | null>(null);
+  const openForChange = seasonHabits.filter((h) => h.userId === userId && h.editOpenUntil);
 
   // From a link (push, feed, Heute): open the setup once, then let the caller drop the link.
   const settled = openSeasonId !== null && !current.isPending;
@@ -148,6 +158,21 @@ export function SeasonBlock({
             }}
           />
         </li>
+        {live &&
+          openForChange.map((h) => {
+            const habit = myHabits.find((x) => x.id === h.habitId);
+            return habit && h.editOpenUntil ? (
+              <li key={h.habitId}>
+                <QuietRow
+                  label={`${h.definition.name}: Regel ändern`}
+                  detail={seasonHabitEditText(h.editOpenUntil)}
+                  onClick={() => {
+                    setHabitOpen(habit);
+                  }}
+                />
+              </li>
+            ) : null;
+          })}
         {live && season.me && (
           <li>
             <QuietRow
@@ -186,6 +211,16 @@ export function SeasonBlock({
           {pauses}
         </div>
       </Sheet>
+      <HabitSheet
+        open={habitOpen !== null}
+        onOpenChange={(open) => {
+          if (!open) setHabitOpen(null);
+        }}
+        habit={habitOpen}
+        onSaved={() => {
+          void refresh();
+        }}
+      />
       {editSheet}
     </section>
   );

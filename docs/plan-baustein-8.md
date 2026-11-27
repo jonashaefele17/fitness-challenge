@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a und 8b gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a, 8b und der 8b-Nachtrag (Habits in der Saison) gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -21,7 +21,7 @@ Daraus folgen zwei getrennte Dinge:
 - [x] Ziel anlegen zum Durchklicken: Zielart → worauf (Übung mit Wiederholungszahl, Habit, Maß) → Startwert (vorgeschlagen) → Ziel → Mindestziel (freiwillig) → Zeitraum (4, 8, 12 Wochen, 6 Monate oder Datum) → Sichtbarkeit → Zusammenfassung. „Rückgängig“ direkt nach dem Anlegen entfernt das Ziel spurlos
 - [x] Übersicht: pro Ziel Start → aktuell → Ziel, Balken mit Marke fürs Mindestziel, Status und „auf Kurs / hinter Plan“ in Worten; beendete Ziele hinter „Beendet“
 - [x] Detail: Verlauf gegen die Ziellinie (Gewicht, Kraft, Maß) bzw. ein Balken pro Woche (Trainings, Habit); ändern, „Ziel beenden“ mit „Rückgängig“
-- [x] Zielarten als Daten: Trainings pro Woche, Körpergewicht, Bestwert an einer Übung, Habit-Quote, Körpermaß
+- [x] Zielarten als Daten: Trainings pro Woche, Körpergewicht, Bestwert an einer Übung, Körpermaß (die Habit-Quote ist seit dem 8b-Nachtrag stillgelegt)
 - [x] Änderungen an Ziel und Mindestziel gelten ab heute; vergangene Wochen zählen nach den alten Werten
 - [x] Datenbank: `goal_metrics`, `goals`, `goal_versions`; alles berechnet; geschrieben wird nur über Funktionen (eine Stelle, an der 8b sperren und der Admin korrigieren kann); Datenbank-Tests (55)
 
@@ -66,7 +66,6 @@ Bekannte Grenzen:
 - Teilt jemand sein Gewicht nicht in kg, sieht auch der Admin die kg des Gewichtsziels nicht und kann es nicht korrigieren (bewusst: die Admin-Rolle hebelt die Sichtbarkeit nicht aus).
 - Wer die Gruppe verlässt, bleibt Teilnehmer der Saison, bis der Admin ihn entfernt.
 - Die Regel „jede Woche wiegen“ zwingt niemanden, einen Wiegetag einzustellen; das Zählen der Regeln kommt mit 8c.
-- Ein neues Habit lässt sich im Setup nicht direkt anlegen (Hinweis auf Ich → Habits).
 
 Beim Staging-Test prüfen (am besten zu zweit):
 - Saison anlegen, Setup als Teilnehmer komplett durchgehen, „Bereit“
@@ -75,9 +74,31 @@ Beim Staging-Test prüfen (am besten zu zweit):
 - Marker im Kalender lesbar am iPhone? Verdecken sie nichts?
 - Drei Blätter übereinander (Teilnehmer → Ziel → Korrektur) am iPhone bedienbar?
 
-### 8b-Nachtrag – Habits in der Saison (entschieden am 27.11.2026, noch NICHT gebaut)
+### 8b-Nachtrag – Habits in der Saison (entschieden am 27.11.2026, gebaut am 28.11.2026, Staging-Test offen)
 
-**Stand zum Weitermachen:** Der Branch `feat/goals-seasons` ist gepusht. Der Mindestziel-Umbau ist drin (`b8a2926`). Für die Habits ist noch kein Code geschrieben – der Datenbank-Agent wurde gestoppt, bevor er etwas geändert hat. Nächster Schritt: diesen Abschnitt bauen (erst Datenbank und Hooks, dann Oberfläche), danach 8c.
+**Stand:** gebaut auf `feat/goals-seasons`. Nächster Schritt: Staging-Test (siehe unten), danach 8c.
+
+Gebaut:
+- [x] Datenbank: Haken `private.can_edit_habit` im Habit-Modul (`save_habit` und `archive_habit` laufen darüber), Tabelle `season_habits`, `link_season_habit` / `unlink_season_habit`, `open_season_habit_edit`, Lesefunktion `season_habits_overview`, Feed-Ereignis `season_habit_changed`, `habit_rate` stillgelegt (`goal_metrics.offered`); vorhandene Quoten-Ziele archiviert, Quoten-Ziele einer Saison zu Saison-Habits umgewandelt; Datenbank-Tests (30)
+- [x] Setup-Schritt „Habits“: Liste mit Haken und Regel; Antippen öffnet die Regel mit „In die Saison“ bzw. „Speichern“ und „Nicht in der Saison“; Zeile „Neues Habit“ (Bibliothek wie unter Ich → Habits)
+- [x] Zusammenfassung und Teilnehmer-Blatt zeigen Saison-Habits mit Regel und Quote; Admin-Knopf „Änderung freigeben“
+- [x] Saison-Block: Zeile „Schlaf: Regel ändern · Änderbar bis …“, solange eine Regel freigegeben ist
+- [x] Feed-Karte „Mia hat ein Saison-Habit angepasst“; Mitteilungen an die Person (Freigabe) und an den Admin (Änderung)
+- [x] `habit_rate` aus der Ziele-Oberfläche entfernt
+
+Nebenbei entschieden (bitte beim Test prüfen):
+- Auch während einer Freigabe lässt sich ein Saison-Habit nicht archivieren – die Freigabe gilt nur für die Regel.
+- Ändert die Person die Regel, bekommt der Admin, der freigegeben hat, eine Mitteilung.
+- Nach dem Saisonende bleibt die Verknüpfung erhalten (für den Rückblick in 8d); das Habit ist trotzdem wieder frei.
+- Wer das Habit sieht (Nur ich / Erledigt / Mit Werten), bleibt auch bei einem festen Saison-Habit änderbar.
+
+Beim Staging-Test prüfen:
+- Setup: Habit in die Saison nehmen und dabei die Regel ändern; ein neues Habit direkt im Setup anlegen
+- Nach „Bereit“ unter Ich → Habits die Regel ändern: Meldung „Dieses Habit ist in der laufenden Saison fest.“
+- Als Admin „Änderung freigeben“, als Person die Zeile im Saison-Block nutzen; Feed-Karte und Push prüfen
+- Liest sich die Quote im Teilnehmer-Blatt richtig?
+
+Ursprünglicher Plan:
 
 Entschieden mit Jonas:
 - Ein Habit bekommt in der Saison keine Prozentquote als Ziel. Das Ziel ist die Regel des Habits selbst (z. B. Schlaf mindestens 7 h, im Bett vor 23:00; Screentime höchstens 2 h). Die Quote ist nur Auswertung und erscheint im Vergleich unter „Konsistenz“ (8c).

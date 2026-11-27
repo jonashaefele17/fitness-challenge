@@ -16,7 +16,6 @@ import {
   GoalValues as GoalValuesLine,
   useCreateGoal,
   useGoalMetrics,
-  useGoalReferenceOptions,
   useGoals,
   useGoalStartSuggestion,
   useUpdateGoal,
@@ -28,20 +27,28 @@ import {
   type GoalReference,
 } from '@/features/goals';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
+import { HabitSheet, useMyHabits, type Habit, type HabitDefinition } from '@/features/habits';
 import { Avatar } from '@/features/profile';
 import { cn, showToast } from '@/shared/lib';
 import { Button, CheckIcon, ChevronRightIcon, FieldGroup, PlusIcon, Sheet } from '@/shared/ui';
 import {
   useLinkSeasonGoal,
+  useLinkSeasonHabit,
+  useRefreshSeasons,
   useSeasonGoalLinks,
+  useSeasonHabits,
   useSeasonParticipants,
   useSetSeasonReady,
   useUnlinkSeasonGoal,
+  useUnlinkSeasonHabit,
 } from '../api/useSeasons';
 import {
   missingMetricsText,
   seasonCountdownText,
   seasonErrorText,
+  seasonHabitEditText,
+  seasonHabitQuotaText,
+  seasonHabitRuleText,
   seasonRulesLines,
   seasonWeekText,
 } from '../format';
@@ -50,6 +57,7 @@ import {
   linkableGoals,
   myGoalIds,
   seasonGoalFrame,
+  seasonStarted,
   readSetupStep as readStep,
   setupDaysLeftText,
   setupSteps,
@@ -60,7 +68,6 @@ import type { Season } from '../types';
 import { GoalValuesEditor, type GoalValues } from './GoalValuesEditor';
 
 const TRAININGS = 'trainings_per_week';
-const HABIT = 'habit_rate';
 const DEFAULT_CHECKIN_TIME = '08:00';
 
 /**
@@ -505,8 +512,8 @@ function ExtraStep({
   editable: boolean;
 }) {
   const mine = useMySeasonGoals(season);
-  const extra = mine.linked.filter((g) => g.metric !== TRAININGS && g.metric !== HABIT);
-  const offered = mine.metrics.filter((m) => m.key !== TRAININGS && m.key !== HABIT);
+  const extra = mine.linked.filter((g) => g.metric !== TRAININGS);
+  const offered = mine.metrics.filter((m) => m.key !== TRAININGS && m.offered);
   const linkable = linkableGoals(mine.goals, mine.ids);
   const [creating, setCreating] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -641,6 +648,39 @@ function ExtraStep({
 // 4 Habits
 // ---------------------------------------------------------------------------
 
+/** My habits in the season and the writes that keep them linked. */
+function useMySeasonHabits(season: Season) {
+  const userId = useUserId();
+  const all = useSeasonHabits(season.id).data ?? [];
+  const linked = all.filter((h) => h.userId === userId);
+  const link = useLinkSeasonHabit();
+  const unlink = useUnlinkSeasonHabit();
+  const refused = (fallback: string) => (error: unknown) => {
+    showToast(seasonErrorText(error) ?? fallback);
+  };
+  const linkHabit = (habitId: string, definition?: HabitDefinition) => {
+    link
+      .mutateAsync({ seasonId: season.id, habitId, ...(definition ? { definition } : {}) })
+      .catch(refused('Habit konnte nicht in die Saison übernommen werden.'));
+  };
+  return {
+    linked,
+    of: (habitId: string) => linked.find((h) => h.habitId === habitId) ?? null,
+    link: linkHabit,
+    unlink(habitId: string, definition: HabitDefinition) {
+      unlink
+        .mutateAsync({ seasonId: season.id, habitId })
+        .catch(refused('Habit konnte nicht aus der Saison genommen werden.'));
+      showToast('Aus der Saison genommen', {
+        label: 'Rückgängig',
+        onAction: () => {
+          linkHabit(habitId, definition);
+        },
+      });
+    },
+  };
+}
+
 function HabitsStep({
   season,
   header,
@@ -652,194 +692,119 @@ function HabitsStep({
   onNext: () => void;
   editable: boolean;
 }) {
-  const mine = useMySeasonGoals(season);
-  const options = useGoalReferenceOptions(HABIT);
-  const metric = mine.metrics.find((m) => m.key === HABIT) ?? null;
-  const [picked, setPicked] = useState<{ habitId: string; label: string } | null>(null);
-  const [open, setOpen] = useState(false);
-  const goalOf = (habitId: string, linkedOnly: boolean) =>
-    (linkedOnly ? mine.linked : mine.goals).find(
-      (g) =>
-        g.metric === HABIT &&
-        g.reference.habitId === habitId &&
-        g.archivedAt === null &&
-        g.phase !== 'ended',
-    ) ?? null;
-  const list = options.data ?? [];
+  const habits = useMyHabits();
+  const mine = useMySeasonHabits(season);
+  const refresh = useRefreshSeasons();
+  // undefined: closed · null: a new habit · a habit: its rule
+  const [shown, setShown] = useState<Habit | null | undefined>(undefined);
+  const list = (habits.data ?? []).filter((h) => !h.archived);
+  const shownLink = shown ? mine.of(shown.id) : null;
+  // After "Bereit" a rule can change only while an admin has opened it.
+  const changeable = (habitId: string) =>
+    editable || (mine.of(habitId)?.editOpenUntil ?? null) !== null;
 
   return (
     <Screen
       header={header}
       title="Habits"
-      hint="Welche deiner Habits zählen in der Saison? Für jedes eine Quote: an wie viel Prozent der Tage du es schaffen willst."
+      hint="Welche deiner Habits zählen in der Saison? Es zählt die Regel des Habits – z. B. Schlaf mindestens 7 Stunden. Ab „Bereit“ ist sie fest."
       footer={<NextButton onNext={onNext} />}
     >
-      <LockedNote editable={editable} />
-      {options.isPending ? null : list.length === 0 ? (
-        <p className="py-4 text-center text-subhead text-text-subtle">Noch kein Habit.</p>
-      ) : (
+      {!editable && (
+        <p className="text-footnote text-text-muted">
+          Deine Saison-Habits sind fest. Ein Admin kann eine Regel für 24 Stunden zur Änderung
+          freigeben.
+        </p>
+      )}
+      {habits.isPending ? null : (
         <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
-          {list.map((o) => {
-            const habitId = o.reference.habitId ?? '';
-            const goal = goalOf(habitId, true);
+          {list.map((habit) => {
+            const link = mine.of(habit.id);
+            const canOpen = changeable(habit.id);
             return (
-              <li key={habitId}>
+              <li key={habit.id}>
                 <button
                   type="button"
-                  disabled={!editable}
+                  disabled={!canOpen}
                   onClick={() => {
-                    setPicked({ habitId, label: o.label });
-                    setOpen(true);
+                    setShown(habit);
                   }}
-                  aria-pressed={goal !== null}
+                  aria-pressed={link !== null}
                   className="flex min-h-tap w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-3 disabled:active:bg-transparent"
                 >
                   <span
                     aria-hidden
                     className={cn(
                       'flex size-6 shrink-0 items-center justify-center rounded-pill border',
-                      goal ? 'border-accent bg-accent text-on-accent' : 'border-text-subtle',
+                      link ? 'border-accent bg-accent text-on-accent' : 'border-text-subtle',
                     )}
                   >
-                    {goal && <CheckIcon className="size-4" strokeWidth={3} />}
+                    {link && <CheckIcon className="size-4" strokeWidth={3} />}
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-body">{o.label}</span>
-                    {goal && <GoalValuesLine goal={goal} className="text-footnote" />}
+                    <span className="truncate text-body">{habit.current.name}</span>
+                    <span className="truncate text-footnote text-text-muted">
+                      {link?.editOpenUntil
+                        ? seasonHabitEditText(link.editOpenUntil)
+                        : seasonHabitRuleText({ definition: habit.current })}
+                    </span>
                   </span>
-                  {editable && (
+                  {canOpen && (
                     <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
                   )}
                 </button>
               </li>
             );
           })}
+          {editable && (
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  setShown(null);
+                }}
+                className="flex min-h-tap w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-3"
+              >
+                <PlusIcon aria-hidden className="size-6 shrink-0 text-accent" />
+                <span className="text-body">Neues Habit</span>
+              </button>
+            </li>
+          )}
         </ul>
       )}
       <p className="text-footnote text-text-muted">
-        Ein neues Habit legst du unter Ich → Habits an; danach steht es hier.
+        Die Gruppe sieht Name und Regel und wie oft du sie schaffst – auch wenn das Habit selbst
+        privat ist. Einzelne Tage sieht sie nur, wenn du das Habit teilst.
       </p>
-      {picked && metric && (
-        <HabitQuotaSheet
-          open={open}
-          onOpenChange={setOpen}
-          label={picked.label}
-          habitId={picked.habitId}
-          linked={goalOf(picked.habitId, true)}
-          existing={goalOf(picked.habitId, false)}
-          onSave={(values, linked, existing) => {
-            setOpen(false);
-            if (linked) mine.updateValues(linked, values);
-            else if (existing) mine.adopt(existing, values);
-            else {
-              mine.createLinked(
-                metric,
-                { ...noReference, habitId: picked.habitId },
-                values,
-                picked.label,
-              );
-            }
-          }}
-          onRemove={(goal) => {
-            setOpen(false);
-            mine.unlink(goal);
-          }}
-        />
-      )}
-    </Screen>
-  );
-}
-
-function HabitQuotaSheet({
-  open,
-  onOpenChange,
-  label,
-  habitId,
-  linked,
-  existing,
-  onSave,
-  onRemove,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  label: string;
-  habitId: string;
-  linked: Goal | null;
-  existing: Goal | null;
-  onSave: (values: GoalValues, linked: Goal | null, existing: Goal | null) => void;
-  onRemove: (goal: Goal) => void;
-}) {
-  const baseline =
-    useGoalStartSuggestion(open ? { metric: HABIT, reference: { habitId } } : null).data?.value ??
-    null;
-  const source = linked ?? existing;
-  const [values, setValues] = useState<GoalValues>({ start: null, target: null, min: null });
-  const [wasOpen, setWasOpen] = useState(false);
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) {
-      setValues({
-        start: null,
-        target: source?.targetValue ?? null,
-        min: source?.minValue ?? null,
-      });
-    }
-  }
-  const error = validateGoalValues(
-    { key: HABIT, kind: 'rate' },
-    { startValue: null, minValue: values.min, targetValue: values.target },
-  );
-  return (
-    <Sheet
-      fullHeight
-      open={open}
-      onOpenChange={onOpenChange}
-      title={label}
-      footer={
-        <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            fullWidth
-            missing={error}
-            onClick={() => {
-              onSave({ ...values, start: baseline }, linked, existing);
-            }}
-          >
-            {linked ? 'Speichern' : 'In die Saison'}
-          </Button>
-          {linked && (
+      <HabitSheet
+        open={shown !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setShown(undefined);
+        }}
+        habit={shown ?? null}
+        submitLabel={shownLink || !editable ? 'Speichern' : 'In die Saison'}
+        actions={
+          shown && shownLink && editable ? (
             <Button
               variant="ghost"
-              fullWidth
               onClick={() => {
-                onRemove(linked);
+                setShown(undefined);
+                mine.unlink(shown.id, shown.current);
               }}
             >
               Nicht in der Saison
             </Button>
-          )}
-        </div>
-      }
-    >
-      <div className="flex flex-col gap-4 pt-1">
-        <p className="text-subhead text-text-muted">
-          {baseline === null
-            ? 'In den letzten 4 Wochen gab es noch nichts zu zählen.'
-            : `In den letzten 4 Wochen: ${formatGoalValue(baseline, 'percent')}.`}
-        </p>
-        <GoalValuesEditor
-          metric={HABIT}
-          kind="rate"
-          unit="percent"
-          values={values}
-          onChange={setValues}
-        />
-        <p className="text-footnote text-text-muted">
-          Die Gruppe sieht den Namen des Habits und deine Quote – auch wenn das Habit selbst privat
-          ist.
-        </p>
-      </div>
-    </Sheet>
+          ) : null
+        }
+        onSaved={(habitId, isNew) => {
+          if (editable && !mine.of(habitId)) {
+            mine.link(habitId, isNew || !shown ? undefined : shown.current);
+          } else {
+            void refresh();
+          }
+        }}
+      />
+    </Screen>
   );
 }
 
@@ -958,6 +923,7 @@ function SummaryStep({
   onDone: () => void;
 }) {
   const mine = useMySeasonGoals(season);
+  const habits = useMySeasonHabits(season);
   const ready = useSetSeasonReady();
   const label = (key: string) => mine.metrics.find((m) => m.key === key)?.label ?? key;
   const missing = season.me ? missingMetricsText(season.me.missingMetrics, label) : null;
@@ -1040,13 +1006,7 @@ function SummaryStep({
               <button
                 type="button"
                 onClick={() => {
-                  onEdit(
-                    goal.metric === TRAININGS
-                      ? 'training'
-                      : goal.metric === HABIT
-                        ? 'habits'
-                        : 'extra',
-                  );
+                  onEdit(goal.metric === TRAININGS ? 'training' : 'extra');
                 }}
                 className="flex min-h-tap w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-3"
               >
@@ -1059,6 +1019,32 @@ function SummaryStep({
             </li>
           ))}
         </ul>
+      )}
+      {habits.linked.length > 0 && (
+        <FieldGroup label="Habits">
+          <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
+            {habits.linked.map((habit) => (
+              <li key={habit.habitId}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onEdit('habits');
+                  }}
+                  className="flex min-h-tap w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-3"
+                >
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-body">{habit.definition.name}</span>
+                    <span className="truncate text-footnote text-text-muted">
+                      {seasonHabitRuleText(habit)}
+                      {seasonStarted(season) ? ` · ${seasonHabitQuotaText(habit)}` : ''}
+                    </span>
+                  </span>
+                  <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </FieldGroup>
       )}
       {missing && <p className="text-footnote text-danger">{missing}</p>}
       {!locksNow && editable && (

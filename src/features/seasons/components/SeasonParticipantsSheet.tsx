@@ -16,13 +16,21 @@ import { showToast } from '@/shared/lib';
 import { Button, CheckIcon, ChevronRightIcon, FieldGroup, PlusIcon, Sheet } from '@/shared/ui';
 import {
   useAddSeasonParticipant,
+  useOpenSeasonHabitEdit,
   useRemoveSeasonParticipant,
   useSeasonGoals,
+  useSeasonHabits,
   useSeasonParticipants,
 } from '../api/useSeasons';
-import { missingMetricsText, seasonErrorText } from '../format';
+import {
+  missingMetricsText,
+  seasonErrorText,
+  seasonHabitEditText,
+  seasonHabitQuotaText,
+  seasonHabitRuleText,
+} from '../format';
 import { seasonGoalFrame, seasonStarted } from '../setup';
-import type { Season, SeasonParticipant } from '../types';
+import type { Season, SeasonHabit, SeasonParticipant } from '../types';
 import { GoalCorrectionSheet } from './GoalCorrectionSheet';
 
 /**
@@ -51,6 +59,8 @@ export function SeasonParticipantsSheet({
   const members = useGroupMembers(group.id).data ?? [];
   const participants = useSeasonParticipants(open ? season.id : null);
   const goals = useSeasonGoals(open ? season.id : null);
+  const habits = useSeasonHabits(open ? season.id : null);
+  const openEdit = useOpenSeasonHabitEdit();
   const add = useAddSeasonParticipant();
   const remove = useRemoveSeasonParticipant();
   const [today] = useState(goalTodayKey);
@@ -108,6 +118,7 @@ export function SeasonParticipantsSheet({
           {list.map((p) => {
             const member = memberOf(p.userId);
             const personGoals = goals.data?.find((g) => g.userId === p.userId)?.goals ?? [];
+            const personHabits = (habits.data ?? []).filter((h) => h.userId === p.userId);
             return (
               <section key={p.userId} className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
@@ -170,6 +181,28 @@ export function SeasonParticipantsSheet({
                           <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
                         </button>
                       </li>
+                    ))}
+                  </ul>
+                )}
+                {personHabits.length > 0 && (
+                  <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
+                    {personHabits.map((habit) => (
+                      <SeasonHabitRow
+                        key={habit.habitId}
+                        habit={habit}
+                        started={started}
+                        onOpenEdit={
+                          isAdmin && live && habit.locked && habit.editOpenUntil === null
+                            ? () => {
+                                openEdit.mutate(
+                                  { seasonId: season.id, habitId: habit.habitId },
+                                  { onError: refused('Konnte nicht freigegeben werden.') },
+                                );
+                                showToast(`${habit.definition.name}: 24 Stunden änderbar`);
+                              }
+                            : null
+                        }
+                      />
                     ))}
                   </ul>
                 )}
@@ -290,4 +323,40 @@ function participantState(
   // Not ready at the start: sets up afterwards, fixed from "Bereit".
   if (seasonStarted(season)) return missing ? `Richtet noch ein · ${missing}` : 'Richtet noch ein';
   return missing ?? 'Noch nicht bereit';
+}
+
+/** A season habit: name, rule and how it went; for admins "Änderung freigeben". */
+function SeasonHabitRow({
+  habit,
+  started,
+  onOpenEdit,
+}: {
+  habit: SeasonHabit;
+  started: boolean;
+  onOpenEdit: (() => void) | null;
+}) {
+  return (
+    <li className="flex min-h-tap items-center gap-3 py-2.5 pr-2 pl-4">
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-subhead">{habit.definition.name}</span>
+        <span className="text-footnote text-text-muted">{seasonHabitRuleText(habit)}</span>
+        {(started || habit.editOpenUntil) && (
+          <span className="truncate text-footnote text-text-muted">
+            {habit.editOpenUntil
+              ? seasonHabitEditText(habit.editOpenUntil)
+              : seasonHabitQuotaText(habit)}
+          </span>
+        )}
+      </span>
+      {onOpenEdit && (
+        <button
+          type="button"
+          onClick={onOpenEdit}
+          className="min-h-tap shrink-0 rounded-pill px-3 text-subhead text-accent active:bg-surface-3"
+        >
+          Änderung freigeben
+        </button>
+      )}
+    </li>
+  );
 }

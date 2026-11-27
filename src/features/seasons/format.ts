@@ -1,5 +1,6 @@
+import { frequencyText, ruleText } from '@/features/habits';
 import { daysBetween } from './season';
-import type { Season, SeasonDayMarker, SeasonPhase, SeasonRules } from './types';
+import type { Season, SeasonDayMarker, SeasonHabit, SeasonPhase, SeasonRules } from './types';
 
 const PHASE_LABELS: Record<SeasonPhase, string> = {
   announced: 'Angekündigt',
@@ -121,6 +122,10 @@ const ERROR_TEXTS: Record<string, string> = {
   invalid_name: 'Bitte gib der Saison einen Namen.',
   participant_not_in_group: 'Teilnehmen kann nur, wer in der Gruppe ist.',
   goal_in_other_season: 'Dieses Ziel gehört schon zu einer anderen Saison.',
+  season_habit_locked: 'Dieses Habit ist in der laufenden Saison fest.',
+  season_habit_not_locked: 'Die Regel ist noch nicht fest – die Person kann sie selbst ändern.',
+  season_habit_not_found: 'Dieses Habit gehört nicht mehr zur Saison.',
+  habit_not_found: 'Dieses Habit gibt es nicht mehr.',
 };
 
 /** German text for an error from the season functions; null for an unknown one. */
@@ -128,4 +133,40 @@ export function seasonErrorText(error: unknown): string | null {
   const message =
     typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '';
   return ERROR_TEXTS[message] ?? null;
+}
+
+/** A season habit's rule in words: "täglich · mind. 7:00 h · ins Bett vor 23:00". */
+export function seasonHabitRuleText(habit: Pick<SeasonHabit, 'definition'>): string {
+  const rule = ruleText(habit.definition);
+  // A yes/no habit has no rule beyond being done.
+  return habit.definition.inputType === 'yes_no' && habit.definition.source !== 'training'
+    ? frequencyText(habit.definition)
+    : `${frequencyText(habit.definition)} · ${rule}`;
+}
+
+/** How it went: "80 % · 12 von 15 Tagen"; nothing counted yet: "Noch nichts gezählt". */
+export function seasonHabitQuotaText(
+  habit: Pick<SeasonHabit, 'quotaPct' | 'met' | 'counted' | 'countUnit'>,
+): string {
+  if (habit.quotaPct === null || habit.counted === 0) return 'Noch nichts gezählt';
+  const unit =
+    habit.countUnit === 'weeks'
+      ? habit.counted === 1
+        ? 'Woche'
+        : 'Wochen'
+      : habit.counted === 1
+        ? 'Tag'
+        : 'Tagen';
+  return `${String(Math.round(habit.quotaPct))} % · ${String(habit.met)} von ${String(habit.counted)} ${unit}`;
+}
+
+const untilFormat = new Intl.DateTimeFormat('de', {
+  weekday: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+/** An open edit window: "Änderbar bis Fr., 18:30". */
+export function seasonHabitEditText(editOpenUntil: string): string {
+  return `Änderbar bis ${untilFormat.format(new Date(editOpenUntil))}`;
 }

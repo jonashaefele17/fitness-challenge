@@ -110,6 +110,10 @@ export function describeNotification(
       return 'Die Saison läuft';
     case 'season_goal_corrected':
       return 'hat dein Saisonziel korrigiert';
+    case 'season_habit_edit_open':
+      return 'gibt die Regel deines Saison-Habits für 24 Stunden frei';
+    case 'season_habit_changed':
+      return 'hat die Regel eines Saison-Habits geändert';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

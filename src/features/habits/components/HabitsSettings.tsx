@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useUserId } from '@/features/auth';
-import { useMyProfile } from '@/features/profile';
 import { showToast } from '@/shared/lib';
 import {
   Button,
@@ -13,32 +11,18 @@ import {
 } from '@/shared/ui';
 import {
   useAddPause,
-  useAdoptHabit,
   useArchiveHabit,
-  useGroupCatalog,
-  useHabitTemplates,
   useMyHabits,
   usePauses,
-  usePromoteHabit,
   useRemovePause,
   useReminders,
   useSaveReminders,
-  useSaveHabit,
 } from '../api/useHabits';
 import { todayKey } from '../dates';
-import { EMPTY_HABIT } from '../defaults';
+import { habitErrorText } from '../definition';
 import { summaryText } from '../habitText';
-import type { Habit, HabitDefinition, HabitTemplate, ShareLevel } from '../types';
-import { HabitEditor } from './HabitEditor';
-
-type CatalogHabit = Habit & { ownerName: string };
-
-type Editing =
-  | { kind: 'habit'; habit: Habit }
-  | { kind: 'new'; template: HabitTemplate | null }
-  // Taken over from a group mate's habit (own goals).
-  | { kind: 'adopt'; source: CatalogHabit }
-  | null;
+import type { Habit } from '../types';
+import { HabitSheet } from './HabitSheet';
 
 const shortDate = new Intl.DateTimeFormat('de', { day: 'numeric', month: 'short' });
 
@@ -50,45 +34,12 @@ export function HabitsSettings() {
   const habits = useMyHabits().data ?? [];
   const active = habits.filter((h) => !h.archived);
   const archived = habits.filter((h) => h.archived);
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const [editing, setEditing] = useState<Editing>(null);
-  const save = useSaveHabit();
+  // undefined: closed · null: a new habit · a habit: change it
+  const [editing, setEditing] = useState<Habit | null | undefined>(undefined);
   const archive = useArchiveHabit();
-  const adopt = useAdoptHabit();
-  const promote = usePromoteHabit();
-  const isSuperAdmin = useMyProfile(useUserId()).data?.isSuperAdmin ?? false;
-
-  function onSave(definition: HabitDefinition, shareLevel: ShareLevel) {
-    if (!editing) return;
-    const done = {
-      onSuccess: () => {
-        setEditing(null);
-        setLibraryOpen(false);
-      },
-    };
-    if (editing.kind === 'adopt') {
-      adopt.mutate(
-        { sourceId: editing.source.id, validFrom: todayKey(), definition, shareLevel },
-        done,
-      );
-      return;
-    }
-    save.mutate(
-      {
-        habitId: editing.kind === 'habit' ? editing.habit.id : null,
-        templateId: editing.kind === 'new' ? (editing.template?.id ?? null) : null,
-        validFrom: todayKey(),
-        definition,
-        shareLevel,
-      },
-      {
-        onSuccess: () => {
-          setEditing(null);
-          setLibraryOpen(false);
-        },
-      },
-    );
-  }
+  const failed = (error: unknown) => {
+    showToast(habitErrorText(error) ?? 'Konnte nicht gespeichert werden.');
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,7 +49,7 @@ export function HabitsSettings() {
           <Button
             variant="ghost"
             onClick={() => {
-              setLibraryOpen(true);
+              setEditing(null);
             }}
           >
             <PlusIcon aria-hidden /> Habit
@@ -115,7 +66,7 @@ export function HabitsSettings() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEditing({ kind: 'habit', habit });
+                    setEditing(habit);
                   }}
                   className="flex min-h-tap w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-3"
                 >
@@ -148,7 +99,7 @@ export function HabitsSettings() {
                   <Button
                     variant="ghost"
                     onClick={() => {
-                      archive.mutate({ habitId: habit.id, archive: false });
+                      archive.mutate({ habitId: habit.id, archive: false }, { onError: failed });
                     }}
                   >
                     Wieder aufnehmen
@@ -164,159 +115,29 @@ export function HabitsSettings() {
 
       <Pauses />
 
-      <Sheet open={libraryOpen} onOpenChange={setLibraryOpen} title="Habit hinzufügen">
-        <Library
-          taken={active.flatMap((h) => h.templateId ?? [])}
-          adopted={active.flatMap((h) => h.sourceHabitId ?? [])}
-          onPick={(template) => {
-            setEditing({ kind: 'new', template });
-          }}
-          onAdopt={(source) => {
-            setEditing({ kind: 'adopt', source });
-          }}
-        />
-      </Sheet>
-
-      <Sheet
-        fullHeight
-        open={editing !== null}
+      <HabitSheet
+        open={editing !== undefined}
         onOpenChange={(open) => {
-          if (!open) setEditing(null);
+          if (!open) setEditing(undefined);
         }}
-        title={
-          editing?.kind === 'habit'
-            ? editing.habit.current.name
-            : editing?.kind === 'adopt'
-              ? `${editing.source.current.name} · von ${editing.source.ownerName}`
-              : 'Neues Habit'
+        habit={editing ?? null}
+        onArchive={
+          editing
+            ? () => {
+                const habitId = editing.id;
+                const name = editing.current.name;
+                setEditing(undefined);
+                archive.mutate({ habitId, archive: true }, { onError: failed });
+                showToast(`${name} archiviert`, {
+                  label: 'Rückgängig',
+                  onAction: () => {
+                    archive.mutate({ habitId, archive: false });
+                  },
+                });
+              }
+            : undefined
         }
-      >
-        {editing && (
-          <HabitEditor
-            key={
-              editing.kind === 'habit'
-                ? editing.habit.id
-                : editing.kind === 'adopt'
-                  ? `adopt-${editing.source.id}`
-                  : (editing.template?.id ?? 'own')
-            }
-            initial={
-              editing.kind === 'habit'
-                ? editing.habit.current
-                : editing.kind === 'adopt'
-                  ? editing.source.current
-                  : editing.template
-                    ? { ...editing.template }
-                    : EMPTY_HABIT
-            }
-            initialShare={editing.kind === 'habit' ? editing.habit.shareLevel : 'private'}
-            isNew={editing.kind !== 'habit'}
-            saving={save.isPending || adopt.isPending}
-            onPromote={
-              editing.kind === 'adopt' && isSuperAdmin
-                ? () => {
-                    const name = editing.source.current.name;
-                    promote.mutate(editing.source.id, {
-                      onSuccess: () => {
-                        setEditing(null);
-                        showToast(`${name} ist jetzt eine Standard-Vorlage`);
-                      },
-                    });
-                  }
-                : undefined
-            }
-            onSave={onSave}
-            onArchive={
-              editing.kind === 'habit'
-                ? () => {
-                    const habitId = editing.habit.id;
-                    archive.mutate({ habitId, archive: true });
-                    setEditing(null);
-                    showToast(`${editing.habit.current.name} archiviert`, {
-                      label: 'Rückgängig',
-                      onAction: () => {
-                        archive.mutate({ habitId, archive: false });
-                      },
-                    });
-                  }
-                : undefined
-            }
-          />
-        )}
-      </Sheet>
-    </div>
-  );
-}
-
-/**
- * One catalog: the standard templates and what group mates share (marked "von Grazon"),
- * each taken over with own goals.
- */
-function Library({
-  taken,
-  adopted,
-  onPick,
-  onAdopt,
-}: {
-  taken: string[];
-  adopted: string[];
-  onPick: (template: HabitTemplate | null) => void;
-  onAdopt: (source: CatalogHabit) => void;
-}) {
-  const templates = (useHabitTemplates().data ?? []).filter((t) => !taken.includes(t.id));
-  const fromGroup = (useGroupCatalog().data ?? []).filter((h) => !adopted.includes(h.id));
-  const entries = [
-    ...templates.map((template) => ({
-      key: template.id,
-      name: template.name,
-      line: template.description ?? summaryText(template),
-      from: null as string | null,
-      pick: () => {
-        onPick(template);
-      },
-    })),
-    ...fromGroup.map((habit) => ({
-      key: habit.id,
-      name: habit.current.name,
-      line: summaryText(habit.current),
-      from: habit.ownerName,
-      pick: () => {
-        onAdopt(habit);
-      },
-    })),
-  ].sort((x, y) => x.name.localeCompare(y.name, 'de'));
-  return (
-    <div className="flex flex-col gap-3 pt-1">
-      <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
-        {entries.map((entry) => (
-          <li key={entry.key}>
-            <button
-              type="button"
-              onClick={entry.pick}
-              className="flex min-h-tap w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-3"
-            >
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-subhead font-semibold">
-                  {entry.name}
-                  {entry.from && (
-                    <span className="font-normal text-text-muted"> · von {entry.from}</span>
-                  )}
-                </span>
-                <span className="truncate text-footnote text-text-muted">{entry.line}</span>
-              </span>
-              <ChevronRightIcon aria-hidden className="shrink-0 text-text-subtle" />
-            </button>
-          </li>
-        ))}
-      </ul>
-      <Button
-        variant="secondary"
-        onClick={() => {
-          onPick(null);
-        }}
-      >
-        Eigenes Habit anlegen
-      </Button>
+      />
     </div>
   );
 }

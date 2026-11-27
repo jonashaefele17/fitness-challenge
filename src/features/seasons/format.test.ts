@@ -3,6 +3,8 @@ import {
   missingMetricsText,
   seasonCountdownText,
   seasonErrorText,
+  seasonHabitQuotaText,
+  seasonHabitRuleText,
   seasonMarkerText,
   seasonPhaseLabel,
   seasonRulesLines,
@@ -80,5 +82,52 @@ describe('rules and setup', () => {
     );
     expect(seasonErrorText(new Error('other'))).toBeNull();
     expect(seasonErrorText(null)).toBeNull();
+  });
+});
+
+describe('season habits', () => {
+  const base = {
+    name: 'Schlaf',
+    inputType: 'time_pair' as const,
+    unit: null,
+    rule: [
+      { field: 'duration' as const, op: 'min' as const, value: 420 },
+      { field: 'start' as const, op: 'before' as const, value: '23:00' },
+    ],
+    frequency: 'daily' as const,
+    weekdays: [],
+    timesPerWeek: null,
+    timeOfDay: 'evening' as const,
+    options: [],
+    source: 'manual' as const,
+  };
+
+  it('describes the rule', () => {
+    expect(seasonHabitRuleText({ definition: base })).toBe(
+      'täglich · mind. 7:00 h · ins Bett vor 23:00',
+    );
+    expect(
+      seasonHabitRuleText({
+        definition: {
+          ...base,
+          inputType: 'yes_no',
+          rule: [],
+          frequency: 'weekly',
+          timesPerWeek: 4,
+        },
+      }),
+    ).toBe('4× pro Woche');
+  });
+
+  it('says how it went', () => {
+    expect(seasonHabitQuotaText({ quotaPct: 62.5, met: 5, counted: 8, countUnit: 'days' })).toBe(
+      '63 % · 5 von 8 Tagen',
+    );
+    expect(seasonHabitQuotaText({ quotaPct: 100, met: 1, counted: 1, countUnit: 'weeks' })).toBe(
+      '100 % · 1 von 1 Woche',
+    );
+    expect(seasonHabitQuotaText({ quotaPct: null, met: 0, counted: 0, countUnit: 'days' })).toBe(
+      'Noch nichts gezählt',
+    );
   });
 });

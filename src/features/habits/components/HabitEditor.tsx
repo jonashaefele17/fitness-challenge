@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { cn } from '@/shared/lib';
 import { Button, CloseIcon, FieldGroup, SegmentedControl, TextField } from '@/shared/ui';
 import type { HabitCondition, HabitDefinition, HabitInputType, ShareLevel } from '../types';
@@ -38,6 +38,8 @@ export function HabitEditor({
   onSave,
   onArchive,
   onPromote,
+  submitLabel,
+  actions,
 }: {
   initial: HabitDefinition;
   initialShare?: ShareLevel;
@@ -47,6 +49,10 @@ export function HabitEditor({
   onArchive?: (() => void) | undefined;
   /** Super admin, on a group mate's habit: make it a standard template. */
   onPromote?: (() => void) | undefined;
+  /** Default: "Hinzufügen" / "Speichern". */
+  submitLabel?: string | undefined;
+  /** More buttons under the submit button (e.g. "Nicht in der Saison"). */
+  actions?: ReactNode;
 }) {
   const [def, setDef] = useState(initial);
   const [share, setShare] = useState<ShareLevel>(initialShare);
@@ -392,8 +398,9 @@ export function HabitEditor({
           </p>
         )}
         <Button type="submit" size="lg" missing={missing} loading={saving}>
-          {isNew ? 'Hinzufügen' : 'Speichern'}
+          {submitLabel ?? (isNew ? 'Hinzufügen' : 'Speichern')}
         </Button>
+        {actions}
         {onPromote && (
           <Button variant="ghost" onClick={onPromote}>
             Als Standard übernehmen

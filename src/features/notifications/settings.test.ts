@@ -83,5 +83,11 @@ describe('describeNotification', () => {
     expect(describeNotification({ event: 'season_goal_corrected', category: 'seasons' })).toBe(
       'hat dein Saisonziel korrigiert',
     );
+    expect(describeNotification({ event: 'season_habit_edit_open', category: 'seasons' })).toBe(
+      'gibt die Regel deines Saison-Habits für 24 Stunden frei',
+    );
+    expect(describeNotification({ event: 'season_habit_changed', category: 'seasons' })).toBe(
+      'hat die Regel eines Saison-Habits geändert',
+    );
   });
 });

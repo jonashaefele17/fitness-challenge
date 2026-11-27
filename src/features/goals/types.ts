@@ -31,6 +31,8 @@ export interface GoalMetric {
   /** null: from the reference (exercise measure, measurement kind). */
   unit: GoalUnit | null;
   sort: number;
+  /** false: no new goals of it (retired, e.g. the habit quota); old ones still read. */
+  offered: boolean;
 }
 
 /** Which exercise / habit / measurement kind a goal is about (the one fitting the metric). */

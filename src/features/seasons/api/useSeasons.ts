@@ -9,6 +9,7 @@ import {
 import { useUserId } from '@/features/auth';
 import { goalKeys, goalListOptions, goalTodayKey, type Goal } from '@/features/goals';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
+import type { HabitCondition, HabitDefinition, HabitOption } from '@/features/habits';
 import { supabase } from '@/shared/lib/supabase';
 import type { Database } from '@/shared/types/database';
 import {
@@ -27,6 +28,7 @@ import type {
   SeasonDayMarker,
   SeasonGoalLink,
   SeasonGoalsOfPerson,
+  SeasonHabit,
   SeasonParticipant,
   SeasonPhase,
   UpdateSeasonInput,
@@ -197,6 +199,56 @@ export function useSeasonGoals(seasonId: string | null): {
     isPending: participants.isPending || links.isPending || goals.some((q) => q.isPending),
     isError: participants.isError || links.isError || goals.some((q) => q.isError),
   };
+}
+
+function toSeasonHabit(
+  row: Database['public']['Functions']['season_habits_overview']['Returns'][number],
+): SeasonHabit {
+  return {
+    userId: row.user_id,
+    habitId: row.habit_id,
+    definition: {
+      name: row.name,
+      inputType: row.input_type as HabitDefinition['inputType'],
+      unit: orNull(row.unit),
+      rule: row.rule as unknown as HabitCondition[],
+      frequency: row.frequency as HabitDefinition['frequency'],
+      weekdays: row.weekdays,
+      timesPerWeek: orNull(row.times_per_week),
+      // Not part of the rule; the overview does not carry it.
+      timeOfDay: 'evening',
+      options: row.options as unknown as HabitOption[],
+      source: row.source as HabitDefinition['source'],
+    },
+    counted: row.counted,
+    met: row.met,
+    quotaPct: orNull(row.quota_pct),
+    countUnit: row.count_unit === 'weeks' ? 'weeks' : 'days',
+    locked: row.locked,
+    editOpenUntil: orNull(row.edit_open_until),
+  };
+}
+
+/**
+ * The season habits of all participants: name, rule and how it went since each one's start
+ * (null seasonId: disabled).
+ */
+export function useSeasonHabits(seasonId: string | null) {
+  const { group } = useActiveGroup();
+  const today = goalTodayKey();
+  return useQuery({
+    queryKey: seasonKeys.habits(group.id, seasonId ?? '', today),
+    enabled: seasonId !== null,
+    queryFn: async (): Promise<SeasonHabit[]> => {
+      const { data, error } = await supabase.rpc('season_habits_overview', {
+        p_season_id: seasonId ?? '',
+        p_today: today,
+        p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (error) throw error;
+      return data.map(toSeasonHabit);
+    },
+  });
 }
 
 /** The active group's season start and end days in a range (calendar, Heute). */
@@ -521,6 +573,113 @@ export function useSetSeasonReady() {
     },
     onSettled: cache.refresh,
   });
+}
+
+/**
+ * Take one of my habits into the season (while my setup is open). With the definition it
+ * shows at once. Undo: useUnlinkSeasonHabit.
+ */
+export function useLinkSeasonHabit() {
+  const cache = useSeasonCache();
+  return useMutation({
+    mutationFn: async ({
+      seasonId,
+      habitId,
+    }: {
+      seasonId: string;
+      habitId: string;
+      definition?: HabitDefinition;
+    }) => {
+      const { error } = await supabase.rpc('link_season_habit', {
+        p_season_id: seasonId,
+        p_habit_id: habitId,
+      });
+      if (error) throw error;
+    },
+    onMutate: ({ seasonId, habitId, definition }) =>
+      definition
+        ? cache.change<SeasonHabit[]>(
+            seasonKeys.habits(cache.groupId, seasonId, goalTodayKey()),
+            (list) =>
+              list.some((h) => h.habitId === habitId)
+                ? list
+                : [
+                    ...list,
+                    {
+                      userId: cache.userId,
+                      habitId,
+                      definition,
+                      counted: 0,
+                      met: 0,
+                      quotaPct: null,
+                      countUnit: definition.frequency === 'weekly' ? 'weeks' : 'days',
+                      locked: false,
+                      editOpenUntil: null,
+                    },
+                  ],
+          )
+        : Promise.resolve([]),
+    onError: (_error, _input, snapshots) => {
+      cache.rollback(snapshots);
+    },
+    onSettled: cache.refresh,
+  });
+}
+
+/** Take one of my habits out of the season (until locked). Undo: useLinkSeasonHabit. */
+export function useUnlinkSeasonHabit() {
+  const cache = useSeasonCache();
+  return useMutation({
+    mutationFn: async ({ seasonId, habitId }: { seasonId: string; habitId: string }) => {
+      const { error } = await supabase.rpc('unlink_season_habit', {
+        p_season_id: seasonId,
+        p_habit_id: habitId,
+      });
+      if (error) throw error;
+    },
+    onMutate: ({ seasonId, habitId }) =>
+      cache.change<SeasonHabit[]>(
+        seasonKeys.habits(cache.groupId, seasonId, goalTodayKey()),
+        (list) => list.filter((h) => h.habitId !== habitId),
+      ),
+    onError: (_error, _input, snapshots) => {
+      cache.rollback(snapshots);
+    },
+    onSettled: cache.refresh,
+  });
+}
+
+/**
+ * Group admins: open the fixed rule of someone's season habit for 24 hours. The person is
+ * told; their next change closes it again and shows in the feed. No undo (it only allows).
+ */
+export function useOpenSeasonHabitEdit() {
+  const cache = useSeasonCache();
+  return useMutation({
+    mutationFn: async ({ seasonId, habitId }: { seasonId: string; habitId: string }) => {
+      const { error } = await supabase.rpc('open_season_habit_edit', {
+        p_season_id: seasonId,
+        p_habit_id: habitId,
+      });
+      if (error) throw error;
+    },
+    onMutate: ({ seasonId, habitId }) => {
+      const until = new Date(Date.now() + 24 * 60 * 60_000).toISOString();
+      return cache.change<SeasonHabit[]>(
+        seasonKeys.habits(cache.groupId, seasonId, goalTodayKey()),
+        (list) => list.map((h) => (h.habitId === habitId ? { ...h, editOpenUntil: until } : h)),
+      );
+    },
+    onError: (_error, _input, snapshots) => {
+      cache.rollback(snapshots);
+    },
+    onSettled: cache.refresh,
+  });
+}
+
+/** Refetch the season data after a habit changed elsewhere (its rule shows in the season). */
+export function useRefreshSeasons() {
+  return useSeasonCache().refresh;
 }
 
 /**

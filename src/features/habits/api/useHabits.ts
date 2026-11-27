@@ -318,14 +318,20 @@ export function useSaveHabit() {
       /** Who sees it (not versioned: it holds for the whole habit). */
       shareLevel?: ShareLevel;
     }) => {
-      const { data, error } = await supabase.rpc('save_habit', {
-        // null: a new habit (the generated types do not know it may be null)
-        p_habit_id: input.habitId as string,
-        p_template_id: input.templateId as string,
-        p_valid_from: input.validFrom,
-        p_def: toDef(input.definition),
-      });
-      if (error) throw error;
+      let data = input.habitId ?? '';
+      // An existing habit with no changed field: only the sharing (no new version – and a
+      // habit fixed in a season can still change who sees it).
+      if (input.habitId === null || Object.keys(input.definition).length > 0) {
+        const saved = await supabase.rpc('save_habit', {
+          // null: a new habit (the generated types do not know it may be null)
+          p_habit_id: input.habitId as string,
+          p_template_id: input.templateId as string,
+          p_valid_from: input.validFrom,
+          p_def: toDef(input.definition),
+        });
+        if (saved.error) throw saved.error;
+        data = saved.data;
+      }
       if (input.shareLevel) {
         const { error: shareError } = await supabase
           .from('habits')

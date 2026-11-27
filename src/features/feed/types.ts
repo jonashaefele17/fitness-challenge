@@ -22,7 +22,8 @@ export interface FeedCard {
   day: string;
   /**
    * A person's day, the small card for joining the group, or a season card (season_announced,
-   * season_started, season_goal_corrected; actor: the admin).
+   * season_started, season_goal_corrected; actor: the admin · season_habit_changed; actor: the
+   * habit's owner).
    */
   kind: 'day' | 'joined' | 'season';
   latestAt: string;

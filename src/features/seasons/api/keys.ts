@@ -9,6 +9,8 @@ export const seasonKeys = {
     [...seasonKeys.all(groupId), 'participants', seasonId] as const,
   goalLinks: (groupId: string, seasonId: string) =>
     [...seasonKeys.all(groupId), 'goal-links', seasonId] as const,
+  habits: (groupId: string, seasonId: string, today: string) =>
+    [...seasonKeys.all(groupId), 'habits', seasonId, today] as const,
   markers: (groupId: string, from: string, to: string) =>
     [...seasonKeys.all(groupId), 'markers', from, to] as const,
 };

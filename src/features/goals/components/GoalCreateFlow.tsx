@@ -234,26 +234,28 @@ export function GoalCreateFlow({
         title="Was willst du erreichen?"
       >
         <ul className="flex flex-col divide-y divide-border rounded-card bg-surface-2">
-          {metrics.map((m) => (
-            <li key={m.key}>
-              <OptionRow
-                label={m.label}
-                detail={m.description}
-                selected={m.key === answers.metric}
-                onSelect={() => {
-                  if (m.key !== answers.metric) {
-                    // Another metric: what came after it no longer fits.
-                    set({
-                      ...freshAnswers(today, preset),
-                      metric: m.key,
-                      visibility: answers.visibility,
-                    });
-                  }
-                  setIndex(1);
-                }}
-              />
-            </li>
-          ))}
+          {metrics
+            .filter((m) => m.offered)
+            .map((m) => (
+              <li key={m.key}>
+                <OptionRow
+                  label={m.label}
+                  detail={m.description}
+                  selected={m.key === answers.metric}
+                  onSelect={() => {
+                    if (m.key !== answers.metric) {
+                      // Another metric: what came after it no longer fits.
+                      set({
+                        ...freshAnswers(today, preset),
+                        metric: m.key,
+                        visibility: answers.visibility,
+                      });
+                    }
+                    setIndex(1);
+                  }}
+                />
+              </li>
+            ))}
         </ul>
       </Screen>
     );

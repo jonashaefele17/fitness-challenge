@@ -1,4 +1,5 @@
 import type { Goal } from '@/features/goals';
+import type { HabitDefinition } from '@/features/habits';
 
 /**
  * Seasons (8b): a frame of a group – name, period, setup phase, participants, rules and the
@@ -87,6 +88,27 @@ export interface SeasonGoalLink {
 export interface SeasonGoalsOfPerson {
   userId: string;
   goals: Goal[];
+}
+
+/**
+ * A habit that counts in a season with its own rule (season_habits_overview). The group
+ * sees name, rule and how it went, also when the habit itself is private.
+ */
+export interface SeasonHabit {
+  userId: string;
+  habitId: string;
+  /** The rule valid today (time of day is not part of it). */
+  definition: HabitDefinition;
+  /** Days (weekly habits: ended weeks) counted since the participant's start, and met. */
+  counted: number;
+  met: number;
+  /** 0 … 100; null: nothing counted yet. */
+  quotaPct: number | null;
+  countUnit: 'days' | 'weeks';
+  /** The rule is fixed now (season running, participant locked). */
+  locked: boolean;
+  /** An admin opened the rule for one change until then; null: not open. */
+  editOpenUntil: string | null;
 }
 
 /** What useCreateSeason takes. */

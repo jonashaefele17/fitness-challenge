@@ -19,6 +19,7 @@ const weight: GoalMetric = {
   reference: null,
   unit: 'kg',
   sort: 20,
+  offered: true,
 };
 const trainings: GoalMetric = {
   key: 'trainings_per_week',
@@ -28,6 +29,7 @@ const trainings: GoalMetric = {
   reference: null,
   unit: 'per_week',
   sort: 10,
+  offered: true,
 };
 const habit = { key: 'habit_rate', kind: 'rate' as const };
 

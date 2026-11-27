@@ -15,3 +15,7 @@ export {
 export { HabitCompareSheet } from './components/HabitCompareView';
 export { habitSummaryOptions } from './api/useHabits';
 export { HabitWeekReview } from './components/HabitWeekReview';
+export { HabitSheet } from './components/HabitSheet';
+export { useMyHabits } from './api/useHabits';
+export { frequencyText, ruleText } from './habitText';
+export { habitErrorText } from './definition';

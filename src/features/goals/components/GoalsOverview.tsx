@@ -92,7 +92,7 @@ export function GoalsOverview({
             <h2 className="text-body font-semibold">Noch kein Ziel</h2>
             <p className="text-subhead text-text-muted">
               Setz dir ein Ziel für die nächsten Wochen – Trainings pro Woche, dein Gewicht, einen
-              Bestwert oder ein Habit.
+              Bestwert oder ein Körpermaß.
             </p>
           </div>
           {newGoal}

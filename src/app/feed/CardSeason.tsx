@@ -11,12 +11,19 @@ function field(data: unknown, key: string): unknown {
     : undefined;
 }
 
-const SEASON_EVENTS = ['season_announced', 'season_started', 'season_goal_corrected'];
+const SEASON_EVENTS = [
+  'season_announced',
+  'season_started',
+  'season_goal_corrected',
+  'season_habit_changed',
+];
+/** Events about one person (shown also when the season was cancelled later). */
+const PERSON_EVENTS = ['season_goal_corrected', 'season_habit_changed'];
 
 /**
  * A season card's lines: a new season (with "Einrichten" for participants whose setup is
- * open), the start, and an admin's correction of someone's goal (never its values). A
- * cancelled season says so on all of them.
+ * open), the start, an admin's correction of someone's goal (never its values) and a season
+ * habit's rule changed after an admin opened it. A cancelled season says so on all of them.
  */
 export function CardSeason({
   card,
@@ -32,7 +39,7 @@ export function CardSeason({
     if (!SEASON_EVENTS.includes(e.type)) return false;
     // A cancelled season says "abgesagt" once, not on its announcement and its start.
     const season = seasonOf(e);
-    if (season?.phase !== 'cancelled' || e.type === 'season_goal_corrected') return true;
+    if (season?.phase !== 'cancelled' || PERSON_EVENTS.includes(e.type)) return true;
     if (said.has(season.id)) return false;
     said.add(season.id);
     return true;
@@ -89,6 +96,18 @@ function SeasonLine({
   } else if (event.type === 'season_started') {
     title = cancelled ? `Saison ${name} abgesagt` : `${name} hat begonnen`;
     if (!cancelled) detail = 'Die Saisonziele sind jetzt festgeschrieben.';
+  } else if (event.type === 'season_habit_changed') {
+    const habitName = field(event.data, 'name');
+    const owner = lookup(card.actorId);
+    title = `${owner?.displayName ?? 'Jemand'} hat ein Saison-Habit angepasst`;
+    detail =
+      [
+        typeof habitName === 'string' ? habitName : null,
+        'Neue Regel ab heute',
+        cancelled ? 'Saison abgesagt' : null,
+      ]
+        .filter(Boolean)
+        .join(' · ') || null;
   } else {
     const ownerId = field(event.data, 'ownerId');
     const owner = typeof ownerId === 'string' ? lookup(ownerId) : undefined;

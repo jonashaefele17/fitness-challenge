@@ -122,7 +122,7 @@ export function useGoalMetrics() {
     queryFn: async (): Promise<GoalMetric[]> => {
       const { data, error } = await supabase
         .from('goal_metrics')
-        .select('key, label, description, kind, reference, unit, sort')
+        .select('key, label, description, kind, reference, unit, sort, offered')
         .order('sort');
       if (error) throw error;
       return data.map((row) => ({
@@ -133,6 +133,7 @@ export function useGoalMetrics() {
         reference: row.reference as GoalReferenceKind | null,
         unit: row.unit as GoalUnit | null,
         sort: row.sort,
+        offered: row.offered,
       }));
     },
   });

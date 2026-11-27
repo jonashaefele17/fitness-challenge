@@ -58,6 +58,12 @@ describe('targetPath', () => {
     );
   });
 
+  it('opens the Zwischenstand under Ich → Körper (its reminder)', () => {
+    expect(targetPath({ groupId: 'g', type: 'body_checkin', id: 'u1' }, { thread: false })).toBe(
+      '/ich?zwischenstand=1',
+    );
+  });
+
   it('opens a plan in the training tab', () => {
     expect(targetPath({ groupId: 'g', type: 'plan', id: 'p1' }, { thread: false })).toBe(
       '/training?termin=p1',

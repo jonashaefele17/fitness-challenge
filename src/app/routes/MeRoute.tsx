@@ -34,7 +34,9 @@ export function MeRoute() {
   const weigh = params.get(targetParams.weigh) === '1';
   // From Gruppe → Gewicht: Körper with "Sichtbarkeit" open.
   const sharing = params.get(targetParams.weightShare) === '1';
-  if ((weigh || sharing) && section !== 'body') setSection('body');
+  // From the Zwischenstand reminder: Körper with the Zwischenstand open.
+  const checkin = params.get(targetParams.bodyCheckin) === '1';
+  if ((weigh || sharing || checkin) && section !== 'body') setSection('body');
 
   return (
     <Screen title="Ich" accessory={<NotificationBell onOpenTarget={openTarget} />}>
@@ -70,6 +72,7 @@ export function MeRoute() {
           <BodyOverview
             openNew={weigh}
             openSharing={sharing}
+            openCheckin={checkin}
             onOpened={() => {
               setParams({}, { replace: true });
             }}

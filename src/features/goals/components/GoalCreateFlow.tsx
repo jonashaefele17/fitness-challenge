@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { showToast } from '@/shared/lib';
 import { Button, CheckIcon, ChevronRightIcon, Chip, NumberWheel, Sheet } from '@/shared/ui';
 import {
-  useArchiveGoal,
+  useDiscardGoal,
   useCreateGoal,
   useGoalMetrics,
   useGoalReferenceOptions,
@@ -74,7 +74,7 @@ export function GoalCreateFlow({
 }) {
   // The mutations live here, outside the screens, so "Rückgängig" still works after closing.
   const create = useCreateGoal();
-  const archive = useArchiveGoal();
+  const discard = useDiscardGoal();
   const metrics = useGoalMetrics().data ?? [];
   const [today] = useState(todayKey);
   const [answers, setAnswers] = useState<Answers>(() => freshAnswers(today));
@@ -194,7 +194,7 @@ export function GoalCreateFlow({
     showToast('Ziel angelegt', {
       label: 'Rückgängig',
       onAction: () => {
-        archive.mutate(id);
+        discard.mutate(id);
       },
     });
   }

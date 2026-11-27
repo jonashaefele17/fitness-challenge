@@ -306,8 +306,8 @@ export interface GoalDraftDisplay {
 }
 
 /**
- * Create a goal (shows at once when `display` is given). Undo: useArchiveGoal (goals are
- * archived, not deleted). Resolves to the id.
+ * Create a goal (shows at once when `display` is given). Undo: useDiscardGoal. Resolves to
+ * the id.
  */
 export function useCreateGoal() {
   const cache = useGoalCache();
@@ -375,6 +375,25 @@ export function useUpdateGoal() {
       cache.change((list) =>
         list.map((g) => (g.id === input.goalId ? applyGoalUpdate(g, input) : g)),
       ),
+    onError: (_error, _input, snapshots) => {
+      cache.rollback(snapshots);
+    },
+    onSettled: cache.refresh,
+  });
+}
+
+/**
+ * Take back a goal that was just created ("Rückgängig"): it is removed without a trace.
+ * Only shortly after creating; later goals are archived (useArchiveGoal).
+ */
+export function useDiscardGoal() {
+  const cache = useGoalCache();
+  return useMutation({
+    mutationFn: async (goalId: string) => {
+      const { error } = await supabase.rpc('discard_goal', { p_goal_id: goalId });
+      if (error) throw error;
+    },
+    onMutate: (goalId) => cache.change((list) => list.filter((g) => g.id !== goalId)),
     onError: (_error, _input, snapshots) => {
       cache.rollback(snapshots);
     },

@@ -25,8 +25,12 @@ insert into public.group_members (group_id, user_id) values
 
 create schema tests;
 grant usage on schema tests to authenticated;
+-- The original, not a copy someone took over (both carry the name).
 create function tests.habit(p_name text) returns uuid language sql security definer set search_path = '' as $$
-  select h.id from public.habits h join public.habit_versions v on v.habit_id = h.id where v.name = p_name limit 1
+  select h.id from public.habits h join public.habit_versions v on v.habit_id = h.id
+   where v.name = p_name
+   order by (h.source_habit_id is not null), (h.user_id <> '11111111-1111-4111-8111-111111111111')
+   limit 1
 $$;
 grant execute on all functions in schema tests to authenticated;
 

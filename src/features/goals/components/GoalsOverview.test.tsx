@@ -51,6 +51,7 @@ vi.mock('../api/useGoals', () => ({
   useCreateGoal: () => mutation,
   useUpdateGoal: () => mutation,
   useArchiveGoal: () => mutation,
+  useDiscardGoal: () => mutation,
   useRestoreGoal: () => mutation,
 }));
 

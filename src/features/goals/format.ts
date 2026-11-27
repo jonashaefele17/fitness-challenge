@@ -4,6 +4,11 @@ const oneDecimal = new Intl.NumberFormat('de', {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
+/** A set's real weight: plates go down to 1,25 kg ("58,75"). */
+const setWeight = new Intl.NumberFormat('de', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 2,
+});
 const upToOneDecimal = new Intl.NumberFormat('de', { maximumFractionDigits: 1 });
 const whole = new Intl.NumberFormat('de', { maximumFractionDigits: 0 });
 
@@ -57,7 +62,7 @@ export function formatGoalTarget(value: number | null, goal: Pick<Goal, 'unit' |
 export function formatBestSet(set: GoalBestSet | null): string {
   if (set === null) return '–';
   if (set.weightKg !== null && set.reps !== null) {
-    return `${oneDecimal.format(set.weightKg)} kg × ${String(set.reps)}`;
+    return `${setWeight.format(set.weightKg)} kg × ${String(set.reps)}`;
   }
   if (set.reps !== null) return `${whole.format(set.reps)} Wdh.`;
   if (set.durationSeconds !== null) return formatSeconds(set.durationSeconds);

@@ -3002,6 +3002,7 @@ export type Database = {
         };
         Returns: string;
       };
+      discard_goal: { Args: { p_goal_id: string }; Returns: undefined };
       exercise_overview: {
         Args: Record<PropertyKey, never>;
         Returns: {

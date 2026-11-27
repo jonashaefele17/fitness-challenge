@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -15,22 +15,38 @@ Daraus folgen zwei getrennte Dinge:
 
 ## Etappen
 
-### 8a – Persönliche Ziele
+### 8a – Persönliche Ziele (gebaut am 27.11.2026, Staging-Test offen)
 
-- Ein Ziel besteht aus Messgröße, Startwert, Zielwert, optionalem Mindestziel, Zeitraum (von – bis) und Sichtbarkeit.
-- Mindestziel und Ziel: Das Mindestziel ist das, worauf man sich festlegt, das Ziel das, was man erreichen will. Status dreistufig: unter dem Mindestziel / Mindestziel erreicht / Ziel erreicht. Wer nur einen Wert setzt, hat ein normales Ziel.
-- Ein Ziel auf einem Habit legt sich über dessen Regel: Das Habit sagt, was ein guter Tag ist, das Ziel, an wie viel Prozent der Tage (oder Wochen) man das schaffen will.
-- Messgrößen stehen als Daten in einer Tabelle, neue kommen ohne Umbau dazu. Für den Anfang:
-  - Trainings pro Woche (Wochenziel, zählt erfüllte Wochen)
-  - Körpergewicht (Durchschnitt über 7 Tage)
-  - Bestwert an einer Übung
-  - Erfüllungsquote eines Habits
-  - ein Körpermaß (z. B. Bauchumfang)
-- Berechnet, nicht gespeichert: aktueller Wert, Fortschritt in %, Status „auf Kurs / hinter Plan“ gegen die Linie vom Start zum Ziel, „erreicht“.
-- Startwert automatisch vorgeschlagen und änderbar: Gewicht = aktueller Durchschnitt, Kraft = bester Satz der letzten 4 Wochen, Maß = letzter Zwischenstand.
-- Oberfläche: neuer Reiter „Ziele“ unter „Ich“ an erster Stelle; „Einstellungen“ wandert aus der Reiterleiste in ein Zahnrad oben rechts. Ziel anlegen in wenigen Schritten, Detail mit Verlauf gegen die Ziellinie.
-- Änderungen sind versioniert (`valid_from`); archivieren statt löschen.
-- Technik: neues persönliches Modul `goals`. Die Werte der Messgrößen kommen aus SQL-Funktionen über Training, Körper und Habits, weil persönliche Module sich im Frontend nicht gegenseitig importieren.
+- [x] Reiter „Ziele“ unter „Ich“ an erster Stelle; „Einstellungen“ als Zahnrad oben rechts
+- [x] Ziel anlegen zum Durchklicken: Zielart → worauf (Übung mit Wiederholungszahl, Habit, Maß) → Startwert (vorgeschlagen) → Ziel → Mindestziel (freiwillig) → Zeitraum (4, 8, 12 Wochen, 6 Monate oder Datum) → Sichtbarkeit → Zusammenfassung. „Rückgängig“ direkt nach dem Anlegen entfernt das Ziel spurlos
+- [x] Übersicht: pro Ziel Start → aktuell → Ziel, Balken mit Marke fürs Mindestziel, Status und „auf Kurs / hinter Plan“ in Worten; beendete Ziele hinter „Beendet“
+- [x] Detail: Verlauf gegen die Ziellinie (Gewicht, Kraft, Maß) bzw. ein Balken pro Woche (Trainings, Habit); ändern, „Ziel beenden“ mit „Rückgängig“
+- [x] Zielarten als Daten: Trainings pro Woche, Körpergewicht, Bestwert an einer Übung, Habit-Quote, Körpermaß
+- [x] Änderungen an Ziel und Mindestziel gelten ab heute; vergangene Wochen zählen nach den alten Werten
+- [x] Datenbank: `goal_metrics`, `goals`, `goal_versions`; alles berechnet; geschrieben wird nur über Funktionen (eine Stelle, an der 8b sperren und der Admin korrigieren kann); Datenbank-Tests (55)
+
+So wird gerechnet:
+- Status mit Mindestziel dreistufig (unter dem Mindestziel / Mindestziel erreicht / Ziel erreicht), ohne zweistufig. Nach dem Enddatum eingefroren.
+- Gewicht, Kraft, Maß: aktueller Wert = Durchschnitt über 7 Tage / bester Satz seit dem Start / letzter Zwischenstand seit dem Start. Fortschritt = Anteil des Wegs vom Start zum Ziel. „Auf Kurs“ = mindestens auf der geraden Linie vom Start zum Ziel.
+- Kraftziele lauten „110 kg bei 5 Wiederholungen“; Sätze mit anderer Wiederholungszahl werden mit der Formel der Rekorde umgerechnet. Optional nur an einem Gerät.
+- Trainings pro Woche: ein Tag mit Training zählt einmal; jede abgeschlossene Woche einzeln; Pausentage verkleinern die Vorgabe wie bei Habits. Status und „auf Kurs“ vergleichen die Summe der Trainings mit der Summe der Vorgaben (Aufholen möglich); dazu „in x von y Wochen Mindestziel erreicht“.
+- Habit-Quote: wie in der Habit-Auswertung, seit dem Start.
+
+Was andere bei einem geteilten Ziel sehen: Gewichtsziel immer Fortschritt in % und Status, kg nur wenn die Gewichts-Sichtbarkeit „Mit kg“ oder „Mit Tageswerten“ ist; Körpermaß nie cm; Habit-Ziel mit Name und Quote des Habits, auch wenn das Habit selbst privat ist.
+
+Noch offen (Jonas):
+- Aufholen beim Trainingsziel so lassen oder jede Woche hart einzeln werten? Mit Aufholen kann „Mindestziel noch nicht erreicht“ neben „in 3 von 4 Wochen Mindestziel“ stehen.
+- Kraftziel als „kg bei x Wiederholungen“ so lassen?
+
+Bekannte Kleinigkeiten:
+- Ein Trainingsziel, das mitten in der Woche beginnt, zeigt für die erste Woche eine verkleinerte Vorgabe („Diese Woche 0 von 2“).
+- Ein Maß-Ziel zeigt „Noch keine Werte“, bis der erste Zwischenstand nach dem Start gemacht ist.
+
+Beim Staging-Test prüfen:
+- Passen die vier Reiter, findet man die Einstellungen hinter dem Zahnrad?
+- Je ein Ziel pro Art anlegen: Stimmen die vorgeschlagenen Startwerte, sind die Räder brauchbar?
+- Lesen sich Status und „auf Kurs“ bei echten Daten richtig?
+- Detail am iPhone: Blatt hochziehen, Diagramm antippen, Datum wählen
 
 ### 8b – Saison: anlegen, Setup, Start, Kalender
 

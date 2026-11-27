@@ -75,6 +75,33 @@ Beim Staging-Test prüfen (am besten zu zweit):
 - Marker im Kalender lesbar am iPhone? Verdecken sie nichts?
 - Drei Blätter übereinander (Teilnehmer → Ziel → Korrektur) am iPhone bedienbar?
 
+### 8b-Nachtrag – Habits in der Saison (entschieden am 27.11.2026, noch NICHT gebaut)
+
+**Stand zum Weitermachen:** Der Branch `feat/goals-seasons` ist gepusht. Der Mindestziel-Umbau ist drin (`b8a2926`). Für die Habits ist noch kein Code geschrieben – der Datenbank-Agent wurde gestoppt, bevor er etwas geändert hat. Nächster Schritt: diesen Abschnitt bauen (erst Datenbank und Hooks, dann Oberfläche), danach 8c.
+
+Entschieden mit Jonas:
+- Ein Habit bekommt in der Saison keine Prozentquote als Ziel. Das Ziel ist die Regel des Habits selbst (z. B. Schlaf mindestens 7 h, im Bett vor 23:00; Screentime höchstens 2 h). Die Quote ist nur Auswertung und erscheint im Vergleich unter „Konsistenz“ (8c).
+- Setup-Schritt „Habits“: Habits anhaken, die in der Saison zählen, bei jedem die Regel direkt einstellen; ein neues Habit lässt sich dort anlegen.
+- Die Gruppe sieht bei Saison-Habits Name, Regel und Quote, auch wenn das Habit privat ist. Einzelne Tageswerte bleiben nach der Freigabe des Habits.
+- Ab „Bereit“ (und laufender Saison) ist die Regel eines Saison-Habits fest, wie die Saisonziele. Nach Saisonende oder Absage ist sie wieder frei.
+- Der Admin ändert kein fremdes Habit. Er gibt die Regel für 24 Stunden zur Änderung frei; die Person ändert selbst, einmal, und die Änderung steht im Feed. Derselbe Mechanismus trägt später das Etappen-Fenster (8e).
+- Die Zielart „Habit-Quote“ (`habit_rate`) entfällt ganz, auch bei privaten Zielen. Vorhandene Quoten-Ziele (nur Testdaten) werden archiviert; hing eines an einer Saison, wird daraus ein Saison-Habit.
+
+Bauplan Datenbank und Hooks (nur neue Migrationen nach `20261202100000`, bestehende nie ändern):
+- Persönliche Migration: Haken `private.can_edit_habit(habit_id)` (Standard: Besitzer). Jede Änderung an der Definition (neue Version) und das Archivieren laufen darüber; Freigabe-Stufe, Erinnerungen und Pausen bleiben frei. Muster: `private.can_edit_goal` aus der Ziele-Migration, das die Saison-Migration ersetzt.
+- Saison-Migration: Tabelle `season_habits` (season_id, user_id, habit_id, created_at, `edit_open_until`), RLS wie `season_goals`, Schreiben nur über RPCs. `link_season_habit` / `unlink_season_habit` (nur Besitzer, nur solange nicht fest – `private.season_member_locked`). `private.can_edit_habit` ersetzen: falsch, wenn das Habit an einer laufenden Saison hängt, in der die Person fest ist, außer `edit_open_until > now()`. `open_season_habit_edit` (nur Gruppen-Admin, 24 h, Mitteilung an die Person, Kategorie „Saisons“). Ändert die Person dann die Regel: Feed-Ereignis `season_habit_changed`, Freigabe verbraucht. Lesefunktion `season_habits_overview(season, today, time_zone)`: je Teilnehmer und Habit Name, Regelfelder, gezählt, erfüllt, Quote ab Saison- bzw. eigenem Start, mit den vorhandenen Bewertungskernen (Pausen wie in der Habit-Statistik), `locked`, `edit_open_until`. Teilnehmer entfernen und Absagen räumen die Verknüpfungen auf.
+- `habit_rate` stilllegen (nicht mehr angeboten, `create_goal` lehnt ab), Tests anpassen.
+- Tests in `supabase/tests/season_habits.test.sql`: Verknüpfen, Sperre, Ändern und Archivieren abgelehnt bzw. nach Ende erlaubt, Admin-Freigabe mit genau einer Änderung und Feed-Karte, Quote an einem festen Beispiel mit Pause, Sichtbarkeit (Gruppe A sieht nichts aus Gruppe B).
+- Danach `npm run db:types`; Hooks in `src/features/seasons/` (`useSeasonHabits`, `useLinkSeasonHabit`, `useUnlinkSeasonHabit`, `useOpenSeasonHabitEdit`); `src/features/habits/index.ts` exportiert, was das Setup braucht (meine aktiven Habits, Regel als Text aus `habitText.ts`, Editor); Fehlertext „Dieses Habit ist in der laufenden Saison fest.“
+
+Bauplan Oberfläche:
+- `SeasonSetupFlow.tsx`, Schritt „Habits“: das Quoten-Blatt (`HabitQuotaSheet`) weg; Liste der Habits mit Haken und Regel als Text, Antippen öffnet Regel bearbeiten und „In die Saison“ / „Nicht in der Saison“; Zeile „Neues Habit“.
+- Teilnehmer-Blatt und Zusammenfassung zeigen Saison-Habits mit Regel und Quote; Admin-Zeile „Änderung freigeben“.
+- Feed-Karte und Push-Text für `season_habit_changed`.
+- `habit_rate` aus der Ziele-Oberfläche entfernen.
+
+Arbeitsweise wie bisher: Umsetzung an einen Opus-Unteragenten geben (erst Datenbank, prüfen, committen; dann Oberfläche mit Screenshots bei 375 px), vor jedem Commit Lint, Typecheck, Tests, `npm run test:rls` auf frisch zurückgesetzter Datenbank.
+
 ### 8c – Vergleich in der Saison
 
 - Gruppe → Reiter „Ziele“: pro Person alle Saisonziele mit Start → aktuell → Ziel, Fortschritt in %, Status; Filter nach Zielart.

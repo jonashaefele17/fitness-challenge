@@ -581,8 +581,8 @@ export function useSaveBodySettings() {
     },
     onSettled: async (_data, _error, settings) => {
       await queryClient.invalidateQueries({ queryKey: bodyKeys.settings(userId) });
-      // The rhythm decides when the Zwischenstand is due.
-      if (settings.checkinEveryWeeks !== undefined) {
+      // The rhythm decides when the Zwischenstand is due; the days are the weigh days.
+      if (settings.checkinEveryWeeks !== undefined || settings.weighReminderDays !== undefined) {
         await queryClient.invalidateQueries({ queryKey: bodyKeys.checkinsAll(userId) });
       }
     },

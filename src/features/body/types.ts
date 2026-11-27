@@ -219,6 +219,18 @@ export interface CheckinStatus {
   daysUntil: number | null;
 }
 
+/**
+ * A special day of mine from my own rhythms (body_day_markers): a weigh day, or the day my
+ * next Zwischenstand is due (today when it is overdue).
+ */
+export type BodyDayMarkerKind = 'weigh_day' | 'checkin_due';
+
+export interface BodyDayMarker {
+  /** Local day, "2026-12-07". */
+  onDate: string;
+  kind: BodyDayMarkerKind;
+}
+
 /** The figures of a kind I have at least one value for (body_measurement_stats). */
 export interface MeasurementStat {
   kind: string;

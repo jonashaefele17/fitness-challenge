@@ -4,6 +4,7 @@ import { supabase } from '@/shared/lib/supabase';
 import { byNewestCheckin, checkinOn } from '../checkin';
 import type {
   BodyCheckin,
+  BodyDayMarker,
   BodyPhoto,
   CheckinStatus,
   MeasurementKind,
@@ -295,6 +296,29 @@ export function useCheckinStatus(today: string) {
         due: row?.due ?? false,
         daysUntil: row?.days_until ?? null,
       };
+    },
+  });
+}
+
+/**
+ * My special days in a range for the calendar and Heute: each weigh day and the day my
+ * next Zwischenstand is due (computed in the database from my own rhythms; only mine).
+ */
+export function useBodyDayMarkers(from: string, to: string, today: string) {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: bodyKeys.dayMarkers(userId, from, to, today),
+    queryFn: async (): Promise<BodyDayMarker[]> => {
+      const { data, error } = await supabase.rpc('body_day_markers', {
+        p_from: from,
+        p_to: to,
+        p_today: today,
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        onDate: row.on_date,
+        kind: row.kind === 'checkin_due' ? 'checkin_due' : 'weigh_day',
+      }));
     },
   });
 }

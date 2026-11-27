@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import { supabase } from '@/shared/lib/supabase';
 import type { Database } from '@/shared/types/database';
@@ -230,6 +236,18 @@ export function useGoals(options: { includeArchived?: boolean } = {}) {
 }
 
 /**
+ * Query options for a person's goals (not archived) as of a day – mine when personId is me
+ * (the same cache as useGoals), someone else's shared ones otherwise (as useGoalsOfPerson).
+ * For loading several people at once with useQueries.
+ */
+export function goalListOptions(userId: string, personId: string, today: string) {
+  return queryOptions({
+    queryKey: goalKeys.list(userId, personId, today, false),
+    queryFn: () => fetchGoals(personId === userId ? null : personId, today, false),
+  });
+}
+
+/**
  * Someone else's shared goals (for comparison): only when we share a group; kg / cm masked
  * as their sharing says (Goal.valuesHidden). null: disabled.
  */
@@ -237,9 +255,8 @@ export function useGoalsOfPerson(personId: string | null) {
   const userId = useUserId();
   const today = todayKey();
   return useQuery({
-    queryKey: goalKeys.list(userId, personId ?? '', today, false),
+    ...goalListOptions(userId, personId ?? '', today),
     enabled: personId !== null,
-    queryFn: () => fetchGoals(personId, today, false),
   });
 }
 

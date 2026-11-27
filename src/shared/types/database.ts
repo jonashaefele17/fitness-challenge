@@ -2309,6 +2309,190 @@ export type Database = {
         };
         Relationships: [];
       };
+      season_goals: {
+        Row: {
+          created_at: string;
+          goal_id: string;
+          season_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          goal_id: string;
+          season_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          goal_id?: string;
+          season_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'season_goals_goal_id_fkey';
+            columns: ['goal_id'];
+            isOneToOne: true;
+            referencedRelation: 'goals';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_goals_season_id_user_id_fkey';
+            columns: ['season_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'season_members';
+            referencedColumns: ['season_id', 'user_id'];
+          },
+        ];
+      };
+      season_members: {
+        Row: {
+          added_at: string;
+          late_entry: boolean;
+          ready_at: string | null;
+          season_id: string;
+          starts_on: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          added_at?: string;
+          late_entry?: boolean;
+          ready_at?: string | null;
+          season_id: string;
+          starts_on: string;
+          user_id: string;
+        };
+        Update: {
+          added_at?: string;
+          late_entry?: boolean;
+          ready_at?: string | null;
+          season_id?: string;
+          starts_on?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'season_members_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      season_notification_log: {
+        Row: {
+          event: string;
+          season_id: string;
+          sent_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          event: string;
+          season_id: string;
+          sent_at?: string;
+          user_id: string;
+        };
+        Update: {
+          event?: string;
+          season_id?: string;
+          sent_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'season_notification_log_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'season_notification_log_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      seasons: {
+        Row: {
+          cancelled_at: string | null;
+          checkin_every_weeks: number | null;
+          created_at: string;
+          created_by: string | null;
+          ends_on: string;
+          group_id: string;
+          id: string;
+          name: string;
+          required_metrics: string[];
+          setup_opens_on: string;
+          starts_on: string;
+          time_zone: string;
+          updated_at: string;
+          weigh_weekly: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          cancelled_at?: string | null;
+          checkin_every_weeks?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          ends_on: string;
+          group_id: string;
+          id?: string;
+          name: string;
+          required_metrics?: string[];
+          setup_opens_on: string;
+          starts_on: string;
+          time_zone?: string;
+          updated_at?: string;
+          weigh_weekly?: boolean;
+        };
+        Update: {
+          cancelled_at?: string | null;
+          checkin_every_weeks?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          ends_on?: string;
+          group_id?: string;
+          id?: string;
+          name?: string;
+          required_metrics?: string[];
+          setup_opens_on?: string;
+          starts_on?: string;
+          time_zone?: string;
+          updated_at?: string;
+          weigh_weekly?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'seasons_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'seasons_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       target_types: {
         Row: {
           can_view_fn: unknown;
@@ -2902,6 +3086,10 @@ export type Database = {
         };
         Returns: string;
       };
+      add_season_participant: {
+        Args: { p_season_id: string; p_starts_on?: string; p_user_id: string };
+        Returns: undefined;
+      };
       adopt_habit: {
         Args: { p_def: Json; p_source_id: string; p_valid_from: string };
         Returns: string;
@@ -2921,6 +3109,13 @@ export type Database = {
           last_done_on: string;
           last_on: string;
           next_due_on: string;
+        }[];
+      };
+      body_day_markers: {
+        Args: { p_from: string; p_to: string; p_today?: string };
+        Returns: {
+          kind: string;
+          on_date: string;
         }[];
       };
       body_measurement_history: {
@@ -2954,6 +3149,7 @@ export type Database = {
           thumb_path: string;
         }[];
       };
+      cancel_season: { Args: { p_season_id: string }; Returns: undefined };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -2984,6 +3180,16 @@ export type Database = {
         }[];
       };
       copy_template: { Args: { p_template_id: string }; Returns: string };
+      correct_season_goal: {
+        Args: {
+          p_goal_id: string;
+          p_min_value: number;
+          p_start_value: number;
+          p_target_value: number;
+          p_valid_from?: string;
+        };
+        Returns: undefined;
+      };
       create_goal: {
         Args: {
           p_device_id?: string;
@@ -2999,6 +3205,21 @@ export type Database = {
           p_starts_on: string;
           p_target_value: number;
           p_visibility?: string;
+        };
+        Returns: string;
+      };
+      create_season: {
+        Args: {
+          p_checkin_every_weeks?: number;
+          p_ends_on: string;
+          p_group_id: string;
+          p_id: string;
+          p_name: string;
+          p_participants?: string[];
+          p_required_metrics?: string[];
+          p_setup_opens_on?: string;
+          p_starts_on: string;
+          p_weigh_weekly?: boolean;
         };
         Returns: string;
       };
@@ -3224,6 +3445,37 @@ export type Database = {
           value: number;
         }[];
       };
+      group_seasons: {
+        Args: { p_group_id: string; p_today?: string };
+        Returns: {
+          cancelled_at: string;
+          checkin_every_weeks: number;
+          created_at: string;
+          created_by: string;
+          days_until_end: number;
+          days_until_start: number;
+          ends_on: string;
+          group_id: string;
+          id: string;
+          is_participant: boolean;
+          my_late_entry: boolean;
+          my_locked: boolean;
+          my_missing_metrics: string[];
+          my_ready_at: string;
+          my_starts_on: string;
+          name: string;
+          participant_count: number;
+          phase: string;
+          ready_count: number;
+          required_metrics: string[];
+          setup_opens_on: string;
+          starts_on: string;
+          time_zone: string;
+          week_count: number;
+          week_number: number;
+          weigh_weekly: boolean;
+        }[];
+      };
       habit_days: {
         Args: {
           p_from: string;
@@ -3306,6 +3558,7 @@ export type Database = {
           week_start: string;
         }[];
       };
+      link_season_goal: { Args: { p_goal_id: string; p_season_id: string }; Returns: undefined };
       live_keep_private: { Args: { p_item_id: string }; Returns: undefined };
       live_peer_sets: {
         Args: { p_workout_id: string };
@@ -3441,6 +3694,10 @@ export type Database = {
         Args: { p_auth: string; p_endpoint: string; p_p256dh: string; p_user_agent?: string };
         Returns: undefined;
       };
+      remove_season_participant: {
+        Args: { p_season_id: string; p_user_id: string };
+        Returns: undefined;
+      };
       report_push_result: {
         Args: { p_gone: boolean; p_ok: boolean; p_subscription_id: string };
         Returns: undefined;
@@ -3493,6 +3750,28 @@ export type Database = {
           name: string;
         }[];
       };
+      season_day_markers: {
+        Args: { p_from: string; p_group_id: string; p_to: string };
+        Returns: {
+          kind: string;
+          on_date: string;
+          season_id: string;
+          season_name: string;
+        }[];
+      };
+      season_participants: {
+        Args: { p_season_id: string };
+        Returns: {
+          added_at: string;
+          goal_count: number;
+          late_entry: boolean;
+          locked: boolean;
+          missing_metrics: string[];
+          ready_at: string;
+          starts_on: string;
+          user_id: string;
+        }[];
+      };
       set_body_checkin_photos: {
         Args: { p_checkin_id: string; p_photo_ids: string[] };
         Returns: number;
@@ -3521,6 +3800,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      set_season_ready: { Args: { p_ready: boolean; p_season_id: string }; Returns: undefined };
       skip_body_checkin: { Args: { p_id?: string; p_on_date: string }; Returns: string };
       start_workout: {
         Args: {
@@ -3579,6 +3859,7 @@ export type Database = {
           user_id: string;
         }[];
       };
+      unlink_season_goal: { Args: { p_goal_id: string; p_season_id: string }; Returns: undefined };
       unregister_push_subscription: { Args: { p_endpoint: string }; Returns: undefined };
       update_goal: {
         Args: {
@@ -3590,6 +3871,19 @@ export type Database = {
           p_target_value: number;
           p_valid_from?: string;
           p_visibility: string;
+        };
+        Returns: undefined;
+      };
+      update_season: {
+        Args: {
+          p_checkin_every_weeks: number;
+          p_ends_on: string;
+          p_name: string;
+          p_required_metrics: string[];
+          p_season_id: string;
+          p_setup_opens_on: string;
+          p_starts_on: string;
+          p_weigh_weekly: boolean;
         };
         Returns: undefined;
       };

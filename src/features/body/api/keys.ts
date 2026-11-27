@@ -30,6 +30,9 @@ export const bodyKeys = {
     ['body-photo-urls', userId, ...paths] as const,
   checkinStatus: (userId: string, today: string) =>
     [...bodyKeys.checkinsAll(userId), 'status', today] as const,
+  /** My weigh days and the due check-in in a range (follow the settings and check-ins). */
+  dayMarkers: (userId: string, from: string, to: string, today: string) =>
+    [...bodyKeys.checkinsAll(userId), 'day-markers', from, to, today] as const,
   measurementStats: (userId: string) => [...bodyKeys.checkinsAll(userId), 'stats'] as const,
   measurementHistory: (userId: string, kind: string) =>
     [...bodyKeys.checkinsAll(userId), 'history', kind] as const,

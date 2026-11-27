@@ -30,6 +30,10 @@ export const targetParams = {
   bodyCheckin: 'zwischenstand',
   /** "1" shows the settings under Ich (opened by the gear). */
   settings: 'einstellungen',
+  /** Season to open in Ich → Ziele (its setup while open; season pushes). */
+  season: 'saison',
+  /** Goal to open in Ich → Ziele (mine) or the owner's goal (comments, corrections). */
+  goal: 'ziel',
 } as const;
 
 /** Ich → Einstellungen (the gear). */
@@ -80,6 +84,14 @@ export function targetPath(target: TargetRef, { thread, commentId }: OpenTargetO
       return `${paths.me}?${new URLSearchParams({ [targetParams.bodyCheckin]: '1' }).toString()}`;
     case 'plan':
       return `${paths.training}?${new URLSearchParams({ [targetParams.plan]: target.id }).toString()}`;
+    case 'season':
+      return `${paths.me}?${new URLSearchParams({ [targetParams.season]: target.id }).toString()}`;
+    case 'goal': {
+      const params = new URLSearchParams({ [targetParams.goal]: target.id });
+      if (thread) params.set(targetParams.thread, '1');
+      if (thread && commentId) params.set(targetParams.comment, commentId);
+      return `${paths.me}?${params.toString()}`;
+    }
     default:
       return paths.group;
   }

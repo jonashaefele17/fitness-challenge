@@ -70,6 +70,21 @@ describe('targetPath', () => {
     );
   });
 
+  it('opens a season under Ich → Ziele (season pushes)', () => {
+    expect(targetPath({ groupId: 'g', type: 'season', id: 's1' }, { thread: false })).toBe(
+      '/ich?saison=s1',
+    );
+  });
+
+  it('opens a goal, with its thread for comments', () => {
+    expect(targetPath({ groupId: 'g', type: 'goal', id: 'g1' }, { thread: false })).toBe(
+      '/ich?ziel=g1',
+    );
+    expect(
+      targetPath({ groupId: 'g', type: 'goal', id: 'g1' }, { thread: true, commentId: 'c1' }),
+    ).toBe('/ich?ziel=g1&thread=1&kommentar=c1');
+  });
+
   it('opens the settings under Ich (gear)', () => {
     expect(settingsPath()).toBe('/ich?einstellungen=1');
   });

@@ -22,7 +22,9 @@ export {
   weightProgressOptions,
   type NewWeighIn,
 } from './api/useWeight';
+export { bodyMarkerLabel, bodyMarkerText, upcomingBodyMarkers } from './markers';
 export {
+  useBodyDayMarkers,
   useCheckins,
   useCheckinStatus,
   useDeleteCheckin,

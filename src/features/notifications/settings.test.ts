@@ -69,4 +69,19 @@ describe('describeNotification', () => {
     );
     expect(isReminder('body_checkin_reminder')).toBe(true);
   });
+
+  it('words the season pushes', () => {
+    expect(describeNotification({ event: 'season_setup', category: 'seasons' })).toBe(
+      'lädt dich zur Saison ein',
+    );
+    expect(isReminder('season_setup')).toBe(false);
+    expect(describeNotification({ event: 'season_ready_reminder', category: 'seasons' })).toBe(
+      'Morgen startet die Saison',
+    );
+    expect(isReminder('season_ready_reminder')).toBe(true);
+    expect(isReminder('season_started')).toBe(true);
+    expect(describeNotification({ event: 'season_goal_corrected', category: 'seasons' })).toBe(
+      'hat dein Saisonziel korrigiert',
+    );
+  });
 });

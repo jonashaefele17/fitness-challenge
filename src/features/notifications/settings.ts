@@ -49,7 +49,9 @@ export function isReminder(event: string): boolean {
     event === 'checkin_reminder' ||
     event === 'supplement_reminder' ||
     event === 'weigh_reminder' ||
-    event === 'body_checkin_reminder'
+    event === 'body_checkin_reminder' ||
+    event === 'season_ready_reminder' ||
+    event === 'season_started'
   );
 }
 
@@ -100,6 +102,14 @@ export function describeNotification(
       return 'Wiegen';
     case 'body_checkin_reminder':
       return 'Zwischenstand';
+    case 'season_setup':
+      return 'lädt dich zur Saison ein';
+    case 'season_ready_reminder':
+      return 'Morgen startet die Saison';
+    case 'season_started':
+      return 'Die Saison läuft';
+    case 'season_goal_corrected':
+      return 'hat dein Saisonziel korrigiert';
     case 'comment':
       return notification.category === 'comments_on_mine'
         ? `hat ${ownObject(notification.target)} kommentiert`

@@ -62,7 +62,7 @@ export function useFeed(groupId: string, sort: FeedSort) {
         groupId,
         actorId: row.actor_id,
         day: row.day,
-        kind: row.kind === 'joined' ? 'joined' : 'day',
+        kind: row.kind === 'joined' || row.kind === 'season' ? row.kind : 'day',
         latestAt: row.latest_at,
         lastActivityAt: row.last_activity_at,
         events: toEvents(row.events),

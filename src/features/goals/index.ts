@@ -1,8 +1,10 @@
 export type * from './types';
 export { goalKeys } from './api/keys';
 export {
+  goalListOptions,
   useArchiveGoal,
   useCreateGoal,
+  useDiscardGoal,
   useGoalHistory,
   useGoalMetrics,
   useGoalReferenceOptions,

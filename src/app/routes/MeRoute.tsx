@@ -1,8 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { motion } from 'motion/react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useSignOut, useUserId } from '@/features/auth';
 import { BodyOverview } from '@/features/body';
+import { GoalsOverview } from '@/features/goals';
 import { groupKeys, useActiveGroup, useGroupMembers } from '@/features/groups';
 import { HabitsOverview } from '@/features/habits';
 import {
@@ -12,23 +14,30 @@ import {
 } from '@/features/notifications';
 import { Avatar, ColorPicker, useMyProfile, useSetMyColor } from '@/features/profile';
 import { MyExercises, TrainingSettings, useHomeStudio, usePlaces } from '@/features/training';
+import { pressScale, spring } from '@/shared/design-tokens';
 import { showToast } from '@/shared/lib';
-import { Button, Card, Screen, SegmentedControl } from '@/shared/ui';
-import { targetParams, useOpenTarget } from '../targets';
+import { Button, Card, ChevronLeftIcon, GearIcon, Screen, SegmentedControl } from '@/shared/ui';
+import { paths } from '../paths';
+import { settingsPath, targetParams, useOpenTarget } from '../targets';
 
 const roleLabels = { admin: 'Admin', member: 'Mitglied' } as const;
 
-type Section = 'training' | 'habits' | 'body' | 'settings';
+type Section = 'goals' | 'training' | 'habits' | 'body';
 
-/** "Wie entwickle ich mich?": my training progress, habits and all settings. */
+/**
+ * "Wie entwickle ich mich?": my goals, training progress, habits and body; the settings
+ * behind the gear (a pushed view, ?einstellungen=1, so "back" works as on the phone).
+ */
 export function MeRoute() {
   const userId = useUserId();
   const profile = useMyProfile(userId);
   const { group } = useActiveGroup();
   const homeId = useHomeStudio().data ?? null;
   const home = (usePlaces().data ?? []).find((place) => place.id === homeId);
-  const [section, setSection] = useState<Section>('training');
+  const [section, setSection] = useState<Section>('goals');
   const openTarget = useOpenTarget();
+  const navigate = useNavigate();
+  const location = useLocation();
   // Opened from the weigh reminder: Körper with the weigh-in open.
   const [params, setParams] = useSearchParams();
   const weigh = params.get(targetParams.weigh) === '1';
@@ -38,8 +47,48 @@ export function MeRoute() {
   const checkin = params.get(targetParams.bodyCheckin) === '1';
   if ((weigh || sharing || checkin) && section !== 'body') setSection('body');
 
+  if (params.get(targetParams.settings) === '1') {
+    return (
+      <Screen
+        title="Einstellungen"
+        leading={
+          <button
+            type="button"
+            onClick={() => {
+              // Back to where the gear was tapped; opened directly: to Ich.
+              if (location.key !== 'default') void navigate(-1);
+              else void navigate(paths.me, { replace: true });
+            }}
+            className="-ml-2 flex min-h-tap items-center gap-1 rounded-pill px-2 text-body text-accent active:bg-surface-2"
+          >
+            <ChevronLeftIcon aria-hidden /> Ich
+          </button>
+        }
+      >
+        <Settings userId={userId} />
+      </Screen>
+    );
+  }
+
   return (
-    <Screen title="Ich" accessory={<NotificationBell onOpenTarget={openTarget} />}>
+    <Screen
+      title="Ich"
+      accessory={
+        <div className="flex items-center gap-2">
+          <motion.button
+            type="button"
+            aria-label="Einstellungen"
+            whileTap={{ scale: pressScale }}
+            transition={spring.press}
+            onClick={() => void navigate(settingsPath())}
+            className="flex size-tap items-center justify-center rounded-pill glass text-title-3"
+          >
+            <GearIcon />
+          </motion.button>
+          <NotificationBell onOpenTarget={openTarget} />
+        </div>
+      }
+    >
       <div className="flex flex-col gap-4">
         {profile.data && (
           <Card className="flex items-center gap-4">
@@ -59,13 +108,15 @@ export function MeRoute() {
           value={section}
           onChange={setSection}
           options={[
+            { value: 'goals', label: 'Ziele' },
             { value: 'training', label: 'Training' },
             { value: 'habits', label: 'Habits' },
             { value: 'body', label: 'Körper' },
-            { value: 'settings', label: 'Einstellungen' },
           ]}
         />
 
+        {/* 8b mounts the current season here (header slot above my goals). */}
+        {section === 'goals' && <GoalsOverview />}
         {section === 'training' && <MyExercises />}
         {section === 'habits' && <HabitsOverview />}
         {section === 'body' && (
@@ -78,7 +129,6 @@ export function MeRoute() {
             }}
           />
         )}
-        {section === 'settings' && <Settings userId={userId} />}
       </div>
     </Screen>
   );

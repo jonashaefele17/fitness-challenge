@@ -28,7 +28,14 @@ export const targetParams = {
   weightShare: 'sichtbarkeit',
   /** "1" opens Ich → Körper with the Zwischenstand (its reminder). */
   bodyCheckin: 'zwischenstand',
+  /** "1" shows the settings under Ich (opened by the gear). */
+  settings: 'einstellungen',
 } as const;
+
+/** Ich → Einstellungen (the gear). */
+export function settingsPath(): string {
+  return `${paths.me}?${new URLSearchParams({ [targetParams.settings]: '1' }).toString()}`;
+}
 
 export interface OpenTargetOptions {
   thread: boolean;

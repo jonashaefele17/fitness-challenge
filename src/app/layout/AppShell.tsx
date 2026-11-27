@@ -7,6 +7,7 @@ import { Toaster } from '@/shared/ui';
 import { paths } from '../paths';
 import { PillNav } from './PillNav';
 import { ActiveWorkoutSync } from './ActiveWorkoutSync';
+import { GoalsSync } from './GoalsSync';
 import { PushTargetHandler } from './PushTargetHandler';
 import { RealtimeSync } from './RealtimeSync';
 
@@ -48,6 +49,7 @@ export function AppShell() {
       <RealtimeSync />
       <PushTargetHandler />
       <ActiveWorkoutSync />
+      <GoalsSync />
     </div>
   );
 }

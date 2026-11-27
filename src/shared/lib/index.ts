@@ -10,3 +10,4 @@ export {
   type DownscaleOptions,
   type ImageSize,
 } from './image';
+export { useWidth } from './useWidth';

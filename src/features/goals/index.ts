@@ -38,3 +38,4 @@ export {
   thisWeekText,
 } from './format';
 export { todayKey as goalTodayKey } from './dates';
+export { GoalsOverview } from './components/GoalsOverview';

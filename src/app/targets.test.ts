@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { targetPath } from './targets';
+import { settingsPath, targetPath } from './targets';
 
 const event = { groupId: 'g', type: 'feed_event', id: 'e1' };
 
@@ -68,5 +68,9 @@ describe('targetPath', () => {
     expect(targetPath({ groupId: 'g', type: 'plan', id: 'p1' }, { thread: false })).toBe(
       '/training?termin=p1',
     );
+  });
+
+  it('opens the settings under Ich (gear)', () => {
+    expect(settingsPath()).toBe('/ich?einstellungen=1');
   });
 });

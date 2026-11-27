@@ -24,6 +24,8 @@ export const targetParams = {
   checkin: 'checkin',
   /** "1" opens Ich → Körper with the weigh-in (weigh reminder). */
   weigh: 'wiegen',
+  /** "1" opens Ich → Körper with "Sichtbarkeit" (who sees my weight). */
+  weightShare: 'sichtbarkeit',
 } as const;
 
 export interface OpenTargetOptions {

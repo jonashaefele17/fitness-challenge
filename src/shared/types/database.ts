@@ -3498,6 +3498,21 @@ export type Database = {
           value: number;
         }[];
       };
+      group_habit_weeks: {
+        Args: {
+          p_from: string;
+          p_group_id: string;
+          p_time_zone?: string;
+          p_to: string;
+          p_today?: string;
+        };
+        Returns: {
+          counted: number;
+          quota_pct: number;
+          user_id: string;
+          week_start: string;
+        }[];
+      };
       group_seasons: {
         Args: { p_group_id: string; p_today?: string };
         Returns: {
@@ -3824,6 +3839,15 @@ export type Database = {
           season_name: string;
         }[];
       };
+      season_habit_weeks: {
+        Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          counted: number;
+          quota_pct: number;
+          user_id: string;
+          week_start: string;
+        }[];
+      };
       season_habits_overview: {
         Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
         Returns: {
@@ -3880,6 +3904,14 @@ export type Database = {
         Returns: {
           goal_progress_pct: number;
           on_date: string;
+          user_id: string;
+        }[];
+      };
+      season_strength_weeks: {
+        Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          on_date: string;
+          strength_pct: number;
           user_id: string;
         }[];
       };

@@ -229,6 +229,18 @@ export function overviewFigures(
   return parts;
 }
 
+/** "1 Kraftziel", "2 Kraftziele". */
+export function strengthGoalsText(count: number): string {
+  return count === 1 ? '1 Kraftziel' : `${String(count)} Kraftziele`;
+}
+
+/** "+15 %", "−3 %", "0 %": the strength axis, whole numbers so the labels fit its margin. */
+export function strengthAxisText(value: number): string {
+  const rounded = Math.round(value);
+  if (rounded === 0) return '0 %';
+  return `${rounded > 0 ? '+' : '−'}${String(Math.abs(rounded))} %`;
+}
+
 /** "35 %" (progress axis and readout). */
 export function progressPctText(value: number): string {
   return `${String(Math.round(value))} %`;

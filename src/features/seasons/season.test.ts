@@ -10,6 +10,7 @@ import {
   currentSeason,
   daysBetween,
   draftSeason,
+  hasStrengthComparison,
   meFirst,
   missingMetrics,
   readyLocks,
@@ -19,6 +20,7 @@ import {
   seasonUpdateOf,
   seasonWeeks,
   setupPending,
+  strengthGoalCount,
 } from './season';
 import type { Season } from './types';
 
@@ -337,5 +339,21 @@ describe('meFirst', () => {
   it('puts me first and keeps the others in their order', () => {
     const rows = [{ userId: 'a' }, { userId: 'me' }, { userId: 'b' }];
     expect(meFirst(rows, 'me').map((r) => r.userId)).toEqual(['me', 'a', 'b']);
+  });
+});
+
+describe('strength', () => {
+  const goal = (metric: string) => ({ goalId: metric, metric, status: null, onTrack: null });
+  const row = (...metrics: string[]) => ({ goals: metrics.map(goal) });
+
+  it('counts the strength goals of a participant', () => {
+    expect(strengthGoalCount(row('exercise_best', 'body_weight', 'exercise_best'))).toBe(2);
+    expect(strengthGoalCount(row('trainings_per_week'))).toBe(0);
+  });
+
+  it('is a view once two participants have a strength goal', () => {
+    expect(hasStrengthComparison([row('exercise_best'), row('exercise_best')])).toBe(true);
+    expect(hasStrengthComparison([row('exercise_best', 'exercise_best'), row()])).toBe(false);
+    expect(hasStrengthComparison(undefined)).toBe(false);
   });
 });

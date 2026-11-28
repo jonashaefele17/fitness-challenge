@@ -4,13 +4,25 @@ import type { Season } from '@/features/seasons';
 /** Vergleich → Zeitraum. */
 export type ComparePeriod = 'season' | '4w' | '3m' | '1y';
 
-/** Vergleich → Was. "Übersicht" is the season's and needs one (see periodSeason). */
-export type CompareWhat = 'overview' | 'trainings' | 'habits' | 'weight';
+/**
+ * Vergleich → Was. "Übersicht" and "Kraft" are the season's and need one (see
+ * periodSeason); "Kraft" also needs two participants with a strength goal.
+ */
+export type CompareWhat = 'overview' | 'trainings' | 'habits' | 'weight' | 'strength';
 
-/** What is shown: the chosen view, else "Übersicht" while a season runs, else Trainings. */
-export function shownWhat(chosen: CompareWhat | null, season: Season | null): CompareWhat {
+/**
+ * What is shown: the chosen view, else "Übersicht" while a season runs, else Trainings. A
+ * season view that is not there (any more) falls back to that default.
+ */
+export function shownWhat(
+  chosen: CompareWhat | null,
+  season: Season | null,
+  strength = false,
+): CompareWhat {
+  const fallback = season?.phase === 'running' ? 'overview' : 'trainings';
   if (chosen === 'overview') return season ? 'overview' : 'trainings';
-  return chosen ?? (season?.phase === 'running' ? 'overview' : 'trainings');
+  if (chosen === 'strength') return season && strength ? 'strength' : fallback;
+  return chosen ?? fallback;
 }
 
 /** The season the period "Saison" stands for: the current one once it has started. */

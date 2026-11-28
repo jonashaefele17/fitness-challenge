@@ -13,6 +13,8 @@ import {
   seasonPhaseLabel,
   seasonRulesLines,
   seasonWeekText,
+  strengthAxisText,
+  strengthGoalsText,
   trainingWeeksText,
 } from './format';
 
@@ -182,5 +184,21 @@ describe('overviewFigures', () => {
 describe('progressPctText', () => {
   it('rounds to whole percent', () => {
     expect(progressPctText(34.6)).toBe('35 %');
+  });
+});
+
+describe('strengthGoalsText', () => {
+  it('counts the strength goals', () => {
+    expect(strengthGoalsText(1)).toBe('1 Kraftziel');
+    expect(strengthGoalsText(3)).toBe('3 Kraftziele');
+  });
+});
+
+describe('strengthAxisText', () => {
+  it('gives whole percentages with a sign', () => {
+    expect(strengthAxisText(14.6)).toBe('+15 %');
+    expect(strengthAxisText(-2.5)).toBe('−2 %');
+    expect(strengthAxisText(-3.4)).toBe('−3 %');
+    expect(strengthAxisText(0.3)).toBe('0 %');
   });
 });

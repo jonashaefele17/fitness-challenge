@@ -29,3 +29,30 @@ export function cumulativeDays(
   }
   return points;
 }
+
+/** A person's habit quota in a calendar week (0 … 100). */
+export interface HabitWeek {
+  userId: string;
+  /** The week's Monday. */
+  weekStart: string;
+  quotaPct: number;
+}
+
+/**
+ * The weekly quota lines: one per person who has a week that counted, in the given order
+ * (me first), a point per week on its Monday, oldest first.
+ */
+export function habitWeekLines(
+  weeks: readonly HabitWeek[],
+  people: readonly { userId: string; name: string; color: string }[],
+): { key: string; name: string; color: string; points: { onDate: string; value: number }[] }[] {
+  return people.flatMap((person) => {
+    const points = weeks
+      .filter((w) => w.userId === person.userId)
+      .map((w) => ({ onDate: w.weekStart, value: w.quotaPct }))
+      .sort((a, b) => a.onDate.localeCompare(b.onDate));
+    return points.length > 0
+      ? [{ key: person.userId, name: person.name, color: person.color, points }]
+      : [];
+  });
+}

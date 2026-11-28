@@ -76,4 +76,11 @@ describe('shownWhat', () => {
     expect(shownWhat('overview', season('ended'))).toBe('overview');
     expect(shownWhat('overview', null)).toBe('trainings');
   });
+
+  it('shows Kraft only with a season that has it, else the default', () => {
+    expect(shownWhat('strength', season('running'), true)).toBe('strength');
+    expect(shownWhat('strength', season('ended'), true)).toBe('strength');
+    expect(shownWhat('strength', season('running'), false)).toBe('overview');
+    expect(shownWhat('strength', null, true)).toBe('trainings');
+  });
 });

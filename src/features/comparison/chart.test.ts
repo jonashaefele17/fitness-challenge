@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cumulativeDays, dayPct } from './chart';
+import { cumulativeDays, dayPct, habitWeekLines } from './chart';
 
 describe('dayPct', () => {
   it('puts a day value on the axis against the start of the line', () => {
@@ -43,5 +43,42 @@ describe('cumulativeDays', () => {
       '2026-10-27',
     ]);
     expect(points.at(-1)?.value).toBe(2);
+  });
+});
+
+describe('habitWeekLines', () => {
+  const people = [
+    { userId: 'me', name: 'Du', color: 'c1' },
+    { userId: 'a', name: 'Mia', color: 'c2' },
+    { userId: 'b', name: 'Tom', color: 'c3' },
+  ];
+
+  it('gives a line per person with weeks, in the given order, weeks oldest first', () => {
+    const lines = habitWeekLines(
+      [
+        { userId: 'a', weekStart: '2026-12-07', quotaPct: 50 },
+        { userId: 'me', weekStart: '2026-12-07', quotaPct: 100 },
+        { userId: 'a', weekStart: '2026-11-30', quotaPct: 79.2 },
+      ],
+      people,
+    );
+    expect(lines).toEqual([
+      { key: 'me', name: 'Du', color: 'c1', points: [{ onDate: '2026-12-07', value: 100 }] },
+      {
+        key: 'a',
+        name: 'Mia',
+        color: 'c2',
+        points: [
+          { onDate: '2026-11-30', value: 79.2 },
+          { onDate: '2026-12-07', value: 50 },
+        ],
+      },
+    ]);
+  });
+
+  it('leaves out weeks of people not in the list', () => {
+    expect(
+      habitWeekLines([{ userId: 'x', weekStart: '2026-11-30', quotaPct: 10 }], people),
+    ).toEqual([]);
   });
 });

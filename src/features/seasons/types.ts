@@ -153,6 +153,22 @@ export interface SeasonProgressPoint {
   progressPct: number;
 }
 
+/** A participant's quota of their season habits in a calendar week (season_habit_weeks). */
+export interface SeasonHabitWeek {
+  userId: string;
+  /** The week's Monday. */
+  weekStart: string;
+  /** 0 … 100. */
+  quotaPct: number;
+}
+
+/** A participant's mean increase over their strength goals on a day, in % (season_strength_weeks). */
+export interface SeasonStrengthPoint {
+  userId: string;
+  onDate: string;
+  strengthPct: number;
+}
+
 /** What useCreateSeason takes. */
 export interface CreateSeasonInput {
   /** Client-generated (crypto.randomUUID()). */

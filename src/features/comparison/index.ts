@@ -4,3 +4,6 @@ export { HabitComparison } from './components/HabitComparison';
 export { useHabitCompare } from './api/useGroupHabits';
 export { TrainingComparison } from './components/TrainingComparison';
 export { WeightComparison } from './components/WeightComparison';
+export { HabitWeeksChart } from './components/HabitWeeksChart';
+export { useGroupHabitWeeks } from './api/useGroupHabitWeeks';
+export type { HabitWeek } from './chart';

@@ -17,6 +17,7 @@ import {
 } from '../format';
 import { meFirst, seasonTargetPct } from '../season';
 import type { Season } from '../types';
+import { HighlightButtons } from './HighlightButtons';
 import { SeasonParticipantsSheet } from './SeasonParticipantsSheet';
 
 const DOT_CLASSES: Record<GoalDotState, string> = {
@@ -96,41 +97,12 @@ export function SeasonOverview({
               }}
               highlight={highlight}
             />
-            <div
-              role="group"
-              aria-label="Person hervorheben"
-              className="flex flex-wrap items-center gap-x-2 gap-y-3"
-            >
-              {lines.map((line) => (
-                // Quiet on purpose (no accent fill): the line's own colour carries it.
-                <button
-                  key={line.key}
-                  type="button"
-                  aria-pressed={highlight === line.key}
-                  onClick={() => {
-                    setHighlight((current) => (current === line.key ? null : line.key));
-                  }}
-                  className={cn(
-                    'flex min-h-tap items-center gap-2 rounded-pill border px-4 text-subhead font-semibold',
-                    highlight === line.key
-                      ? 'border-text-subtle bg-surface-3 text-text'
-                      : 'border-border text-text-muted active:bg-surface-3',
-                    highlight !== null && highlight !== line.key && 'opacity-60',
-                  )}
-                >
-                  <span
-                    aria-hidden
-                    className="size-2 shrink-0 rounded-pill"
-                    style={{ backgroundColor: line.color }}
-                  />
-                  {line.name}
-                </button>
-              ))}
+            <HighlightButtons lines={lines} highlight={highlight} onChange={setHighlight}>
               <span className="flex items-center gap-1.5 text-footnote text-text-subtle">
                 <span aria-hidden className="w-4 border-t-2 border-dashed border-text-subtle" />
                 Soll
               </span>
-            </div>
+            </HighlightButtons>
           </>
         )}
       </section>

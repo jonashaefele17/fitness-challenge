@@ -36,10 +36,12 @@ import type {
   SeasonGoalLink,
   SeasonGoalsOfPerson,
   SeasonHabit,
+  SeasonHabitWeek,
   SeasonOverviewRow,
   SeasonParticipant,
   SeasonPhase,
   SeasonProgressPoint,
+  SeasonStrengthPoint,
   UpdateSeasonInput,
 } from '../types';
 import { seasonKeys } from './keys';
@@ -344,6 +346,60 @@ export function useSeasonProgressWeeks(seasonId: string | null) {
         userId: row.user_id,
         onDate: row.on_date,
         progressPct: row.goal_progress_pct,
+      }));
+    },
+  });
+}
+
+/**
+ * Every participant's quota of their season habits per calendar week, from their start
+ * (private habits too – only the quota arrives); a week in which nothing counted has no
+ * point (null seasonId: disabled).
+ */
+export function useSeasonHabitWeeks(seasonId: string | null) {
+  const { group } = useActiveGroup();
+  const today = goalTodayKey();
+  return useQuery({
+    queryKey: seasonKeys.habitWeeks(group.id, seasonId ?? '', today),
+    enabled: seasonId !== null,
+    queryFn: async (): Promise<SeasonHabitWeek[]> => {
+      const { data, error } = await supabase.rpc('season_habit_weeks', {
+        p_season_id: seasonId ?? '',
+        p_today: today,
+        p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        userId: row.user_id,
+        weekStart: row.week_start,
+        quotaPct: row.quota_pct,
+      }));
+    },
+  });
+}
+
+/**
+ * Every participant's mean increase over their strength goals since the start, in %, at
+ * the season's week ends and today; whoever has no strength goal has no points (null
+ * seasonId: disabled).
+ */
+export function useSeasonStrengthWeeks(seasonId: string | null) {
+  const { group } = useActiveGroup();
+  const today = goalTodayKey();
+  return useQuery({
+    queryKey: seasonKeys.strength(group.id, seasonId ?? '', today),
+    enabled: seasonId !== null,
+    queryFn: async (): Promise<SeasonStrengthPoint[]> => {
+      const { data, error } = await supabase.rpc('season_strength_weeks', {
+        p_season_id: seasonId ?? '',
+        p_today: today,
+        p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        userId: row.user_id,
+        onDate: row.on_date,
+        strengthPct: row.strength_pct,
       }));
     },
   });

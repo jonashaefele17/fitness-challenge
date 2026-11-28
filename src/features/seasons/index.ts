@@ -14,10 +14,12 @@ export {
   useSeasonDayMarkers,
   useSeasonGoalLinks,
   useSeasonGoals,
+  useSeasonHabitWeeks,
   useSeasonHabits,
   useSeasonOverview,
   useSeasonParticipants,
   useSeasonProgressWeeks,
+  useSeasonStrengthWeeks,
   useSeasons,
   useSetSeasonReady,
   useUnlinkSeasonGoal,
@@ -33,6 +35,7 @@ export {
   correctionUndoOf,
   currentSeason,
   draftSeason,
+  hasStrengthComparison,
   missingMetrics,
   readyLocks,
   seasonGoalsByPerson,
@@ -67,5 +70,6 @@ export {
 } from './setup';
 export { SeasonBlock } from './components/SeasonBlock';
 export { SeasonOverview } from './components/SeasonOverview';
+export { SeasonStrength } from './components/SeasonStrength';
 export { SeasonSetupFlow } from './components/SeasonSetupFlow';
 export { useSetupAutoOpen } from './components/useSetupAutoOpen';

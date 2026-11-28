@@ -5,6 +5,7 @@ import type {
   Season,
   SeasonGoalLink,
   SeasonGoalsOfPerson,
+  SeasonOverviewRow,
   SeasonPhase,
   UpdateSeasonInput,
 } from './types';
@@ -267,6 +268,18 @@ export function seasonTargetPct(season: Pick<Season, 'startsOn' | 'endsOn'>, day
   const length = daysBetween(season.startsOn, season.endsOn);
   if (length <= 0) return 100;
   return Math.min(100, Math.max(0, (daysBetween(season.startsOn, day) / length) * 100));
+}
+
+/** How many strength goals (exercise best) a participant has in the season. */
+export function strengthGoalCount(row: Pick<SeasonOverviewRow, 'goals'>): number {
+  return row.goals.filter((goal) => goal.metric === 'exercise_best').length;
+}
+
+/** Whether "Kraft" is worth a view: at least two participants have a strength goal. */
+export function hasStrengthComparison(
+  rows: readonly Pick<SeasonOverviewRow, 'goals'>[] | undefined,
+): boolean {
+  return (rows ?? []).filter((row) => strengthGoalCount(row) > 0).length >= 2;
 }
 
 /** Me first, then the others in their order. */

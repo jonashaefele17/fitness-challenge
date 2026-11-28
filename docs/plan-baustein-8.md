@@ -2,7 +2,7 @@
 
 Branch: `feat/goals-seasons`. Grundlage: Konzept (Version 1.48) – „Ziele, Saisons und Vergleich“, „Besondere Tage im Kalender“, „Datenmodell“ (Ziele & Saisons).
 
-Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a, 8b und der 8b-Nachtrag (Habits in der Saison) gebaut. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
+Stand: Plan mit Jonas abgestimmt am 27.11.2026; 8a, 8b, der 8b-Nachtrag (Habits in der Saison) und 8c (Vergleich) gebaut; Staging-Test offen. Gebaut wird Etappe für Etappe, jeweils mit Test auf Staging.
 
 ## Worum es geht
 
@@ -123,7 +123,7 @@ Bauplan Oberfläche:
 
 Arbeitsweise wie bisher: Umsetzung an einen Opus-Unteragenten geben (erst Datenbank, prüfen, committen; dann Oberfläche mit Screenshots bei 375 px), vor jedem Commit Lint, Typecheck, Tests, `npm run test:rls` auf frisch zurückgesetzter Datenbank.
 
-### 8c – Vergleich (Plan vom 28.11.2026, mit Jonas abgestimmt; noch nicht gebaut)
+### 8c – Vergleich (Plan vom 28.11.2026, mit Jonas abgestimmt; alle drei Etappen gebaut am 28.11.2026, Staging-Test offen)
 
 **Leitgedanke:** Am Handy will man auf einen Blick sehen, wie es bei einem selbst und bei den anderen läuft – nicht jedes Ziel und jede Übung jeder Person in einer Tabelle. Die Saison ist dabei kein eigener Ort, sondern ein Zeitraum: Jede Größe hat genau einen Platz, und solange eine Saison läuft, ist sie als Zeitraum voreingestellt. Genauere Auswertungen (z. B. die Wochenrückschau für den Jour fixe) kommen am PC (Baustein 9, siehe Ideenliste).
 
@@ -189,6 +189,32 @@ Jede Etappe ist für sich nutzbar und wird einzeln auf Staging getestet. Umfang:
 - Antippen zeigt die Werte aller Personen an dem Tag; eine einzelne Person hervorheben kommt mit 8c-2.
 - Nebenbei behoben: Wer sein Gewicht „mit Tageswerten“ teilt, bekam fälschlich den Hinweis „Du teilst dein Gewicht nicht“.
 - Prüfen: Wirken die drei Bedienreihen untereinander (Feed/Vergleich, Was, Zeitraum) am iPhone zu dicht?
+
+**Stand 8c-2 (Übersicht) – so gebaut**
+
+- „Übersicht“ ist der erste Punkt und voreingestellt, solange eine Saison läuft; es gibt sie nur mit einer gestarteten Saison.
+- Der Zielfortschritt rechnet mit allen Saisonzielen, die Start und Ziel haben – also auch mit Kraftzielen. Ein Ziel ohne Messwert zählt als 0 %. Jede Linie beginnt am eigenen Saisonstart.
+- Hervorheben über die Namens-Knöpfe unter dem Diagramm (bewusst grau statt grün); Antippen einer Zeile öffnet das Teilnehmer-Blatt mit dieser Person oben.
+- Punkte je Saisonziel: gefüllt grün = Ziel erreicht, grüner Ring = auf Kurs, orange = hinter Plan, grauer Ring = noch kein Stand.
+- „Gewogen x/y“ und „Zwischenstand x/y“: Eine Woche bzw. ein Abschnitt zählt mit, sobald er vorbei ist oder sobald er erledigt ist. Ganz pausierte Wochen zählen nicht.
+- Mit beiden Saisonregeln hat eine Zeile drei kleine Textzeilen.
+- Hat jemand zwei Trainingsziele in der Saison, zählt für „Wochenziel“ nur das erste.
+
+**Stand 8c-3 (Habit-Kurve, Kraft) – so gebaut**
+
+- Habits: über der Matrix das Diagramm „Quote pro Woche“, ein Punkt pro Kalenderwoche. Zeitraum „Saison“: Saison-Habits (auch private, nur die Quote); sonst die geteilten Habits. Die Matrix darunter zeigt weiter die geteilten Habits der letzten 4 Wochen – ein Satz unter dem Diagramm sagt das.
+- Ein Wochen-Habit zählt in der laufenden Woche mit 100 %, sobald es geschafft ist, vorher gar nicht (wie in der Habit-Auswertung und in der Übersicht).
+- Kraft: eigener Punkt, nur mit gestarteter Saison und mindestens zwei Personen mit Kraftziel. Linie = mittlere Steigerung in % über die eigenen Kraftziele (bester Satz seit dem Start gegen den Startwert); Zeile pro Person mit „+5,8 %“ und Anzahl der Kraftziele. Nur Prozentwerte, keine kg und keine Übungsnamen.
+- Die Leiste „Was“ hat jetzt fünf Punkte; „Kraft“ ist rechts angeschnitten und rückt beim Antippen ins Bild.
+
+**Beim Staging-Test von 8c prüfen**
+
+- Neue Migrationen: `20261204100000` bis `20261206100200` (fünf Dateien).
+- Übersicht: Stimmen „Wochenziel in x von y Wochen“, die Punkte und die Habit-Quote mit dem überein, was du bei dir unter Ich → Ziele siehst?
+- Diagramme: Antippen und Ziehen am iPhone, Hervorheben einer Person, Lesbarkeit bei allen Teilnehmern.
+- Leiste „Was“: Ist erkennbar, dass sie sich wischen lässt? Wirken die Bedienreihen zu dicht?
+- Habits im Zeitraum „Saison“: Ist verständlich, dass Diagramm (Saison-Habits) und Matrix (geteilte Habits, 4 Wochen) Verschiedenes zeigen?
+- Kraft: erscheint erst mit zwei Personen mit Kraftziel – passt die Schwelle?
 
 **Beim Bauen an echten Daten prüfen**
 

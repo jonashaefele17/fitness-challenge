@@ -229,19 +229,67 @@ Jede Etappe ist für sich nutzbar und wird einzeln auf Staging getestet. Umfang:
 - Übergang: Rückschau pro Ziel (verlängern / steigern / beenden) als Entwurf der nächsten Saison.
 - Saison-Archiv im Gruppe-Tab.
 
-### 8e – Etappen
+### 8e – Etappen (Plan vom 28.11.2026, mit Jonas abgestimmt; noch nicht gebaut)
 
-Entschieden mit Jonas am 27.11.2026; Darstellung und die Frage der eigenen Etappenziele noch offen (siehe unten).
+**Wozu:** Über 6 Monate wäre ein falsch gesetztes Ziel monatelang tot. Etappen teilen die Saison in Abschnitte mit einem greifbaren Zwischenziel und einem kurzen Fenster zum Nachjustieren. Gebaut wird jetzt; was sich im Betrieb als unpassend zeigt, wird nachgebessert.
 
-- Eine Saison hat Etappen fester Länge, Standard 4 Wochen (im Takt des Zwischenstands; ganze Wochen, damit Wochenziele nicht zerschnitten werden). Der Admin legt die Länge beim Anlegen fest.
-- Etappenziel, berechnet: bei Gewicht, Kraft und Maßen der Wert der Ziellinie am Etappenende („bis 24.12.: 83,3 kg“); bei Trainings und Habits die Vorgabe über die Wochen der Etappe.
-- Etappen-Rückblick als Feed-Karte pro Person am Etappenende: Etappenziel erreicht oder nicht, Stand je Saisonziel (mit derselben Maskierung wie sonst).
-- Anpassungsfenster: in den ersten 3 Tagen einer neuen Etappe darf jede Person Ziel und Mindestziel ihrer Saisonziele ändern (alle Zielarten). Die Änderung gilt ab der neuen Etappe, vergangene Wochen zählen nach den alten Werten, und sie steht für alle im Feed. Startwert und Zeitraum bleiben fest. Außerhalb des Fensters korrigiert weiter nur der Admin.
-- Nach einer Anpassung knickt die Ziellinie an der Etappengrenze: Sie läuft vom bisherigen Sollwert an diesem Tag zum neuen Ziel.
+**Was eine Etappe ist**
 
-Offen:
-- Eigene Etappenziele bei Gewicht, Kraft und Maßen (z. B. am Anfang schneller abnehmen): Etappenziele automatisch auf der geraden Linie, aber einzeln überschreibbar? Die Ziellinie wäre dann stückweise gerade.
-- Darstellung in der Übersicht (Vorschlag: Zeile „Etappe 2 von 6 · bis 24.12.: 83,3 kg“ in der Zielkarte, Etappengrenzen als Marken im Diagramm, „Etappe x von y“ im Saison-Block).
+- Eine Saison hat Etappen fester Länge, Standard 4 Wochen (ganze Wochen ab dem Saisonstart, damit Wochenziele nicht zerschnitten werden; die letzte Etappe kann kürzer sein). Der Admin legt die Länge beim Anlegen fest (2 bis 8 Wochen), änderbar bis zum Start. Bestehende Saisons bekommen 4 Wochen.
+- Wer später einsteigt, läuft im Etappenraster der Saison mit; seine erste Etappe ist entsprechend kürzer.
+- **Etappenziel, berechnet:** bei Gewicht, Kraft und Körpermaß der Wert der Ziellinie am Etappenende („bis 24.12.: 83,3 kg“); bei Trainings die Vorgabe pro Woche über die Wochen der Etappe; bei Habits die Regel selbst.
+
+**Die Ziellinie: Stützpunkte statt einer Geraden**
+
+- Die Ziellinie eines Ziels mit Start und Ziel besteht aus geraden Stücken zwischen Stützpunkten (Datum und Wert). Ohne Stützpunkte ist sie wie heute die Gerade vom Start zum Ziel.
+- Ändert jemand sein Ziel, knickt die Linie an diesem Tag: Sie läuft bis dahin auf das alte Ziel zu und ab dort auf das neue. Kein Sprung, weil die neue Linie dort weitergeht, wo die alte an dem Tag stand. Das gilt für alle Ziele mit Start und Ziel, auch für private ohne Saison.
+- „Auf Kurs“, das Etappenziel und das Diagramm lesen alle dieselbe Linie.
+
+**Anpassungsfenster**
+
+- In den ersten 3 Tagen jeder Etappe ab der zweiten darf jede Person bei ihren Saisonzielen Ziel und Mindestziel ändern (alle Zielarten) und bei ihren Saison-Habits die Regel. Startwert und Zeitraum bleiben fest.
+- Die Änderung gilt ab Beginn der neuen Etappe; vergangene Wochen und Tage zählen nach den alten Werten.
+- Sie steht im Feed („Mia hat ihr Saisonziel angepasst“, Werte so maskiert wie sonst) – einmal pro Ziel bzw. Habit und Fenster, auch wenn man in den 3 Tagen mehrmals nachstellt.
+- Außerhalb des Fensters bleibt alles wie heute: Ziele korrigiert nur der Admin, eine Habit-Regel gibt er für 24 Stunden frei.
+- Zum Etappenbeginn bekommen alle Teilnehmer eine Mitteilung (Kategorie „Saisons“): „Etappe 2 beginnt · 3 Tage zum Anpassen“.
+
+**Etappen-Rückblick**
+
+- Am Tag nach dem Etappenende (ab 7 Uhr) eine Feed-Karte pro Person: „Etappe 1 geschafft“ mit einer Zeile je Saisonziel – Etappenziel erreicht oder nicht, Stand – und der Quote der Saison-Habits in der Etappe. Maskiert wie sonst (kein kg ohne Freigabe, nie cm). Knapp gehalten; die ausführliche Rückschau kommt am PC (Ideenliste).
+
+**Eigene Etappenziele (freiwillig, versteckt)**
+
+- Normalfall bleibt automatisch: Niemand muss pro Etappe etwas eingeben.
+- Im Detail eines Saisonziels mit Start und Ziel (Gewicht, Kraft, Körpermaß) gibt es eine ruhige Zeile „Etappenziele selbst festlegen“: die Liste der Etappen mit den automatischen Werten, jeder einzeln überschreibbar; „Zurück auf automatisch“ setzt alles wieder gerade.
+- Jeder Wert liegt zwischen Start und Ziel. Fest ab „Bereit“ wie das Ziel selbst; im Anpassungsfenster lassen sich die Werte der kommenden Etappen ändern.
+- Wer im Fenster das Ziel ändert, bekommt für die restlichen Etappen wieder die automatische Aufteilung (mit Hinweis).
+- Nur die Ziellinie: Das Mindestziel bleibt ein Wert für die ganze Saison. Nicht für Trainings und Habits.
+
+**Darstellung**
+
+- Saison-Block: „Etappe 2 von 6 · bis 24.12.“; im Fenster eine Zeile „Ziele anpassen · noch 2 Tage“, die zu den eigenen Saisonzielen und -Habits führt.
+- Zielkarte und Zieldetail: Zeile „Etappe 2 von 6 · bis 24.12.: 83,3 kg“; im Diagramm die Etappengrenzen als feine Marken und eine Marke an jeder Anpassung (Antippen: „Ziel angepasst: 80 → 82 kg“).
+- Übersicht im Vergleich: Die gemeinsame Soll-Linie bleibt die Gerade (Anteil der vergangenen Zeit). Springt die Linie einer Person, weil sie ihr Ziel angepasst hat, sitzt dort ein kleiner Punkt (Antippen: „Ziel angepasst“). Etappengrenzen als feine Marken auf der Zeitachse.
+
+**Technik**
+
+- Persönliche Schicht (Ziele-Modul, ohne Bezug auf Saisons): Tabelle für Stützpunkte eines Ziels (`goal_waypoints`: Ziel, Datum, Wert), eine zentrale Funktion für den Wert der Linie an einem Tag (Stützpunkte plus Knick bei Zieländerungen), auf die `goal_figures` und `goal_history` umgestellt werden. Schreiben nur über Funktionen, die `private.can_edit_goal` fragen.
+- Saison-Schicht: `seasons.stage_weeks`; die Etappen einer Saison als berechnete Lesefunktion (Nummer, von, bis, Fenster offen bis); `private.can_edit_goal` und `private.can_edit_habit` lassen im Fenster die eigene Änderung zu (Start und Zeitraum bleiben gesperrt); Feed-Ereignisse `season_goal_adjusted` und `season_stage_recap`; der stündliche Saison-Job schickt die Mitteilung zum Etappenbeginn und postet den Rückblick, je einmal.
+- Alles berechnet, nichts gespeichert außer den Stützpunkten und der Etappenlänge. Datenbank-Tests je Funktion, inklusive „Gruppe A sieht nichts aus Gruppe B“ und der Maskierung.
+
+**Etappen im Bau** (jede für sich nutzbar)
+
+1. **8e-1 Etappen und Ziellinie:** Etappenlänge beim Anlegen, Etappen berechnet, Ziellinie mit Stützpunkten und Knick, Etappenziel in Zielkarte, Zieldetail und Saison-Block, Etappenmarken in den Diagrammen.
+2. **8e-2 Fenster und Rückblick:** Anpassungsfenster für Ziele und Habits, Feed-Karte „angepasst“, Mitteilung zum Etappenbeginn, Etappen-Rückblick, Marken an Anpassungen (Zieldiagramm und Übersicht).
+3. **8e-3 Eigene Etappenziele:** die Zeile im Zieldetail mit der Liste der Etappen.
+
+Umfang: 8e-1 mittel bis groß (die Ziellinie ist der Kern), 8e-2 mittel, 8e-3 klein bis mittel.
+
+**Nicht in 8e**
+
+- Eigene Mindestziele pro Etappe, eigene Etappenziele bei Trainings und Habits.
+- Etappen als Marker im Kalender.
+- Unterschiedlich lange Etappen innerhalb einer Saison.
 
 ## Nicht in diesem Baustein
 

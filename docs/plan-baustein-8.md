@@ -174,11 +174,21 @@ Was bewusst entfällt: die Liste aller Ziele aller Personen mit Filter nach Ziel
 
 **Etappen**
 
-1. **8c-1 Umbau und Trainings:** Reiter Feed · Vergleich, Auswahl „Was“ und „Zeitraum“ (inklusive „Saison“), gemeinsames Diagramm in `shared/ui`, Gewicht und Habits ziehen unverändert um (Gewicht mit Zeitraum „Saison“), neue Ansicht „Trainings“.
+1. **8c-1 Umbau und Trainings (gebaut am 28.11.2026, Staging-Test offen):** Reiter Feed · Vergleich, Auswahl „Was“ und „Zeitraum“ (inklusive „Saison“), gemeinsames Diagramm in `shared/ui`, Gewicht und Habits ziehen unverändert um (Gewicht mit Zeitraum „Saison“), neue Ansicht „Trainings“.
 2. **8c-2 Übersicht:** `season_overview` und der Zielfortschritt, Zeile pro Person, Antippen öffnet das Teilnehmer-Blatt bei dieser Person.
 3. **8c-3 Habit-Kurve und Kraft:** Quote pro Woche (Saison-Habits und geteilte Habits), Ansicht „Kraft“.
 
 Jede Etappe ist für sich nutzbar und wird einzeln auf Staging getestet. Umfang: 8c-1 mittel, 8c-2 mittel, 8c-3 klein bis mittel.
+
+**Stand 8c-1 – so gebaut, beim Staging-Test prüfen**
+
+- „Was“ ist eine wischbare Leiste aus Chips, „Zeitraum“ eine Auswahl darunter. Bei „Habits“ gibt es keinen Zeitraum (die Matrix rechnet weiter mit 4 Wochen, bis 8c-3).
+- „Saison“ gibt es als Zeitraum, sobald die Saison gestartet ist. Sie zählt für alle ab dem Saisonstart der Gruppe – wer später eingestiegen ist, hat keinen eigenen Beginn im Diagramm.
+- Wer im Zeitraum nicht trainiert hat, steht trotzdem da (flache Linie, „0 Tage“).
+- Die Auswahl (Was, Zeitraum) beginnt nach einem Wechsel zum Feed wieder bei der Voreinstellung.
+- Antippen zeigt die Werte aller Personen an dem Tag; eine einzelne Person hervorheben kommt mit 8c-2.
+- Nebenbei behoben: Wer sein Gewicht „mit Tageswerten“ teilt, bekam fälschlich den Hinweis „Du teilst dein Gewicht nicht“.
+- Prüfen: Wirken die drei Bedienreihen untereinander (Feed/Vergleich, Was, Zeitraum) am iPhone zu dicht?
 
 **Beim Bauen an echten Daten prüfen**
 

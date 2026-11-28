@@ -21,3 +21,5 @@ export {
   type CompareRow,
   type CompareTableProps,
 } from './CompareTable';
+export { LineChart, type LineChartProps, type LineSeries } from './LineChart';
+export type { LineAxis, LinePoint } from './chartLayout';

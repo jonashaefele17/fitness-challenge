@@ -1,7 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
 import {
-  periodRange,
   useBodySettings,
   weightProgressOptions,
   type WeightProgressDay,
@@ -10,9 +9,6 @@ import {
 import { useActiveGroup, useGroupMembers, type GroupMember } from '@/features/groups';
 import { personColorVar } from '@/shared/design-tokens';
 import { dayPct } from '../chart';
-
-/** Gruppe → Gewicht: 4 Wochen / 3 Monate / 1 Jahr. */
-export type WeightComparePeriod = '4w' | '3m' | '1y';
 
 export interface WeightPerson {
   id: string;
@@ -32,12 +28,13 @@ export interface WeightPerson {
 }
 
 /**
- * The weight lines of the active group in a period: me first, then the others, each only
- * if they share their weight and weighed in the period. I see myself as the others see me:
+ * The weight lines of the active group from `from` to `to` (local days): me first, then the
+ * others, each only if they share their weight and weighed in the period. I see myself as
+ * the others see me:
  * not at all with "Nur ich", without kg with "Nur %". The database leaves out what others
  * do not share.
  */
-export function useGroupWeight(period: WeightComparePeriod, today: string) {
+export function useGroupWeight(from: string, to: string) {
   const userId = useUserId();
   const { group } = useActiveGroup();
   const members = useGroupMembers(group.id);
@@ -47,7 +44,6 @@ export function useGroupWeight(period: WeightComparePeriod, today: string) {
     ...(members.data ?? []).filter((m) => m.userId === userId),
     ...(members.data ?? []).filter((m) => m.userId !== userId),
   ];
-  const { from, to } = periodRange(period, today);
   const curves = useQueries({
     queries: ordered.map((m) => weightProgressOptions(userId, m.userId, from, to)),
   });

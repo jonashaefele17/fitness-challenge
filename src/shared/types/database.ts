@@ -3529,6 +3529,13 @@ export type Database = {
           weigh_weekly: boolean;
         }[];
       };
+      group_training_days: {
+        Args: { p_from: string; p_group_id: string; p_time_zone: string; p_to: string };
+        Returns: {
+          on_date: string;
+          user_id: string;
+        }[];
+      };
       habit_days: {
         Args: {
           p_from: string;

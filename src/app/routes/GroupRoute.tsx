@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { HabitComparison, WeightComparison } from '@/features/comparison';
 import { CommentBubble, CommentThreadSheet } from '@/features/comments';
 import { FeedList, TrainedToday } from '@/features/feed';
 import { useActiveGroup } from '@/features/groups';
@@ -9,6 +8,7 @@ import { ReactionBar } from '@/features/reactions';
 import { useWorkoutIdOfItem, WorkoutDetailSheet } from '@/features/training';
 import { Screen, SegmentedControl } from '@/shared/ui';
 import type { TargetRef } from '@/shared/types/target';
+import { CompareView } from '../compare/CompareView';
 import { CardHabits } from '../feed/CardHabits';
 import { CardSeason } from '../feed/CardSeason';
 import { CardWeight } from '../feed/CardWeight';
@@ -40,7 +40,7 @@ export function GroupRoute() {
     setThread(focused);
   }
   const navigate = useNavigate();
-  const [view, setView] = useState<'feed' | 'compare' | 'weight'>('feed');
+  const [view, setView] = useState<'feed' | 'compare'>('feed');
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   // Linked from a notification: a workout, or an exercise/set of one.
   const linkedItem = params.get(targetParams.item);
@@ -58,14 +58,11 @@ export function GroupRoute() {
           onChange={setView}
           options={[
             { value: 'feed', label: 'Feed' },
-            { value: 'compare', label: 'Habits' },
-            { value: 'weight', label: 'Gewicht' },
+            { value: 'compare', label: 'Vergleich' },
           ]}
         />
         {view === 'compare' ? (
-          <HabitComparison />
-        ) : view === 'weight' ? (
-          <WeightComparison
+          <CompareView
             onOpenSharing={() => {
               void navigate(
                 `${paths.me}?${new URLSearchParams({ [targetParams.weightShare]: '1' }).toString()}`,

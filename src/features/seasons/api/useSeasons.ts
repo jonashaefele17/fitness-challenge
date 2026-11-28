@@ -7,11 +7,17 @@ import {
   type QueryKey,
 } from '@tanstack/react-query';
 import { useUserId } from '@/features/auth';
-import { goalKeys, goalListOptions, goalTodayKey, type Goal } from '@/features/goals';
+import {
+  goalKeys,
+  goalListOptions,
+  goalTodayKey,
+  type Goal,
+  type GoalStatus,
+} from '@/features/goals';
 import { useActiveGroup, useGroupMembers } from '@/features/groups';
 import type { HabitCondition, HabitDefinition, HabitOption } from '@/features/habits';
 import { supabase } from '@/shared/lib/supabase';
-import type { Database } from '@/shared/types/database';
+import type { Database, Json } from '@/shared/types/database';
 import {
   applyReady,
   applySeasonUpdate,
@@ -26,11 +32,14 @@ import type {
   CreateSeasonInput,
   Season,
   SeasonDayMarker,
+  SeasonGoalDot,
   SeasonGoalLink,
   SeasonGoalsOfPerson,
   SeasonHabit,
+  SeasonOverviewRow,
   SeasonParticipant,
   SeasonPhase,
+  SeasonProgressPoint,
   UpdateSeasonInput,
 } from '../types';
 import { seasonKeys } from './keys';
@@ -247,6 +256,95 @@ export function useSeasonHabits(seasonId: string | null) {
       });
       if (error) throw error;
       return data.map(toSeasonHabit);
+    },
+  });
+}
+
+const GOAL_STATUSES: readonly GoalStatus[] = [
+  'target_reached',
+  'min_reached',
+  'below_min',
+  'not_reached',
+];
+
+function toGoalDots(value: Json): SeasonGoalDot[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (typeof item !== 'object' || item === null || Array.isArray(item)) return [];
+    const status = GOAL_STATUSES.find((s) => s === item.status) ?? null;
+    return typeof item.goal_id === 'string' && typeof item.metric === 'string'
+      ? [
+          {
+            goalId: item.goal_id,
+            metric: item.metric,
+            status,
+            onTrack: typeof item.on_track === 'boolean' ? item.on_track : null,
+          },
+        ]
+      : [];
+  });
+}
+
+const ruleCount = (done: number | null | undefined, due: number | null | undefined) =>
+  done === null || done === undefined || due === null || due === undefined ? null : { done, due };
+
+/**
+ * How every participant is doing in a season (trainings weeks, goal statuses, habit quota,
+ * the season's rules), in the participants' order (null seasonId: disabled).
+ */
+export function useSeasonOverview(seasonId: string | null) {
+  const { group } = useActiveGroup();
+  const today = goalTodayKey();
+  return useQuery({
+    queryKey: seasonKeys.overview(group.id, seasonId ?? '', today),
+    enabled: seasonId !== null,
+    queryFn: async (): Promise<SeasonOverviewRow[]> => {
+      const { data, error } = await supabase.rpc('season_overview', {
+        p_season_id: seasonId ?? '',
+        p_today: today,
+        p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (error) throw error;
+      return data.map((row) => {
+        const counted = orNull(row.training_weeks);
+        const met = orNull(row.training_weeks_met);
+        return {
+          userId: row.user_id,
+          startsOn: row.starts_on,
+          trainingWeeks: counted === null || met === null ? null : { counted, met },
+          goals: toGoalDots(row.goals),
+          habitCount: row.habit_count,
+          habitQuotaPct: orNull(row.habit_quota_pct),
+          weighed: ruleCount(row.weigh_weeks_done, row.weigh_weeks_due),
+          checkins: ruleCount(row.checkins_done, row.checkins_due),
+        };
+      });
+    },
+  });
+}
+
+/**
+ * Every participant's mean goal progress (level goals, 0 … 100 %) at the season's week ends
+ * and today; whoever has no such goal has no points (null seasonId: disabled).
+ */
+export function useSeasonProgressWeeks(seasonId: string | null) {
+  const { group } = useActiveGroup();
+  const today = goalTodayKey();
+  return useQuery({
+    queryKey: seasonKeys.progress(group.id, seasonId ?? '', today),
+    enabled: seasonId !== null,
+    queryFn: async (): Promise<SeasonProgressPoint[]> => {
+      const { data, error } = await supabase.rpc('season_progress_weeks', {
+        p_season_id: seasonId ?? '',
+        p_today: today,
+        p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+      if (error) throw error;
+      return data.map((row) => ({
+        userId: row.user_id,
+        onDate: row.on_date,
+        progressPct: row.goal_progress_pct,
+      }));
     },
   });
 }

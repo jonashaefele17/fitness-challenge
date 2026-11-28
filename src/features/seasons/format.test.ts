@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  goalDotLabel,
+  goalDotState,
   missingMetricsText,
+  overviewFigures,
+  progressPctText,
   seasonCountdownText,
   seasonErrorText,
   seasonHabitQuotaText,
@@ -9,6 +13,7 @@ import {
   seasonPhaseLabel,
   seasonRulesLines,
   seasonWeekText,
+  trainingWeeksText,
 } from './format';
 
 const labels: Record<string, string> = {
@@ -129,5 +134,53 @@ describe('season habits', () => {
     expect(seasonHabitQuotaText({ quotaPct: null, met: 0, counted: 0, countUnit: 'days' })).toBe(
       'Noch nichts gezählt',
     );
+  });
+});
+
+describe('goalDotState', () => {
+  it('reached beats the track; otherwise on track or behind', () => {
+    expect(goalDotState({ status: 'target_reached', onTrack: false })).toBe('reached');
+    expect(goalDotState({ status: 'not_reached', onTrack: true })).toBe('on_track');
+    expect(goalDotState({ status: 'below_min', onTrack: false })).toBe('behind');
+  });
+  it('nothing measured yet: open', () => {
+    expect(goalDotState({ status: null, onTrack: null })).toBe('open');
+    expect(goalDotLabel('open')).toBe('Noch kein Stand');
+    expect(goalDotLabel('behind')).toBe('Hinter Plan');
+  });
+});
+
+describe('trainingWeeksText', () => {
+  it('counts the weeks with the weekly target reached', () => {
+    expect(trainingWeeksText({ counted: 4, met: 3 })).toBe('Wochenziel in 3 von 4 Wochen');
+    expect(trainingWeeksText({ counted: 1, met: 0 })).toBe('Wochenziel in 0 von 1 Woche');
+  });
+  it('before the first finished week', () => {
+    expect(trainingWeeksText({ counted: 0, met: 0 })).toBe('Wochenziel: noch keine Woche fertig');
+  });
+});
+
+describe('overviewFigures', () => {
+  const none = { habitCount: 0, habitQuotaPct: null, weighed: null, checkins: null };
+  it('only what applies', () => {
+    expect(
+      overviewFigures({
+        habitCount: 2,
+        habitQuotaPct: 74.6,
+        weighed: { done: 3, due: 4 },
+        checkins: { done: 1, due: 1 },
+      }),
+    ).toEqual(['Habits 75 %', 'Gewogen 3/4', 'Zwischenstand 1/1']);
+    expect(overviewFigures({ ...none, weighed: { done: 0, due: 0 } })).toEqual(['Gewogen 0/0']);
+  });
+  it('habits without a quota yet: a dash; nothing at all: empty', () => {
+    expect(overviewFigures({ ...none, habitCount: 1 })).toEqual(['Habits –']);
+    expect(overviewFigures(none)).toEqual([]);
+  });
+});
+
+describe('progressPctText', () => {
+  it('rounds to whole percent', () => {
+    expect(progressPctText(34.6)).toBe('35 %');
   });
 });

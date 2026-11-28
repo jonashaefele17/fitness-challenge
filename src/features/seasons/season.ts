@@ -258,3 +258,18 @@ export function correctionUndoOf(goal: Goal): CorrectSeasonGoalInput | null {
     targetValue: goal.targetValue,
   };
 }
+
+/**
+ * Where everyone should be on a day by the season's clock: 0 % at the start, 100 % at the
+ * end, straight in between (clamped).
+ */
+export function seasonTargetPct(season: Pick<Season, 'startsOn' | 'endsOn'>, day: string): number {
+  const length = daysBetween(season.startsOn, season.endsOn);
+  if (length <= 0) return 100;
+  return Math.min(100, Math.max(0, (daysBetween(season.startsOn, day) / length) * 100));
+}
+
+/** Me first, then the others in their order. */
+export function meFirst<T extends { userId: string }>(rows: readonly T[], userId: string): T[] {
+  return [...rows.filter((r) => r.userId === userId), ...rows.filter((r) => r.userId !== userId)];
+}

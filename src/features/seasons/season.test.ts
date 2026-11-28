@@ -10,10 +10,12 @@ import {
   currentSeason,
   daysBetween,
   draftSeason,
+  meFirst,
   missingMetrics,
   readyLocks,
   seasonGoalsByPerson,
   seasonPhase,
+  seasonTargetPct,
   seasonUpdateOf,
   seasonWeeks,
   setupPending,
@@ -315,5 +317,25 @@ describe('season goals', () => {
       targetValue: 4,
     });
     expect(correctionUndoOf(goal({ valuesHidden: true }))).toBeNull();
+  });
+});
+
+describe('seasonTargetPct', () => {
+  const frame = { startsOn: '2026-11-30', endsOn: '2027-02-21' };
+  it('runs straight from 0 % at the start to 100 % at the end', () => {
+    expect(seasonTargetPct(frame, '2026-11-30')).toBe(0);
+    expect(seasonTargetPct(frame, '2027-02-21')).toBe(100);
+    expect(seasonTargetPct(frame, '2026-12-23')).toBeCloseTo((23 / 83) * 100);
+  });
+  it('stays inside 0 … 100 %', () => {
+    expect(seasonTargetPct(frame, '2026-11-01')).toBe(0);
+    expect(seasonTargetPct(frame, '2027-03-01')).toBe(100);
+  });
+});
+
+describe('meFirst', () => {
+  it('puts me first and keeps the others in their order', () => {
+    const rows = [{ userId: 'a' }, { userId: 'me' }, { userId: 'b' }];
+    expect(meFirst(rows, 'me').map((r) => r.userId)).toEqual(['me', 'a', 'b']);
   });
 });

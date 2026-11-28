@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Season } from '@/features/seasons';
-import { comparePeriodRange, periodSeason, shownPeriod } from './period';
+import { comparePeriodRange, periodSeason, shownPeriod, shownWhat } from './period';
 
 const season = (phase: Season['phase'], startsOn = '2026-11-02', endsOn = '2027-01-24') =>
   ({ phase, startsOn, endsOn }) as Season;
@@ -61,5 +61,19 @@ describe('comparePeriodRange', () => {
       from: '2025-11-29',
       to: '2026-11-28',
     });
+  });
+});
+
+describe('shownWhat', () => {
+  it('defaults to the overview while a season runs, else to Trainings', () => {
+    expect(shownWhat(null, season('running'))).toBe('overview');
+    expect(shownWhat(null, season('ended'))).toBe('trainings');
+    expect(shownWhat(null, null)).toBe('trainings');
+  });
+
+  it('keeps what was chosen; the overview without a season falls back to Trainings', () => {
+    expect(shownWhat('weight', season('running'))).toBe('weight');
+    expect(shownWhat('overview', season('ended'))).toBe('overview');
+    expect(shownWhat('overview', null)).toBe('trainings');
   });
 });

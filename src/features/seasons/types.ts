@@ -1,4 +1,4 @@
-import type { Goal } from '@/features/goals';
+import type { Goal, GoalStatus } from '@/features/goals';
 import type { HabitDefinition } from '@/features/habits';
 
 /**
@@ -109,6 +109,48 @@ export interface SeasonHabit {
   locked: boolean;
   /** An admin opened the rule for one change until then; null: not open. */
   editOpenUntil: string | null;
+}
+
+/** A season goal as a dot in the overview (status only, never values). */
+export interface SeasonGoalDot {
+  goalId: string;
+  metric: string;
+  /** null: nothing measured yet. */
+  status: GoalStatus | null;
+  onTrack: boolean | null;
+}
+
+/** Done out of what counts so far (a season rule). */
+export interface SeasonRuleCount {
+  done: number;
+  due: number;
+}
+
+/**
+ * How a participant is doing in a season, at a glance (season_overview). Counts and
+ * statuses only – no kg, cm or habit names.
+ */
+export interface SeasonOverviewRow {
+  userId: string;
+  startsOn: string;
+  /** The trainings goal: finished weeks that count / with the weekly target reached; null: no such goal. */
+  trainingWeeks: { counted: number; met: number } | null;
+  /** Every season goal, in the metrics' order. */
+  goals: SeasonGoalDot[];
+  habitCount: number;
+  /** Mean quota of the season habits, 0 … 100; null: nothing counted yet. */
+  habitQuotaPct: number | null;
+  /** Rule "weigh weekly": weeks weighed / weeks that count; null: the season has no such rule. */
+  weighed: SeasonRuleCount | null;
+  /** Rule "Zwischenstand every x weeks": check-ins made / due; null: no such rule. */
+  checkins: SeasonRuleCount | null;
+}
+
+/** A participant's mean goal progress (level goals, 0 … 100 %) on a day (season_progress_weeks). */
+export interface SeasonProgressPoint {
+  userId: string;
+  onDate: string;
+  progressPct: number;
 }
 
 /** What useCreateSeason takes. */

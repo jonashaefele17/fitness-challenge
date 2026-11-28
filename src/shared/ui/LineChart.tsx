@@ -31,6 +31,13 @@ export interface LineChartProps<P extends LinePoint> {
   formatAxis: (value: number) => string;
   /** Label of the dashed zero line. */
   zeroLabel: string;
+  /**
+   * A pale dashed straight line over the days shown (e.g. where one should be by then),
+   * from its value on the first to its value on the last day; in the readout too.
+   */
+  reference?: { name: string; valueOn: (day: string) => number };
+  /** The key of a line to stand out: the others are dimmed and left out of the readout. */
+  highlight?: string | null;
 }
 
 // SVG geometry in px (matches the h-chart token).
@@ -38,6 +45,8 @@ const HEIGHT = 168;
 const BOX = { left: 44, right: 8, top: 10, bottom: 22 };
 const DOT_R = 2.5;
 const DOT_OPACITY = 0.35;
+/** Lines that do not stand out while one is highlighted. */
+const DIM_OPACITY = 0.2;
 /** Axis labels closer than this to the zero line's label are left out. */
 const LABEL_GAP = 12;
 
@@ -52,7 +61,8 @@ const date = (day: string) => new Date(`${day}T12:00:00`);
 
 /**
  * Several lines on one axis (a line per person in their colour) with a quiet zero line;
- * tap or drag to read a day. Remount (key) to forget the picked day.
+ * tap or drag to read a day; optionally a reference line and one line highlighted. Remount
+ * (key) to forget the picked day.
  */
 export function LineChart<P extends LinePoint>({
   series,
@@ -61,18 +71,26 @@ export function LineChart<P extends LinePoint>({
   formatValue,
   formatAxis,
   zeroLabel,
+  reference,
+  highlight = null,
 }: LineChartProps<P>) {
   const [ref, width] = useWidth();
   const [picked, setPicked] = useState<number | null>(null);
+  const days = series.flatMap((s) => s.points.map((p) => p.onDate)).sort();
+  const edges = [days[0], days.at(-1)].filter((d) => d !== undefined);
   const layout =
     width > 0
-      ? lineChartLayout(
-          series,
-          { width, height: HEIGHT, ...BOX },
-          axis,
-          series.flatMap((s) => (s.dots ?? []).map((d) => d.value)),
-        )
+      ? lineChartLayout(series, { width, height: HEIGHT, ...BOX }, axis, [
+          ...series.flatMap((s) => (s.dots ?? []).map((d) => d.value)),
+          ...(reference ? edges.map((d) => reference.valueOn(d)) : []),
+        ])
       : null;
+  const shown = highlight !== null && series.some((s) => s.key === highlight) ? highlight : null;
+  const dimmed = (key: string) => shown !== null && key !== shown;
+  // The highlighted line is drawn last, on top.
+  const drawn = shown
+    ? [...series.filter((s) => s.key !== shown), ...series.filter((s) => s.key === shown)]
+    : series;
   const pickedDay = picked !== null ? layout?.dates[picked] : undefined;
   const first = layout?.dates[0];
   const last = layout?.dates.at(-1);
@@ -88,6 +106,7 @@ export function LineChart<P extends LinePoint>({
 
   const readout = pickedDay
     ? series.flatMap((line) => {
+        if (dimmed(line.key)) return [];
         const point = valueOn(line.points, pickedDay);
         return point ? [{ line, point }] : [];
       })
@@ -121,6 +140,11 @@ export function LineChart<P extends LinePoint>({
                 </span>
               </span>
             ))}
+            {reference && (
+              <span>
+                {reference.name} {formatAxis(reference.valueOn(pickedDay))}
+              </span>
+            )}
           </>
         ) : (
           <span>Antippen für Werte</span>
@@ -204,20 +228,32 @@ export function LineChart<P extends LinePoint>({
               />
             )}
 
+            {reference && first && last && layout.dates.length > 1 && (
+              <line
+                x1={layout.x(first)}
+                x2={layout.x(last)}
+                y1={layout.y(reference.valueOn(first))}
+                y2={layout.y(reference.valueOn(last))}
+                className="stroke-text-subtle"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+              />
+            )}
+
             {/* Single values: pale dots under the lines. */}
-            {series.flatMap((line) =>
+            {drawn.flatMap((line) =>
               (line.dots ?? []).map((d) => (
                 <circle
                   key={`${line.key}-${d.onDate}`}
                   cx={layout.x(d.onDate)}
                   cy={layout.y(d.value)}
                   r={DOT_R}
-                  opacity={DOT_OPACITY}
+                  opacity={DOT_OPACITY * (dimmed(line.key) ? DIM_OPACITY : 1)}
                   style={{ fill: line.color }}
                 />
               )),
             )}
-            {series.map((line) =>
+            {drawn.map((line) =>
               line.points.length > 1 ? (
                 <path
                   key={line.key}
@@ -228,6 +264,8 @@ export function LineChart<P extends LinePoint>({
                     )
                     .join(' ')}
                   fill="none"
+                  opacity={dimmed(line.key) ? DIM_OPACITY : 1}
+                  className="transition-opacity duration-(--duration-base) motion-reduce:transition-none"
                   style={{ stroke: line.color }}
                   strokeWidth={2.5}
                   strokeLinecap="round"
@@ -241,6 +279,7 @@ export function LineChart<P extends LinePoint>({
                     cx={layout.x(p.onDate)}
                     cy={layout.y(p.value)}
                     r={4}
+                    opacity={dimmed(line.key) ? DIM_OPACITY : 1}
                     style={{ fill: line.color }}
                   />
                 ))

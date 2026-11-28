@@ -37,7 +37,7 @@ import { GoalCorrectionSheet } from './GoalCorrectionSheet';
  * Everyone in the season: their setup state and their season goals (progress and status;
  * kg / cm only as far as each person shares them). A goal opens its detail read-only, with
  * the app's slot (comments) and – for group admins on a locked goal – "Korrigieren". Admins
- * also add and remove participants here.
+ * also add and remove participants here. focusUserId puts one participant first.
  */
 export function SeasonParticipantsSheet({
   season,
@@ -45,6 +45,7 @@ export function SeasonParticipantsSheet({
   onOpenChange,
   metricLabel,
   goalExtra,
+  focusUserId = null,
 }: {
   season: Season;
   open: boolean;
@@ -52,6 +53,8 @@ export function SeasonParticipantsSheet({
   metricLabel: (key: string) => string;
   /** Under a goal's figures in its detail (e.g. its comments), from the app. */
   goalExtra?: (goal: Goal) => ReactNode;
+  /** Show this participant first (opened from their row in the comparison). */
+  focusUserId?: string | null;
 }) {
   const userId = useUserId();
   const { group } = useActiveGroup();
@@ -70,7 +73,13 @@ export function SeasonParticipantsSheet({
   const [removing, setRemoving] = useState<GroupMember | null>(null);
 
   const memberOf = (id: string) => members.find((m) => m.userId === id);
-  const list = participants.data ?? [];
+  const all = participants.data ?? [];
+  const list = focusUserId
+    ? [
+        ...all.filter((p) => p.userId === focusUserId),
+        ...all.filter((p) => p.userId !== focusUserId),
+      ]
+    : all;
   const others = members.filter((m) => !list.some((p) => p.userId === m.userId));
   const started = seasonStarted(season);
   const live = season.phase !== 'cancelled' && season.phase !== 'ended';

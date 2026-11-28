@@ -1,14 +1,26 @@
 import { useState } from 'react';
 import { todayKey } from '@/features/body';
 import { HabitComparison, TrainingComparison, WeightComparison } from '@/features/comparison';
-import { useCurrentSeason } from '@/features/seasons';
+import type { Goal } from '@/features/goals';
+import { useActiveGroup } from '@/features/groups';
+import { SeasonOverview, useCurrentSeason } from '@/features/seasons';
 import { Chip, SegmentedControl, type SegmentedOption } from '@/shared/ui';
-import { comparePeriodRange, periodSeason, shownPeriod, type ComparePeriod } from './period';
+import { GoalComments } from '../goals/GoalComments';
+import {
+  comparePeriodRange,
+  periodSeason,
+  shownPeriod,
+  shownWhat,
+  type ComparePeriod,
+  type CompareWhat,
+} from './period';
 
-type CompareWhat = 'trainings' | 'habits' | 'weight';
-
-/** Vergleich → Was; `periods`: whether the Zeitraum applies to the view. */
-const WHAT: { value: CompareWhat; label: string; periods: boolean }[] = [
+/**
+ * Vergleich → Was; `periods`: whether the Zeitraum applies to the view; `season`: only
+ * with a season (running or ended).
+ */
+const WHAT: { value: CompareWhat; label: string; periods: boolean; season?: boolean }[] = [
+  { value: 'overview', label: 'Übersicht', periods: false, season: true },
   { value: 'trainings', label: 'Trainings', periods: true },
   { value: 'habits', label: 'Habits', periods: false },
   { value: 'weight', label: 'Gewicht', periods: true },
@@ -22,15 +34,18 @@ const FIXED_PERIODS: SegmentedOption<ComparePeriod>[] = [
 
 /**
  * Gruppe → Vergleich: what to compare (a swipeable row) and over which period, then the
- * view from the comparison module. The period "Saison" is the current season once it has
+ * view from the comparison module – or the season's overview from the seasons module (the
+ * first entry while there is a season, the default while it runs; always the season). The period "Saison" is the current season once it has
  * started – the default while it runs – and goes into the views as plain dates, so the
  * comparison module knows nothing of seasons.
  */
 export function CompareView({ onOpenSharing }: { onOpenSharing: () => void }) {
   const [today] = useState(todayKey);
-  const [what, setWhat] = useState<CompareWhat>('trainings');
+  const { group } = useActiveGroup();
+  const [chosenWhat, setWhat] = useState<CompareWhat | null>(null);
   const [chosen, setChosen] = useState<ComparePeriod | null>(null);
   const season = periodSeason(useCurrentSeason().data);
+  const what = shownWhat(chosenWhat, season);
   const period = shownPeriod(chosen, season);
   const { from, to } = comparePeriodRange(period, today, season);
   const withPeriods = WHAT.find((w) => w.value === what)?.periods ?? false;
@@ -42,7 +57,7 @@ export function CompareView({ onOpenSharing }: { onOpenSharing: () => void }) {
         aria-label="Was"
         className="-mx-gutter no-scrollbar flex gap-2 overflow-x-auto px-gutter py-1.5"
       >
-        {WHAT.map((option) => (
+        {WHAT.filter((option) => !option.season || season).map((option) => (
           <Chip
             key={option.value}
             selected={option.value === what}
@@ -64,7 +79,12 @@ export function CompareView({ onOpenSharing }: { onOpenSharing: () => void }) {
           }
         />
       )}
-      {what === 'trainings' ? (
+      {what === 'overview' && season ? (
+        <SeasonOverview
+          season={season}
+          goalExtra={(goal: Goal) => <GoalComments goal={goal} groupId={group.id} />}
+        />
+      ) : what === 'trainings' ? (
         <TrainingComparison from={from} to={to} />
       ) : what === 'weight' ? (
         <WeightComparison from={from} to={to} onOpenSharing={onOpenSharing} />

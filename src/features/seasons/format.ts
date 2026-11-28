@@ -1,6 +1,14 @@
 import { frequencyText, ruleText } from '@/features/habits';
 import { daysBetween } from './season';
-import type { Season, SeasonDayMarker, SeasonHabit, SeasonPhase, SeasonRules } from './types';
+import type {
+  Season,
+  SeasonDayMarker,
+  SeasonGoalDot,
+  SeasonHabit,
+  SeasonOverviewRow,
+  SeasonPhase,
+  SeasonRules,
+} from './types';
 
 const PHASE_LABELS: Record<SeasonPhase, string> = {
   announced: 'Angekündigt',
@@ -169,4 +177,59 @@ const untilFormat = new Intl.DateTimeFormat('de', {
 /** An open edit window: "Änderbar bis Fr., 18:30". */
 export function seasonHabitEditText(editOpenUntil: string): string {
   return `Änderbar bis ${untilFormat.format(new Date(editOpenUntil))}`;
+}
+
+/** A season goal as a dot: target reached, on track, behind, or nothing measured yet. */
+export type GoalDotState = 'reached' | 'on_track' | 'behind' | 'open';
+
+export function goalDotState(dot: Pick<SeasonGoalDot, 'status' | 'onTrack'>): GoalDotState {
+  if (dot.status === 'target_reached') return 'reached';
+  if (dot.onTrack === null) return 'open';
+  return dot.onTrack ? 'on_track' : 'behind';
+}
+
+const DOT_LABELS: Record<GoalDotState, string> = {
+  reached: 'Ziel erreicht',
+  on_track: 'Auf Kurs',
+  behind: 'Hinter Plan',
+  open: 'Noch kein Stand',
+};
+
+/** The words for a dot (screen readers, the legend). */
+export function goalDotLabel(state: GoalDotState): string {
+  return DOT_LABELS[state];
+}
+
+/** "Wochenziel in 3 von 4 Wochen"; no finished week yet: "Wochenziel: noch keine Woche fertig". */
+export function trainingWeeksText(weeks: { counted: number; met: number }): string {
+  if (weeks.counted === 0) return 'Wochenziel: noch keine Woche fertig';
+  return `Wochenziel in ${String(weeks.met)} von ${String(weeks.counted)} ${
+    weeks.counted === 1 ? 'Woche' : 'Wochen'
+  }`;
+}
+
+/**
+ * The small figures of a participant: "Habits 75 %", "Gewogen 3/4", "Zwischenstand 1/1" –
+ * only what applies (habits only with season habits, "–" while nothing counted; the rules
+ * only when the season has them).
+ */
+export function overviewFigures(
+  row: Pick<SeasonOverviewRow, 'habitCount' | 'habitQuotaPct' | 'weighed' | 'checkins'>,
+): string[] {
+  const parts: string[] = [];
+  if (row.habitCount > 0) {
+    parts.push(
+      `Habits ${row.habitQuotaPct === null ? '–' : `${String(Math.round(row.habitQuotaPct))} %`}`,
+    );
+  }
+  if (row.weighed) parts.push(`Gewogen ${String(row.weighed.done)}/${String(row.weighed.due)}`);
+  if (row.checkins) {
+    parts.push(`Zwischenstand ${String(row.checkins.done)}/${String(row.checkins.due)}`);
+  }
+  return parts;
+}
+
+/** "35 %" (progress axis and readout). */
+export function progressPctText(value: number): string {
+  return `${String(Math.round(value))} %`;
 }

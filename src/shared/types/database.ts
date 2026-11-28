@@ -3846,6 +3846,22 @@ export type Database = {
           weekdays: number[];
         }[];
       };
+      season_overview: {
+        Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          checkins_done: number;
+          checkins_due: number;
+          goals: Json;
+          habit_count: number;
+          habit_quota_pct: number;
+          starts_on: string;
+          training_weeks: number;
+          training_weeks_met: number;
+          user_id: string;
+          weigh_weeks_done: number;
+          weigh_weeks_due: number;
+        }[];
+      };
       season_participants: {
         Args: { p_season_id: string };
         Returns: {
@@ -3856,6 +3872,14 @@ export type Database = {
           missing_metrics: string[];
           ready_at: string;
           starts_on: string;
+          user_id: string;
+        }[];
+      };
+      season_progress_weeks: {
+        Args: { p_season_id: string; p_time_zone?: string; p_today?: string };
+        Returns: {
+          goal_progress_pct: number;
+          on_date: string;
           user_id: string;
         }[];
       };

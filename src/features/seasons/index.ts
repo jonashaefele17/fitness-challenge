@@ -15,7 +15,9 @@ export {
   useSeasonGoalLinks,
   useSeasonGoals,
   useSeasonHabits,
+  useSeasonOverview,
   useSeasonParticipants,
+  useSeasonProgressWeeks,
   useSeasons,
   useSetSeasonReady,
   useUnlinkSeasonGoal,
@@ -64,5 +66,6 @@ export {
   type SetupStep,
 } from './setup';
 export { SeasonBlock } from './components/SeasonBlock';
+export { SeasonOverview } from './components/SeasonOverview';
 export { SeasonSetupFlow } from './components/SeasonSetupFlow';
 export { useSetupAutoOpen } from './components/useSetupAutoOpen';

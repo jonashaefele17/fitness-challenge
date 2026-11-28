@@ -102,6 +102,22 @@ describe('lineChartLayout, count axis', () => {
   });
 });
 
+describe('lineChartLayout, progress axis', () => {
+  it('is fixed to 0 … 100 %, whatever the lines reach', () => {
+    const layout = lineChartLayout(
+      [{ points: [day('2026-11-01', 0), day('2026-11-08', 12)] }],
+      box,
+      'progress',
+    );
+    const y = layout?.y ?? (() => 0);
+    expect(y(0)).toBe(box.height - box.bottom);
+    expect(y(100)).toBe(box.top);
+    expect(y(50)).toBeCloseTo(box.top + plotH / 2);
+    expect(layout?.min).toBe(0);
+    expect(layout?.max).toBe(100);
+  });
+});
+
 describe('valueOn', () => {
   const days = [day('2026-11-01', 0), day('2026-11-08', -1), day('2026-11-15', -2)];
 

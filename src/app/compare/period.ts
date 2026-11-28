@@ -4,6 +4,15 @@ import type { Season } from '@/features/seasons';
 /** Vergleich → Zeitraum. */
 export type ComparePeriod = 'season' | '4w' | '3m' | '1y';
 
+/** Vergleich → Was. "Übersicht" is the season's and needs one (see periodSeason). */
+export type CompareWhat = 'overview' | 'trainings' | 'habits' | 'weight';
+
+/** What is shown: the chosen view, else "Übersicht" while a season runs, else Trainings. */
+export function shownWhat(chosen: CompareWhat | null, season: Season | null): CompareWhat {
+  if (chosen === 'overview') return season ? 'overview' : 'trainings';
+  return chosen ?? (season?.phase === 'running' ? 'overview' : 'trainings');
+}
+
 /** The season the period "Saison" stands for: the current one once it has started. */
 export function periodSeason(season: Season | null | undefined): Season | null {
   return season && (season.phase === 'running' || season.phase === 'ended') ? season : null;

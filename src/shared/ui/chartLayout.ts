@@ -3,6 +3,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MIN_SPAN_PCT = 2;
 /** A count axis reaches at least this high, so a few days do not fill the whole height. */
 const MIN_SPAN_COUNT = 4;
+/** The top of a progress axis (100 %). */
+const PROGRESS_MAX = 100;
 
 export interface ChartBox {
   width: number;
@@ -22,8 +24,9 @@ export interface LinePoint {
 /**
  * percent: change in %, the axis around all values and zero with a little air on both sides.
  * count: a number from zero up, zero at the bottom.
+ * progress: a share from 0 to 100 %, the axis fixed to exactly that.
  */
-export type LineAxis = 'percent' | 'count';
+export type LineAxis = 'percent' | 'count' | 'progress';
 
 export interface LineChartLayout {
   /** Every day any line has a point on, oldest first, and its x. */
@@ -31,7 +34,7 @@ export interface LineChartLayout {
   xs: number[];
   x: (day: string) => number;
   y: (value: number) => number;
-  /** Lowest and highest value of all lines (0 included). */
+  /** Lowest and highest value of all lines (0 included); progress: 0 and 100. */
   min: number;
   max: number;
 }
@@ -54,14 +57,17 @@ export function lineChartLayout(
   const last = dates.at(-1);
   if (!first || !last) return null;
   const values = [0, ...series.flatMap((s) => s.points.map((p) => p.value))];
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const min = axis === 'progress' ? 0 : Math.min(...values);
+  const max = axis === 'progress' ? PROGRESS_MAX : Math.max(...values);
   const low = Math.min(min, ...alsoValues);
   const high = Math.max(max, ...alsoValues);
   const air = (high - low) * 0.12;
   let lo: number;
   let hi: number;
-  if (axis === 'count') {
+  if (axis === 'progress') {
+    lo = 0;
+    hi = PROGRESS_MAX;
+  } else if (axis === 'count') {
     lo = low;
     hi = Math.max(high + air, lo + MIN_SPAN_COUNT);
   } else {

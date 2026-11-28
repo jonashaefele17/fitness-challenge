@@ -262,7 +262,7 @@ Jede Etappe ist für sich nutzbar und wird einzeln auf Staging getestet. Umfang:
 - Normalfall bleibt automatisch: Niemand muss pro Etappe etwas eingeben.
 - Im Detail eines Saisonziels mit Start und Ziel (Gewicht, Kraft, Körpermaß) gibt es eine ruhige Zeile „Etappenziele selbst festlegen“: die Liste der Etappen mit den automatischen Werten, jeder einzeln überschreibbar; „Zurück auf automatisch“ setzt alles wieder gerade.
 - Jeder Wert liegt zwischen Start und Ziel. Fest ab „Bereit“ wie das Ziel selbst; im Anpassungsfenster lassen sich die Werte der kommenden Etappen ändern.
-- Wer im Fenster das Ziel ändert, bekommt für die restlichen Etappen wieder die automatische Aufteilung (mit Hinweis).
+- Wer eigene Etappenziele hat und im Fenster das Ziel ändert, wählt: „Neu aufteilen“ (die restlichen Etappen gleichmäßig auf das neue Ziel) oder „Meine Etappenziele behalten“. Beim Behalten bleiben die Werte der kommenden Etappen stehen, die noch zwischen dem heutigen Stand der Linie und dem neuen Ziel liegen; die übrigen werden automatisch gesetzt, und die App nennt sie. Nachstellen geht im selben Fenster.
 - Nur die Ziellinie: Das Mindestziel bleibt ein Wert für die ganze Saison. Nicht für Trainings und Habits.
 
 **Darstellung**
